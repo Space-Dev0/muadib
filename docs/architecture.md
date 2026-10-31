@@ -16,6 +16,9 @@ acceleration.
 | `exposure/measure.py` | `load_rules`, `estimate`, `wilson_interval`, and the measurement CLI. Produces schema-1 reports, optionally with singleton and pair `predicate_subsets`. |
 | `exposure/mixture.py` | `summarize` and the mixture CLI. Validates subset-enabled reports, computes weighted rule and pair exposures, and reports log lift. |
 | `exposure/design.py` | `solve` and the design CLI. Validates a report, checks feasibility with a continuous LP, and optionally minimizes KL divergence to uniform with SLSQP. |
+| `exposure/grammar_audit.py` | Audits canonical rule layouts and constructs witnesses for the prototype grammar. |
+| `exposure/validate_mixture.py` | Compares matrix predictions with independently sampled mixture scenes. |
+| `exposure/checker.py` | Prototype pixel-based object and rule checker with a clean-render audit. |
 | `examples/` | Example rule sets, weights, and loose feasibility constraints. |
 | `tests/` | Unit and CLI tests for rules, rendering, measurement, mixtures, and design feasibility. |
 
@@ -39,8 +42,8 @@ acceleration.
 
 ## Current limits
 
-- No trained model, image-based checker, external dataset, CUDA acceleration, or
-  validated exposure design is implemented.
+- No trained model, externally validated image checker, external dataset, CUDA
+  acceleration, or validated exposure design is implemented.
 - Estimates are finite-sample and descriptive; uncertainty is not propagated,
   and fixed marginals require explicit equality bounds.
 - LP feasibility applies only to the estimated matrix. It is not population

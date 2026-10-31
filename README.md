@@ -27,6 +27,10 @@ third renders a rule-conditioned scene to `outputs/example.png` and
   file format, predicate semantics, sampling, and output JSON.
 - [Exposure measurement](docs/exposure-measurement.md): named rule sets, the
   measurement CLI, satisfaction columns, Wilson intervals, and limitations.
+- [Grammar audit](docs/grammar-audit.md): canonical rule layouts and witnesses.
+- [Prototype image checker](docs/checker.md): clean-render audit and limitations.
+- [Mixture validation](docs/mixture-validation.md): compare matrix predictions
+  against fresh sampled scenes.
 - [Mixture analysis](docs/mixture-analysis.md): weighted exposures, rule and
   pair log lift, weight validation, and interpretation limits.
 - [Exposure design](docs/exposure-design.md): feasibility constraints, LP
@@ -35,5 +39,7 @@ third renders a rule-conditioned scene to `outputs/example.png` and
   high full-rule exposure with two matched predicate marginals.
 - [Architecture](docs/architecture.md): module interfaces, design decisions,
   current limits, and the test command.
+- [Experiment specification](docs/experiment-spec.md): current rule and
+  exposure semantics, unresolved decisions, and Stage 0 gates.
 - [Research and hardware plan](docs/research-and-hardware-plan.md): dataset
   strategy, CPU/CUDA plans, and current limitations.
