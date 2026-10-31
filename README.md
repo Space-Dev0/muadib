@@ -31,6 +31,8 @@ third renders a rule-conditioned scene to `outputs/example.png` and
   pair log lift, weight validation, and interpretation limits.
 - [Exposure design](docs/exposure-design.md): feasibility constraints, LP
   formulation, solver statuses, and numerical limits.
+- [Matched-marginal pilot](docs/matched-marginal-pilot.md): illustrative low and
+  high full-rule exposure with two matched predicate marginals.
 - [Architecture](docs/architecture.md): module interfaces, design decisions,
   current limits, and the test command.
 - [Research and hardware plan](docs/research-and-hardware-plan.md): dataset

@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from exposure.design import solve
 from exposure.measure import estimate, load_rules
 from exposure.mixture import _lift_status, _log_lift, summarize
 
@@ -43,6 +44,20 @@ class MixtureTests(unittest.TestCase):
         self.report["include_subsets"] = False
         with self.assertRaisesRegex(ValueError, "--include-subsets"):
             summarize(self.report, self.weights)
+
+    def test_absent_include_subsets_has_actionable_error(self):
+        report = dict(self.report)
+        report.pop("include_subsets", None)
+        with self.assertRaisesRegex(ValueError, "old or incomplete") as summarize_error:
+            summarize(report, self.weights)
+        message = str(summarize_error.exception)
+        for expected in ("python -m exposure.measure", "--include-subsets", "new --output", "--report"):
+            self.assertIn(expected, message)
+        specification = {"constraints": [{"name": "x", "rule": "red", "kind": "rule",
+                                           "predicate_indices": [], "min": 0.0}]}
+        with self.assertRaisesRegex(ValueError, "old or incomplete") as design_error:
+            solve(report, specification)
+        self.assertIn("--include-subsets", str(design_error.exception))
 
     def test_incomplete_or_inconsistent_measurements_fail(self):
         entry = self.report["columns"][0]["predicate_subsets"]["red_left_of_square"].pop()

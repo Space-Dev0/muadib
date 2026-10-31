@@ -1,0 +1,7 @@
+{
+  "constraints": [
+    {"name": "red marginal", "rule": "red", "kind": "predicate", "predicate_indices": [0], "min": 0.77625, "max": 0.77625},
+    {"name": "square marginal", "rule": "square", "kind": "predicate", "predicate_indices": [0], "min": 0.81375, "max": 0.81375},
+    {"name": "low rule exposure", "rule": "red_left_of_square", "kind": "rule", "predicate_indices": [], "max": 0.32}
+  ]
+}

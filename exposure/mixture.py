@@ -46,7 +46,12 @@ def summarize(report: dict, weights: dict) -> dict:
     rules = load_rules(report.get("rules"))
     names = list(rules)
     if report.get("include_subsets") is not True:
-        raise ValueError("Measurement report must be generated with --include-subsets")
+        raise ValueError(
+            "Measurement report is old or incomplete: include_subsets is not true. "
+            "Rerun `python -m exposure.measure` with the original rule set and "
+            "`--include-subsets`, choose a new --output path so the existing report is "
+            "not overwritten, and pass that subset-enabled report to --report."
+        )
     if not isinstance(weights, dict) or set(weights) != set(names):
         raise ValueError("Weights must contain exactly one entry per condition")
     if any(isinstance(w, bool) or not isinstance(w, (int, float)) or not math.isfinite(w) or w < 0

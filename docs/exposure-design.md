@@ -35,6 +35,28 @@ uv run python -m exposure.design --report outputs/exposure.json --constraints ex
 `outputs/design.json`. `--objective` accepts `feasible` (the default) or
 `min-kl`.
 
+## Troubleshooting: old or incomplete reports
+
+If `exposure.design` or `exposure.mixture` reports that the measurement report
+is old or incomplete because `include_subsets` is not true, the input was made
+by an older or non-subset measurement run. Rerun the measurement with the
+original rule set and `--include-subsets`, writing to a new output path so the
+existing report is not overwritten inadvertently:
+
+```sh
+uv run python -m exposure.measure --rules examples/exposure_rules.json --samples 200 --seed 42 --include-subsets --output outputs/exposure-subset.json
+```
+
+Then pass the generated subset-enabled report to `--report`:
+
+```sh
+uv run python -m exposure.design --report outputs/exposure-subset.json --constraints examples/exposure_constraints.json --output outputs/design.json
+```
+
+Use the same rule set and sampling options as the original measurement. If you
+use `exposure.mixture`, pass the same subset-enabled report to its `--report`
+option as well.
+
 ## Constraint schema
 
 The constraints file is a JSON object with a nonempty `constraints` list and no
