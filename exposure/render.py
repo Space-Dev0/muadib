@@ -72,15 +72,21 @@ def render_conditioned(seed: int, predicates: tuple[Predicate, ...],
 
     Failure within the budget does not establish that the rule is infeasible.
     """
+    objects, attempts = sample_conditioned(random.Random(seed), predicates, max_attempts)
+    return _draw(objects), attempts
+
+
+def sample_conditioned(rng: random.Random, predicates: tuple[Predicate, ...],
+                       max_attempts: int = 10_000) -> tuple[tuple[SceneObject, ...], int]:
+    """Sample annotations without rendering an image, using a caller-owned RNG."""
     if max_attempts < 1:
         raise ValueError("max_attempts must be positive")
     if not predicates:
         raise ValueError("A rule must contain at least one predicate")
-    rng = random.Random(seed)
     for attempt in range(1, max_attempts + 1):
         objects = _sample_objects(rng)
         if satisfies(objects, predicates):
-            return _draw(objects), attempt
+            return objects, attempt
     raise ValueError(f"No matching scene found in {max_attempts} attempts; "
                      "the rule may be rare or infeasible")
 

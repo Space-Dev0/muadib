@@ -25,5 +25,7 @@ third renders a rule-conditioned scene to `outputs/example.png` and
 - [Getting started](docs/getting-started.md): setup, tests, and a first render.
 - [Rendering and rules](docs/rendering-and-rules.md): command-line options, rule
   file format, predicate semantics, sampling, and output JSON.
+- [Exposure measurement](docs/exposure-measurement.md): named rule sets, the
+  measurement CLI, satisfaction columns, Wilson intervals, and limitations.
 - [Research and hardware plan](docs/research-and-hardware-plan.md): dataset
   strategy, CPU/CUDA plans, and current limitations.
