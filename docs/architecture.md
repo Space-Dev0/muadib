@@ -17,8 +17,15 @@ acceleration.
 | `exposure/mixture.py` | `summarize` and the mixture CLI. Validates subset-enabled reports, computes weighted rule and pair exposures, and reports log lift. |
 | `exposure/design.py` | `solve` and the design CLI. Validates a report, checks feasibility with a continuous LP, and optionally minimizes KL divergence to uniform with SLSQP. |
 | `exposure/grammar_audit.py` | Audits canonical rule layouts and constructs witnesses for the prototype grammar. |
+| `exposure/templates.py` | Builds a provisional 57-template rule set and manifest. |
+| `exposure/template_balance.py` | Reports per-cell vocabulary coverage without declaring balance. |
 | `exposure/validate_mixture.py` | Compares matrix predictions with independently sampled mixture scenes. |
 | `exposure/checker.py` | Prototype pixel-based object and rule checker with a clean-render audit. |
+| `exposure/checker_perturb.py` | Controlled brightness and blur audits, including rejected detections. |
+| `exposure/human_audit.py` | Prepares blinded stratified reviews and scores actual human judgments. |
+| `exposure/gaussian_diagnostic.py` | One-dimensional Gaussian-mixture Bayes denoiser and noise-loss reference. |
+| `exposure/design_diagnostics.py` | Exploratory pooled correlation and VIF diagnostics for candidate allocations. |
+| `exposure/design_subspace.py` | SVD analysis of estimated singleton-preserving equality directions. |
 | `examples/` | Example rule sets, weights, and loose feasibility constraints. |
 | `tests/` | Unit and CLI tests for rules, rendering, measurement, mixtures, and design feasibility. |
 

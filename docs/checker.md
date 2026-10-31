@@ -23,6 +23,13 @@ These counts reveal whether detector coverage differs between positive and
 negative scenes. This audit uses a small fixed
 selection of unary and relational rules, not all proposed templates.
 
+Pass `--rules examples/exposure_rules.json` to audit the named predicates in
+another rule-set file, using the same JSON mapping format as exposure
+measurement. The report then includes `rule_definitions` alongside exact counts
+for each named rule. A zero positive or negative denominator means that error
+rate is unavailable; it does not establish correctness. Without `--rules`, the
+default fixed rule selection is used.
+
 The detector has **not** been validated on diffusion outputs, overlapping or
 touching objects, texture, or realistic perturbations. It cannot guarantee that
 all malformed images are rejected. Clean-render thresholds are prototype

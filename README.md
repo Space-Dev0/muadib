@@ -28,7 +28,19 @@ third renders a rule-conditioned scene to `outputs/example.png` and
 - [Exposure measurement](docs/exposure-measurement.md): named rule sets, the
   measurement CLI, satisfaction columns, Wilson intervals, and limitations.
 - [Grammar audit](docs/grammar-audit.md): canonical rule layouts and witnesses.
+- [Candidate templates](docs/templates.md) and [vocabulary coverage](docs/template-balance.md):
+  provisional rule set and per-cell representation.
 - [Prototype image checker](docs/checker.md): clean-render audit and limitations.
+- [Checker perturbations](docs/checker-perturb.md): detector coverage and errors
+  under controlled image changes.
+- [Human audit workflow](docs/human-audit.md): prepare blinded reviews and score
+  human judgments once generated images are available.
+- [Gaussian diagnostic](docs/gaussian-diagnostic.md): an analytic noise-loss
+  reference for a one-dimensional Gaussian mixture.
+- [Design diagnostics](docs/design-diagnostics.md): exploratory correlations
+  and VIF for candidate designs.
+- [Design subspace](docs/design-subspace.md): numerical singleton-preserving
+  directions for an estimated exposure matrix.
 - [Mixture validation](docs/mixture-validation.md): compare matrix predictions
   against fresh sampled scenes.
 - [Mixture analysis](docs/mixture-analysis.md): weighted exposures, rule and
@@ -37,6 +49,10 @@ third renders a rule-conditioned scene to `outputs/example.png` and
   formulation, solver statuses, and numerical limits.
 - [Matched-marginal pilot](docs/matched-marginal-pilot.md): illustrative low and
   high full-rule exposure with two matched predicate marginals.
+- [MOSAIC replication notes](docs/mosaic-replication.md): source review and
+  outstanding prerequisites for the Stage 0 comparison.
+- [Stage 0 status](docs/stage0-status.md): current instrument evidence and
+  outstanding go/no-go requirements.
 - [Architecture](docs/architecture.md): module interfaces, design decisions,
   current limits, and the test command.
 - [Experiment specification](docs/experiment-spec.md): current rule and

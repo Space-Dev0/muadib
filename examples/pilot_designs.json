@@ -1,0 +1,31 @@
+{
+  "designs": [
+    {
+      "name": "uniform",
+      "weights": {
+        "red": 0.25,
+        "square": 0.25,
+        "red_left_of_square": 0.25,
+        "blue_above_circle": 0.25
+      }
+    },
+    {
+      "name": "low",
+      "weights": {
+        "red": 0.38195856873760703,
+        "square": 0.42916879498406335,
+        "red_left_of_square": 0.062262466786222055,
+        "blue_above_circle": 0.12661016949210754
+      }
+    },
+    {
+      "name": "high",
+      "weights": {
+        "red": 0.11514124293785312,
+        "square": 0.06689342930113795,
+        "red_left_of_square": 0.44186363284575497,
+        "blue_above_circle": 0.3761016949152539
+      }
+    }
+  ]
+}

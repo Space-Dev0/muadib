@@ -11,6 +11,7 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 
+from exposure.measure import load_rules, unique_object
 from exposure.render import COLORS, IMAGE_SIZE, SHAPES, render_scene
 from exposure.rules import Attribute, Relation, SceneObject, satisfies
 
@@ -19,8 +20,8 @@ class DetectionError(ValueError):
     """The image is outside the checker's supported or confident range."""
 
 
-def detect(image: Image.Image) -> tuple[SceneObject, ...]:
-    """Infer objects from pixels only; reject unsupported or ambiguous scenes."""
+def _detect_palette(image: Image.Image, threshold: float = 100) -> tuple[SceneObject, ...]:
+    """Check pixels against the original clean-render palette."""
     if not isinstance(image, Image.Image) or image.mode != "RGB" or image.size != (IMAGE_SIZE, IMAGE_SIZE):
         raise DetectionError("Expected a 64x64 RGB image")
     pixels = np.asarray(image, dtype=np.float64)
@@ -36,7 +37,7 @@ def detect(image: Image.Image) -> tuple[SceneObject, ...]:
     blend_distance = np.linalg.norm(relative - alpha[:, :, :, None] * direction, axis=3).min(axis=2)
     if np.any(blend_distance > 40):
         raise DetectionError("Unrecognized foreground colors")
-    mask = distance <= 100
+    mask = distance <= threshold
     labels, count = ndimage.label(mask)
     if count != 3:
         raise DetectionError(f"Expected three separated objects; found {count} components")
@@ -68,6 +69,42 @@ def detect(image: Image.Image) -> tuple[SceneObject, ...]:
     return tuple(result)
 
 
+def detect(image: Image.Image) -> tuple[SceneObject, ...]:
+    """Infer objects from pixels with conservative fallback checks.
+
+    The correction addresses a uniform grayscale reduction of the white
+    background. It is deliberately narrow and does not imply general robustness.
+    """
+    try:
+        return _detect_palette(image)
+    except DetectionError as original:
+        if not isinstance(image, Image.Image) or image.mode != "RGB" or image.size != (IMAGE_SIZE, IMAGE_SIZE):
+            raise
+        pixels = np.asarray(image, dtype=np.uint8)
+        colors, counts = np.unique(pixels.reshape(-1, 3), axis=0, return_counts=True)
+        background = colors[int(np.argmax(counts))]
+        # Only correct a dominant, neutral background in the calibrated range.
+        if (counts.max() >= pixels.shape[0] * pixels.shape[1] * 0.5 and
+                background[0] == background[1] == background[2] and
+                225 <= int(background[0]) < 255):
+            corrected = np.clip(np.rint(pixels.astype(np.float64) * 255.0 / int(background[0])), 0, 255)
+            try:
+                return _detect_palette(Image.fromarray(corrected.astype(np.uint8)))
+            except DetectionError:
+                pass
+        # A second attempt is accepted only if two threshold
+        # settings both classify all three components identically, including
+        # exact recovered centers. Ambiguous/unsupported images still reject.
+        try:
+            detections = [tuple(sorted(_detect_palette(image, threshold), key=lambda obj: (obj.x, obj.y)))
+                          for threshold in (115, 130)]
+        except DetectionError:
+            raise original from None
+        if detections[0] != detections[1]:
+            raise original
+        return detections[0]
+
+
 def audit_rules() -> dict:
     """Fixed audit rules; include positive and negative examples when available."""
     rules = {f"color_{color}": (Attribute("a", "color", color),) for color in COLORS}
@@ -79,10 +116,13 @@ def audit_rules() -> dict:
     return rules
 
 
-def audit(samples: int, seed: int = 0) -> dict:
+def audit(samples: int, seed: int = 0, *, rules: dict | None = None) -> dict:
     if samples < 1:
         raise ValueError("samples must be positive")
-    rules = audit_rules()
+    if rules is None:
+        rules = audit_rules()
+    if not rules:
+        raise ValueError("Audit rules must not be empty")
     results = {name: {"positive": 0, "negative": 0, "false_accepts": 0, "false_rejects": 0,
                       "detector_failure_positive": 0, "detector_failure_negative": 0}
                for name in rules}
@@ -113,10 +153,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Audit image checker on clean synthetic renders")
     parser.add_argument("--samples", type=int, default=200)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--rules", type=Path, help="optional JSON mapping rule names to predicate lists")
     parser.add_argument("--output", type=Path, default=Path("outputs/checker-audit.json"))
     args = parser.parse_args()
     try:
-        result = audit(args.samples, args.seed)
+        rule_definitions = None
+        rules = None
+        if args.rules:
+            rule_definitions = json.loads(args.rules.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+            rules = load_rules(rule_definitions)
+        result = audit(args.samples, args.seed, rules=rules)
+        if rule_definitions is not None:
+            result["rule_definitions"] = rule_definitions
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     except (OSError, ValueError) as exc:

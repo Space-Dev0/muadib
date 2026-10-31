@@ -67,6 +67,27 @@ class CheckerTests(unittest.TestCase):
             self.assertEqual(cell["detector_failure_negative"], int(not truth))
             self.assertEqual((cell["false_accepts"], cell["false_rejects"]), (0, 0))
 
+    def test_cli_external_rules_and_malformed_input(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path, output = Path(folder) / "rules.json", Path(folder) / "result.json"
+            rule_definitions = {"never": [
+                {"type": "attribute", "variable": "a", "field": "color", "value": "red"},
+                {"type": "attribute", "variable": "a", "field": "color", "value": "blue"},
+            ]}
+            path.write_text(json.dumps(rule_definitions))
+            command = [sys.executable, "-m", "exposure.checker", "--samples", "10",
+                       "--rules", str(path), "--output", str(output)]
+            subprocess.run(command, check=True, capture_output=True, text=True)
+            result = json.loads(output.read_text())
+            self.assertEqual(result["rule_definitions"], rule_definitions)
+            self.assertEqual(set(result["rules"]), {"never"})
+            self.assertEqual(result["rules"]["never"]["positive"], 0)
+            self.assertEqual(result["rules"]["never"]["negative"], 10)
+            path.write_text('{"duplicate": [], "duplicate": []}')
+            bad = subprocess.run(command, capture_output=True, text=True)
+            self.assertNotEqual(bad.returncode, 0)
+            self.assertIn("Duplicate JSON key", bad.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
