@@ -1,0 +1,5 @@
+[
+  {"type": "attribute", "variable": "a", "field": "color", "value": "red"},
+  {"type": "attribute", "variable": "b", "field": "shape", "value": "square"},
+  {"type": "relation", "subject": "a", "kind": "left_of", "object": "b"}
+]

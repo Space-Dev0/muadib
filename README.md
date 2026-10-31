@@ -1,8 +1,9 @@
 # Which Exposure Matters?
 
 This project implements the research proposal in stages. It currently evaluates
-rules on annotations and renders simple synthetic scenes. It does not yet train
-a model, download an external dataset, or provide CUDA acceleration.
+rules on annotations and renders simple synthetic scenes, optionally conditioned
+on a rule. It does not yet train a model, download an external dataset, or provide
+CUDA acceleration.
 
 ## Run the first checks
 
@@ -29,8 +30,29 @@ This creates `outputs/example.png` and `outputs/example.json`. The renderer
 uses Pillow on the CPU, draws three separated shapes with antialiased edges,
 and records color, shape, and center coordinates for each object. The seed
 reproduces the image and annotations with the same dependency versions. This
-prototype samples objects independently; it does not yet generate scenes for
-a requested rule, build masks, or implement the exposure design.
+prototype samples objects without a rule when `--rule` is omitted. It does not
+yet build masks or implement the validated exposure design.
+
+## Render a scene for a rule
+
+```sh
+uv run python -m exposure.render --seed 42 --rule examples/red_left_of_square.json --output outputs/conditioned
+```
+
+The example requests a red object to the left of a square. Its JSON file is a
+list of predicates. An attribute has `type: "attribute"`, `variable`, `field`,
+and `value`; a relation has `type: "relation"`, `subject`, `kind`, and `object`.
+Supported attributes are colors `red`, `blue`, `green`, and `yellow` and shapes
+`circle`, `square`, and `triangle`. Relations are `left_of` and `above`.
+Variables represent distinct objects; a rule is satisfied if some assignment of
+those objects satisfies every predicate. Positions are bounding-box centers.
+
+The renderer samples three-object scenes from its grid-based distribution until
+the annotations satisfy the rule. This is **bounded rejection sampling**: the
+default limit is 10,000 attempts, configurable with `--max-attempts`. Failure to
+find a match can mean the rule is rare or infeasible; it does not prove either.
+The output JSON includes the requested rule and number of attempts. This is a
+CPU prototype, not yet the proposal's measured, controlled exposure distribution.
 
 ## Dataset and hardware plan
 
