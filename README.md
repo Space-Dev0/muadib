@@ -2,67 +2,28 @@
 
 This project implements the research proposal in stages. It currently evaluates
 rules on annotations and renders simple synthetic scenes, optionally conditioned
-on a rule. It does not yet train a model, download an external dataset, or provide
-CUDA acceleration.
+on a rule. It does not yet train a model, download an external dataset, or
+provide CUDA acceleration. The renderer is a CPU-only prototype, not the
+validated exposure design.
 
-## Run the first checks
+## Quick start
 
-With Python 3.11+ and uv installed, from this directory:
+With Python 3.11+ and uv installed, from the repository root:
 
 ```sh
 uv sync
 uv run python -m unittest discover -s tests -v
+uv run python -m exposure.render --seed 42 --rule examples/red_left_of_square.json --output outputs/example
 ```
 
-The checks run on a CPU. Rule evaluation uses
-distinct object assignments, existential rule semantics, and image coordinates
-where larger y means lower on the image. `left_of` and `above` compare object
-centers strictly, so ties do not satisfy a relation. Pair and marginal exposure
-semantics need to be locked in the experiment specification before analysis.
+`uv sync` installs dependencies, the second command runs the test suite, and the
+third renders a rule-conditioned scene to `outputs/example.png` and
+`outputs/example.json`. Omit `--rule` to render without a condition.
 
-## Render a scene
+## Documentation
 
-```sh
-uv run python -m exposure.render --seed 42 --output outputs/example
-```
-
-This creates `outputs/example.png` and `outputs/example.json`. The renderer
-uses Pillow on the CPU, draws three separated shapes with antialiased edges,
-and records color, shape, and center coordinates for each object. The seed
-reproduces the image and annotations with the same dependency versions. This
-prototype samples objects without a rule when `--rule` is omitted. It does not
-yet build masks or implement the validated exposure design.
-
-## Render a scene for a rule
-
-```sh
-uv run python -m exposure.render --seed 42 --rule examples/red_left_of_square.json --output outputs/conditioned
-```
-
-The example requests a red object to the left of a square. Its JSON file is a
-list of predicates. An attribute has `type: "attribute"`, `variable`, `field`,
-and `value`; a relation has `type: "relation"`, `subject`, `kind`, and `object`.
-Supported attributes are colors `red`, `blue`, `green`, and `yellow` and shapes
-`circle`, `square`, and `triangle`. Relations are `left_of` and `above`.
-Variables represent distinct objects; a rule is satisfied if some assignment of
-those objects satisfies every predicate. Positions are bounding-box centers.
-
-The renderer samples three-object scenes from its grid-based distribution until
-the annotations satisfy the rule. This is **bounded rejection sampling**: the
-default limit is 10,000 attempts, configurable with `--max-attempts`. Failure to
-find a match can mean the rule is rare or infeasible; it does not prove either.
-The output JSON includes the requested rule and number of attempts. This is a
-CPU prototype, not yet the proposal's measured, controlled exposure distribution.
-
-## Dataset and hardware plan
-
-The proposal's primary data source is a renderer generating annotated synthetic
-scenes online. A finite synthetic dataset is a secondary experiment. An external
-dataset is not selected yet; its annotations, license, condition labels, and
-feasibility for controlled exposures must be assessed first.
-
-The planned training backend is PyTorch on NVIDIA CUDA, with CPU support for
-small local checks. The correct PyTorch build depends on the friend's GPU,
-driver, operating system and Python version; it has not yet been selected or
-installed. OpenCL is not part of this implementation. GPU support and a locked
-dependency set will be added and verified when the training stage is built.
+- [Getting started](docs/getting-started.md): setup, tests, and a first render.
+- [Rendering and rules](docs/rendering-and-rules.md): command-line options, rule
+  file format, predicate semantics, sampling, and output JSON.
+- [Research and hardware plan](docs/research-and-hardware-plan.md): dataset
+  strategy, CPU/CUDA plans, and current limitations.
