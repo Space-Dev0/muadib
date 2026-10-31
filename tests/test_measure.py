@@ -21,6 +21,7 @@ class ExposureMeasurementTests(unittest.TestCase):
         columns = {column["condition"]: column for column in result["columns"]}
         for name, column in columns.items():
             self.assertEqual(column["measurements"][name]["successes"], 100)
+            self.assertEqual(column["measurements"][name]["wilson_95"], [1.0, 1.0])
             self.assertGreaterEqual(column["total_attempts"], 100)
         complex_column = columns["red_left_of_square"]["measurements"]
         self.assertEqual(complex_column["red"]["successes"], 100)
@@ -41,6 +42,7 @@ class ExposureMeasurementTests(unittest.TestCase):
         self.assertEqual([entry["predicate_indices"] for entry in subsets],
                          [[0], [1], [2], [0, 1], [0, 2], [1, 2]])
         self.assertTrue(all(entry["successes"] == 80 for entry in subsets))
+        self.assertTrue(all(entry["wilson_95"] == [1.0, 1.0] for entry in subsets))
         red_column = next(c for c in result["columns"] if c["condition"] == "red")
         self.assertEqual(red_column["predicate_subsets"]["red_left_of_square"][0]["successes"], 80)
         self.assertLess(red_column["predicate_subsets"]["red_left_of_square"][4]["successes"], 80)

@@ -87,7 +87,8 @@ def estimate(rules: dict[str, tuple[Predicate, ...]], *, samples: int, seed: int
             "total_attempts": attempts,
             "measurements": {
                 name: {"successes": count, "probability": count / samples,
-                       "wilson_95": list(wilson_interval(count, samples))}
+                       "wilson_95": ([1.0, 1.0] if name == condition else
+                                     list(wilson_interval(count, samples)))}
                 for name, count in counts.items()
             },
         }
@@ -96,7 +97,8 @@ def estimate(rules: dict[str, tuple[Predicate, ...]], *, samples: int, seed: int
                 name: [
                     {"predicate_indices": list(indices), "successes": count,
                      "probability": count / samples,
-                     "wilson_95": list(wilson_interval(count, samples))}
+                     "wilson_95": ([1.0, 1.0] if name == condition else
+                                   list(wilson_interval(count, samples)))}
                     for indices, count in zip(subset_indices[name], subset_counts[name], strict=True)
                 ]
                 for name in rules

@@ -67,7 +67,9 @@ Each column contains:
   - `successes`: the number of accepted scenes satisfying that measured rule.
   - `probability`: `successes / accepted_scenes`.
   - `wilson_95`: an approximate 95% binomial Wilson interval for that
-    probability, clamped to `[0, 1]` and defined at zero and one.
+    probability, clamped to `[0, 1]` and defined at zero and one. The
+    condition's own cell instead reports `[1, 1]`, because acceptance
+    guarantees that event; it is not an estimated Wilson interval.
 
 The measurements are **scene satisfaction given the requested condition**, not
 model exposure. A condition's own cell is expected to have
@@ -92,6 +94,8 @@ all pairs. For a three-predicate rule, the order is `[0]`, `[1]`, `[2]`,
 `[0, 1]`, `[0, 2]`, `[1, 2]`. Each entry also has `successes`, `probability`,
 and `wilson_95`, using the same accepted-scene denominator and interval method
 as the full-rule measurements.
+Subsets of the conditioning rule also report `[1, 1]`: satisfaction of
+the complete condition guarantees satisfaction of each of its subsets.
 
 Each subset is evaluated separately. Variable identifiers are retained within
 a subset, but the variables are existentially bound anew for each subset.

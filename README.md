@@ -27,5 +27,7 @@ third renders a rule-conditioned scene to `outputs/example.png` and
   file format, predicate semantics, sampling, and output JSON.
 - [Exposure measurement](docs/exposure-measurement.md): named rule sets, the
   measurement CLI, satisfaction columns, Wilson intervals, and limitations.
+- [Mixture analysis](docs/mixture-analysis.md): weighted exposures, rule and
+  pair log lift, weight validation, and interpretation limits.
 - [Research and hardware plan](docs/research-and-hardware-plan.md): dataset
   strategy, CPU/CUDA plans, and current limitations.
