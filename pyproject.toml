@@ -1,0 +1,9 @@
+[project]
+name = "which-exposure-matters"
+version = "0.1.0"
+description = "Controlled experiments on exposure in conditional diffusion models"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+package = false
