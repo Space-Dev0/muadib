@@ -1,5 +1,6 @@
 import copy
 import json
+import math
 import subprocess
 import sys
 import tempfile
@@ -132,6 +133,56 @@ class DesignTests(unittest.TestCase):
         with patch("exposure.design.linprog", return_value=Failed()), self.assertRaises(RuntimeError):
             solve(self.report, specification)
 
+    def test_min_kl_uniform_and_analytical_optimum(self):
+        report = copy.deepcopy(self.report)
+        for column in report["columns"]:
+            count = column["accepted_scenes"] if column["condition"] == "red" else 0
+            for cell in (column["measurements"]["red"], column["predicate_subsets"]["red"][0]):
+                cell["successes"], cell["probability"] = count, count / column["accepted_scenes"]
+        entry = {"name": "red", "rule": "red", "kind": "rule", "predicate_indices": [], "min": 0.0}
+        result = solve(report, {"constraints": [entry]}, objective="min-kl")
+        self.assertTrue(all(abs(weight - 0.25) < 1e-5 for weight in result["weights"].values()))
+        self.assertAlmostEqual(result["kl_to_uniform"], 0.0, places=8)
+        entry["min"] = 0.6
+        result = solve(report, {"constraints": [entry]}, objective="min-kl")
+        self.assertAlmostEqual(result["weights"]["red"], 0.6, places=5)
+        for name in ("square", "red_left_of_square", "blue_above_circle"):
+            self.assertAlmostEqual(result["weights"][name], 0.4 / 3, places=5)
+        self.assertLessEqual(result["max_violation"], 1e-7)
+        entry["max"] = 0.6
+        result = solve(report, {"constraints": [entry]}, objective="min-kl", min_weight=0.1)
+        self.assertAlmostEqual(result["weights"]["red"], 0.6, places=5)
+        self.assertTrue(all(weight >= 0.1 - 1e-7 for weight in result["weights"].values()))
+        self.assertEqual(solve(report, {"constraints": [entry]}, objective="min-kl", min_weight=0.2)["status"], "infeasible")
+
+    def test_min_kl_zero_weight_and_optimizer_failure(self):
+        report = copy.deepcopy(self.report)
+        for column in report["columns"]:
+            count = column["accepted_scenes"] if column["condition"] == "red" else 0
+            for cell in (column["measurements"]["red"], column["predicate_subsets"]["red"][0]):
+                cell["successes"], cell["probability"] = count, count / column["accepted_scenes"]
+        spec = {"constraints": [{"name": "zero", "rule": "red", "kind": "rule",
+                                  "predicate_indices": [], "max": 0.0}]}
+        result = solve(report, spec, objective="min-kl")
+        self.assertAlmostEqual(result["weights"]["red"], 0.0, places=7)
+        self.assertAlmostEqual(result["kl_to_uniform"], math.log(4 / 3), places=6)
+        class Failed:
+            success = False
+            status = 9
+            message = "iteration limit"
+        with patch("exposure.design.minimize", return_value=Failed()), self.assertRaisesRegex(RuntimeError, "optimizer failed"):
+            solve(report, spec, objective="min-kl")
+
+    def test_min_kl_redundant_constant_equality(self):
+        report = copy.deepcopy(self.report)
+        for column in report["columns"]:
+            for cell in (column["measurements"]["red"], column["predicate_subsets"]["red"][0]):
+                cell["successes"], cell["probability"] = column["accepted_scenes"], 1.0
+        spec = {"constraints": [{"name": "always", "rule": "red", "kind": "rule",
+                                 "predicate_indices": [], "min": 1.0, "max": 1.0}]}
+        result = solve(report, spec, objective="min-kl")
+        self.assertTrue(all(abs(weight - 0.25) < 1e-5 for weight in result["weights"].values()))
+
     def test_cli_with_pair_constraint(self):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
@@ -140,9 +191,11 @@ class DesignTests(unittest.TestCase):
             constraints.write_text(json.dumps({"constraints": [{"name": "pair", "rule": "red_left_of_square",
                 "kind": "pair", "predicate_indices": [0, 1], "min": 0.2}]}))
             subprocess.run([sys.executable, "-m", "exposure.design", "--report", str(report),
-                            "--constraints", str(constraints), "--output", str(output)],
+                            "--constraints", str(constraints), "--output", str(output), "--objective", "min-kl"],
                            check=True, capture_output=True, text=True)
-            self.assertEqual(json.loads(output.read_text())["status"], "feasible")
+            data = json.loads(output.read_text())
+            self.assertEqual(data["status"], "feasible")
+            self.assertEqual(data["objective"], "min-kl")
 
 
 if __name__ == "__main__":

@@ -5,17 +5,22 @@ import json
 import math
 from pathlib import Path
 
-from scipy.optimize import linprog
+import numpy as np
+from scipy.optimize import linprog, minimize
+from scipy.special import xlogy
 
 from exposure.measure import load_rules, unique_object
 from exposure.mixture import summarize
 
 
-def solve(report: dict, specification: dict, *, min_weight: float = 0.0) -> dict:
+def solve(report: dict, specification: dict, *, min_weight: float = 0.0,
+          objective: str = "feasible") -> dict:
     """Solve feasibility on the supplied Monte Carlo matrix, not the true matrix."""
     if (isinstance(min_weight, bool) or not isinstance(min_weight, (int, float))
             or not math.isfinite(min_weight) or min_weight < 0):
         raise ValueError("min_weight must be a finite nonnegative number")
+    if objective not in ("feasible", "min-kl"):
+        raise ValueError("objective must be 'feasible' or 'min-kl'")
     if not isinstance(report, dict):
         raise ValueError("Measurement report must be a JSON object")
     rules = load_rules(report.get("rules"))
@@ -78,12 +83,48 @@ def solve(report: dict, specification: dict, *, min_weight: float = 0.0) -> dict
     result = {"schema_version": 1, "source_seed": report.get("seed"),
               "samples_per_condition": report.get("samples_per_condition"),
               "rules": report["rules"], "specification": specification,
-              "min_weight": min_weight,
+              "min_weight": min_weight, "objective": objective,
               "note": "Feasibility applies to the estimated Monte Carlo matrix; uncertainty is not propagated."}
     if solution.status == 2:
         return {**result, "status": "infeasible", "solver_message": solution.message}
     if not solution.success:
         raise RuntimeError(f"Linear solver failed (status {solution.status}): {solution.message}")
+    if objective == "min-kl":
+        count = len(names)
+        def kl(values):
+            nonnegative = np.maximum(values, 0.0)
+            return float(np.sum(xlogy(nonnegative, count * nonnegative)))
+
+        def gradient(values):
+            # KL's derivative diverges at zero; use a finite approximation there.
+            return np.log(count * np.maximum(values, 1e-15)) + 1.0
+
+        optimizer_constraints = [{"type": "eq", "fun": lambda x: np.sum(x) - 1.0,
+                                  "jac": lambda x: np.ones(count)}]
+        for entry, row in zip(constraints, rows, strict=True):
+            coeff = np.asarray(row)
+            lower, upper = entry.get("min"), entry.get("max")
+            if lower is not None and upper is not None and lower == upper:
+                # A constant row adds no new information to the simplex equality.
+                if np.all(coeff == coeff[0]):
+                    if not math.isclose(lower, float(coeff[0]), rel_tol=0.0, abs_tol=1e-7):
+                        raise RuntimeError("Constant equality conflicts with the simplex")
+                    continue
+                optimizer_constraints.append({"type": "eq", "fun": lambda x, a=coeff, b=lower: a @ x - b,
+                                              "jac": lambda x, a=coeff: a})
+            else:
+                if lower is not None:
+                    optimizer_constraints.append({"type": "ineq", "fun": lambda x, a=coeff, b=lower: a @ x - b,
+                                                  "jac": lambda x, a=coeff: a})
+                if upper is not None:
+                    optimizer_constraints.append({"type": "ineq", "fun": lambda x, a=coeff, b=upper: b - a @ x,
+                                                  "jac": lambda x, a=coeff: -a})
+        optimum = minimize(kl, solution.x, method="SLSQP", jac=gradient,
+                           bounds=[(min_weight, None)] * count, constraints=optimizer_constraints,
+                           options={"ftol": 1e-10, "maxiter": 1000})
+        if not optimum.success:
+            raise RuntimeError(f"Minimum-KL optimizer failed (status {optimum.status}): {optimum.message}")
+        solution = optimum
     weights = {name: float(value) for name, value in zip(names, solution.x, strict=True)}
     if any(not math.isfinite(value) for value in weights.values()):
         raise RuntimeError("Solver returned non-finite weights")
@@ -101,8 +142,12 @@ def solve(report: dict, specification: dict, *, min_weight: float = 0.0) -> dict
     max_violation = max(violations)
     if max_violation > 1e-7:
         raise RuntimeError(f"Solver returned a solution with constraint violation {max_violation}")
-    return {**result, "status": "feasible", "weights": weights,
-            "constraints": achieved, "max_violation": max_violation}
+    result.update({"status": "feasible", "weights": weights,
+                   "constraints": achieved, "max_violation": max_violation})
+    if objective == "min-kl":
+        result["kl_to_uniform"] = kl(np.asarray(list(weights.values())))
+        result["optimizer_message"] = str(solution.message)
+    return result
 
 
 def main() -> None:
@@ -111,12 +156,13 @@ def main() -> None:
     parser.add_argument("--constraints", type=Path, required=True)
     parser.add_argument("--min-weight", type=float, default=0.0,
                         help="minimum weight per conditioning template")
+    parser.add_argument("--objective", choices=("feasible", "min-kl"), default="feasible")
     parser.add_argument("--output", type=Path, default=Path("outputs/design.json"))
     args = parser.parse_args()
     try:
         report = json.loads(args.report.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
         specification = json.loads(args.constraints.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
-        result = solve(report, specification, min_weight=args.min_weight)
+        result = solve(report, specification, min_weight=args.min_weight, objective=args.objective)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     except (OSError, ValueError, TypeError, RuntimeError) as exc:

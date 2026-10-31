@@ -1,9 +1,10 @@
 # Exposure Design Feasibility
 
-`exposure.design` checks whether a nonnegative sampling mixture over the
-measurement report's conditioning templates can satisfy a set of exposure
-bounds. It solves a linear feasibility problem on the **estimated** Monte Carlo
-matrix.
+`exposure.design` finds nonnegative sampling weights over the measurement
+report's conditioning templates that satisfy a set of exposure bounds. It first
+solves a linear feasibility problem, and can optionally choose a feasible
+allocation with minimum KL divergence from the uniform distribution. All
+calculations use the **estimated** Monte Carlo matrix.
 
 > **Warning:** Estimated Monte Carlo feasibility is not population feasibility.
 > A feasible solution only satisfies the bounds on the reported probabilities;
@@ -24,8 +25,15 @@ Check feasibility with the example constraints:
 uv run python -m exposure.design --report outputs/exposure.json --constraints examples/exposure_constraints.json --output outputs/design.json
 ```
 
+Choose the minimum-KL feasible allocation:
+
+```sh
+uv run python -m exposure.design --report outputs/exposure.json --constraints examples/exposure_constraints.json --objective min-kl --output outputs/design-min-kl.json
+```
+
 `--report` and `--constraints` are required. `--output` defaults to
-`outputs/design.json`.
+`outputs/design.json`. `--objective` accepts `feasible` (the default) or
+`min-kl`.
 
 ## Constraint schema
 
@@ -108,17 +116,56 @@ Example with a positive floor:
 uv run python -m exposure.design --report outputs/exposure.json --constraints examples/exposure_constraints.json --min-weight 0.05 --output outputs/design.json
 ```
 
+## Minimum-KL objective
+
+`--objective min-kl` (and the keyword-only `objective="min-kl"` argument to
+`solve`) selects a feasible allocation that minimizes KL divergence from the
+uniform distribution:
+
+```text
+KL(w || uniform) = sum_i xlogy(w_i, n * w_i)
+```
+
+where `n` is the number of conditioning templates. A zero weight contributes a
+zero KL term. The default `--objective feasible` preserves the existing
+zero-objective LP behavior.
+
+The LP feasibility solve always runs first. Only an LP infeasible status
+returns `status: "infeasible"`; LP failures are raised as errors. If the LP is
+feasible, its solution initializes `scipy.optimize.minimize` with SLSQP. SLSQP
+uses the same simplex equality, exposure bounds, and minimum-weight bounds. Equal
+lower and upper exposure bounds are converted to a single equality constraint
+for the optimizer to avoid redundant inequalities; constant rows add no new
+information and are skipped. The analytic gradient clips weights to at least
+`1e-15` only inside the logarithm, so zero weights still contribute zero to the
+KL value.
+
+SLSQP uses `ftol=1e-10` and `maxiter=1000`. It is a numerical local optimizer, so
+a successful result is not a proof of exact global optimality. If SLSQP reports
+failure, the command raises an error; it is never reported as infeasible. If it
+reports success, the resulting weights are rechecked for finiteness, the
+simplex equality, the minimum-weight floor, and every exposure constraint using
+the same `1e-7` violation tolerance; a failed check also raises an error.
+
+Feasible output always includes `objective`. A min-kl result also includes
+`kl_to_uniform` and `optimizer_message`. Infeasible output includes `objective`
+but no weights or KL value.
+
 ## Feasible, infeasible, and solver failure
 
 - **Feasible:** `status` is `"feasible"`. The output includes named `weights`,
   the achieved exposure and slacks for each constraint, and `max_violation`.
 - **Infeasible:** `status` is `"infeasible"`, with a `solver_message`. There are
   no fabricated weights or achieved exposures.
-- **Solver failure:** any unsuccessful solver status other than infeasibility is
+- **Solver failure:** any unsuccessful LP status other than infeasibility is
   raised as an error. The CLI reports the error and does not write a design
   output; a numerical failure is never mislabeled as infeasible.
+- **Minimum-KL optimizer failure:** if SLSQP does not converge, or its result
+  fails the post-solve feasibility checks, the command raises an error. This is
+  not an infeasible result.
 
-Both feasible and infeasible outputs include the requested `min_weight`.
+Both feasible and infeasible outputs include the requested `min_weight` and
+`objective`.
 
 ## Slacks and numerical tolerance
 
@@ -132,7 +179,8 @@ Positive slack means the bound is satisfied; negative slack means it is
 violated. `max_violation` is the largest of the weight-sum deviation, any
 negative weight magnitude, any negative slack, and any shortfall below
 `min_weight`. A solution with `max_violation > 1e-7` is treated as a numerical
-failure and raises an error rather than being reported as feasible.
+failure and raises an error rather than being reported as feasible. For min-kl,
+the same checks are applied to the SLSQP result.
 
 The original constraint specification, including the `min` and `max` bounds, is
 preserved in the top-level `specification` field. The output also records
@@ -147,9 +195,16 @@ original `rules`.
   propagated.
 - Fixed marginals must be supplied explicitly, for example with equal `min` and
   `max` bounds; the solver does not choose them automatically.
-- The zero objective finds any feasible allocation and can concentrate weight
-  on a few conditions. It does not implement the proposal's minimum-KL
-  allocation or make causal claims.
+- The default feasible objective finds any feasible allocation and can
+  concentrate weight on a few conditions. The min-kl objective instead
+  minimizes KL to uniform, but it is a numerical local optimization with no
+  exact optimality certificate.
+- The min-kl problem includes a simplex equality and can include equality
+  exposure bounds; equality-constrained numerical optimization may be
+  difficult or fail to converge on some inputs.
+- Both objectives operate on the estimated matrix. Matrix estimation
+  uncertainty is not propagated, so neither feasibility nor the min-kl
+  allocation is a claim about the true population.
 - A positive `--min-weight` forces every conditioning template to receive
   weight. It can make the estimated LP infeasible even when a zero-floor
   solution exists; that is not proof of population infeasibility.

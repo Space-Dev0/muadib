@@ -15,7 +15,7 @@ acceleration.
 | `exposure/render.py` | `render_scene`, `render_conditioned`, `sample_conditioned`, `parse_rule`, and the render CLI. Samples three-object grid scenes and renders 64x64 PNGs with JSON annotations. |
 | `exposure/measure.py` | `load_rules`, `estimate`, `wilson_interval`, and the measurement CLI. Produces schema-1 reports, optionally with singleton and pair `predicate_subsets`. |
 | `exposure/mixture.py` | `summarize` and the mixture CLI. Validates subset-enabled reports, computes weighted rule and pair exposures, and reports log lift. |
-| `exposure/design.py` | `solve` and the design CLI. Validates a report through `mixture.summarize`, builds the estimated exposure matrix, and solves a continuous LP with `scipy.optimize.linprog(method="highs")`. |
+| `exposure/design.py` | `solve` and the design CLI. Validates a report, checks feasibility with a continuous LP, and optionally minimizes KL divergence to uniform with SLSQP. |
 | `examples/` | Example rule sets, weights, and loose feasibility constraints. |
 | `tests/` | Unit and CLI tests for rules, rendering, measurement, mixtures, and design feasibility. |
 
@@ -34,6 +34,8 @@ acceleration.
   but the uniform weights are only a validation device, not the result.
 - Only the infeasible solver status is reported as infeasible. Other solver
   failures are surfaced as errors.
+- Minimum-KL allocation is a numerical optimization of the estimated matrix;
+  it has no exact optimality certificate.
 
 ## Current limits
 
