@@ -5,6 +5,7 @@ description = "Controlled experiments on exposure in conditional diffusion model
 requires-python = ">=3.11"
 dependencies = [
     "pillow",
+    "scipy",
 ]
 
 [tool.uv]

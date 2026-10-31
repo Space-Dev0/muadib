@@ -29,5 +29,9 @@ third renders a rule-conditioned scene to `outputs/example.png` and
   measurement CLI, satisfaction columns, Wilson intervals, and limitations.
 - [Mixture analysis](docs/mixture-analysis.md): weighted exposures, rule and
   pair log lift, weight validation, and interpretation limits.
+- [Exposure design](docs/exposure-design.md): feasibility constraints, LP
+  formulation, solver statuses, and numerical limits.
+- [Architecture](docs/architecture.md): module interfaces, design decisions,
+  current limits, and the test command.
 - [Research and hardware plan](docs/research-and-hardware-plan.md): dataset
   strategy, CPU/CUDA plans, and current limitations.

@@ -1,0 +1,6 @@
+{
+  "constraints": [
+    {"name": "red exposure", "rule": "red", "kind": "predicate", "predicate_indices": [0], "min": 0.45, "max": 1.0},
+    {"name": "full rule exposure", "rule": "red_left_of_square", "kind": "rule", "predicate_indices": [], "min": 0.10, "max": 0.9}
+  ]
+}
