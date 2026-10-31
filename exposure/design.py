@@ -11,8 +11,11 @@ from exposure.measure import load_rules, unique_object
 from exposure.mixture import summarize
 
 
-def solve(report: dict, specification: dict) -> dict:
+def solve(report: dict, specification: dict, *, min_weight: float = 0.0) -> dict:
     """Solve feasibility on the supplied Monte Carlo matrix, not the true matrix."""
+    if (isinstance(min_weight, bool) or not isinstance(min_weight, (int, float))
+            or not math.isfinite(min_weight) or min_weight < 0):
+        raise ValueError("min_weight must be a finite nonnegative number")
     if not isinstance(report, dict):
         raise ValueError("Measurement report must be a JSON object")
     rules = load_rules(report.get("rules"))
@@ -71,10 +74,11 @@ def solve(report: dict, specification: dict) -> dict:
 
     solution = linprog([0.0] * len(names), A_ub=a_ub, b_ub=b_ub,
                        A_eq=[[1.0] * len(names)], b_eq=[1.0],
-                       bounds=[(0, None)] * len(names), method="highs")
+                       bounds=[(min_weight, None)] * len(names), method="highs")
     result = {"schema_version": 1, "source_seed": report.get("seed"),
               "samples_per_condition": report.get("samples_per_condition"),
               "rules": report["rules"], "specification": specification,
+              "min_weight": min_weight,
               "note": "Feasibility applies to the estimated Monte Carlo matrix; uncertainty is not propagated."}
     if solution.status == 2:
         return {**result, "status": "infeasible", "solver_message": solution.message}
@@ -83,7 +87,9 @@ def solve(report: dict, specification: dict) -> dict:
     weights = {name: float(value) for name, value in zip(names, solution.x, strict=True)}
     if any(not math.isfinite(value) for value in weights.values()):
         raise RuntimeError("Solver returned non-finite weights")
-    violations = [abs(math.fsum(weights.values()) - 1), max(0.0, -min(weights.values()))]
+    lowest_weight = min(weights.values())
+    violations = [abs(math.fsum(weights.values()) - 1), max(0.0, -lowest_weight),
+                  max(0.0, min_weight - lowest_weight)]
     achieved = []
     for entry, row in zip(constraints, rows, strict=True):
         value = math.fsum(weights[name] * v for name, v in zip(names, row, strict=True))
@@ -103,12 +109,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Check exposure design feasibility")
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--constraints", type=Path, required=True)
+    parser.add_argument("--min-weight", type=float, default=0.0,
+                        help="minimum weight per conditioning template")
     parser.add_argument("--output", type=Path, default=Path("outputs/design.json"))
     args = parser.parse_args()
     try:
         report = json.loads(args.report.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
         specification = json.loads(args.constraints.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
-        result = solve(report, specification)
+        result = solve(report, specification, min_weight=args.min_weight)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     except (OSError, ValueError, TypeError, RuntimeError) as exc:

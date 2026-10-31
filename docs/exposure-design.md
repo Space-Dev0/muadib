@@ -63,11 +63,11 @@ The report is first validated with `exposure.mixture.summarize` using uniform
 weights. That validation checks the schema, subset measurements, and
 self-satisfaction cells; the uniform weights are not the design solution.
 
-Let `w_c >= 0` be the weight assigned to conditioning template `c`, and let
-`a_jc` be the measured probability for constraint row `j` under condition `c`.
-For a rule constraint, `a_jc` is the report's full-rule measurement. For a
-predicate or pair constraint, it is the corresponding `predicate_subsets`
-probability.
+Let `w_c >= min_weight` be the weight assigned to conditioning template `c`,
+where `min_weight` defaults to `0.0`, and let `a_jc` be the measured
+probability for constraint row `j` under condition `c`. For a rule constraint,
+`a_jc` is the report's full-rule measurement. For a predicate or pair
+constraint, it is the corresponding `predicate_subsets` probability.
 
 The solver uses `scipy.optimize.linprog(method="highs")` to solve:
 
@@ -76,12 +76,37 @@ minimize    0^T w
 subject to  sum_c w_c = 1
             sum_c a_jc w_c >= min_j   for constraints with a lower bound
             sum_c a_jc w_c <= max_j   for constraints with an upper bound
-            w_c >= 0
+            w_c >= min_weight
 ```
 
 All decisions are continuous; there are no integer decisions. The columns of
 the matrix correspond to the report's conditioned templates, and the rows
 correspond to the requested rule, predicate, or pair exposures.
+
+## Minimum weight floor
+
+`--min-weight` (and the keyword-only `min_weight` argument to `solve`) sets a
+minimum weight for every conditioning template. It defaults to `0.0`. The value
+must be a finite real number that is nonnegative; booleans and non-finite
+values are rejected.
+
+The floor is applied directly as the LP lower bounds `(min_weight, None)` for
+all weights. If `min_weight` times the number of conditions exceeds `1`, the
+constraint `sum_c w_c = 1` makes the LP infeasible. That case returns
+`status: "infeasible"` through the solver; it is not treated as an invalid
+report or an invalid constraint specification.
+
+The output includes `min_weight` for both feasible and infeasible statuses.
+When a feasible solution falls below the floor, the shortfall is included in
+`max_violation`; solutions above the `1e-7` tolerance are treated as numerical
+failures. At `min_weight=0.0`, behavior is the same as before the option was
+added.
+
+Example with a positive floor:
+
+```sh
+uv run python -m exposure.design --report outputs/exposure.json --constraints examples/exposure_constraints.json --min-weight 0.05 --output outputs/design.json
+```
 
 ## Feasible, infeasible, and solver failure
 
@@ -93,6 +118,8 @@ correspond to the requested rule, predicate, or pair exposures.
   raised as an error. The CLI reports the error and does not write a design
   output; a numerical failure is never mislabeled as infeasible.
 
+Both feasible and infeasible outputs include the requested `min_weight`.
+
 ## Slacks and numerical tolerance
 
 For each constraint, the result reports:
@@ -103,9 +130,9 @@ For each constraint, the result reports:
 
 Positive slack means the bound is satisfied; negative slack means it is
 violated. `max_violation` is the largest of the weight-sum deviation, any
-negative weight magnitude, and any negative slack. A solution with
-`max_violation > 1e-7` is treated as a numerical failure and raises an error
-rather than being reported as feasible.
+negative weight magnitude, any negative slack, and any shortfall below
+`min_weight`. A solution with `max_violation > 1e-7` is treated as a numerical
+failure and raises an error rather than being reported as feasible.
 
 The original constraint specification, including the `min` and `max` bounds, is
 preserved in the top-level `specification` field. The output also records
@@ -123,6 +150,9 @@ original `rules`.
 - The zero objective finds any feasible allocation and can concentrate weight
   on a few conditions. It does not implement the proposal's minimum-KL
   allocation or make causal claims.
+- A positive `--min-weight` forces every conditioning template to receive
+  weight. It can make the estimated LP infeasible even when a zero-floor
+  solution exists; that is not proof of population infeasibility.
 - It does not infer infeasibility from the absence of particular realized
   samples. Zero estimated probabilities can make the estimated LP infeasible,
   but that is not proof that the true design is infeasible.

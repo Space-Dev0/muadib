@@ -34,6 +34,74 @@ class DesignTests(unittest.TestCase):
         shuffled["columns"].reverse()
         self.assertEqual(solve(self.report, specification)["weights"], solve(shuffled, specification)["weights"])
 
+    def test_positive_min_weight_floor(self):
+        specification = {"constraints": [{"name": "x", "rule": "red", "kind": "rule",
+                                           "predicate_indices": [], "min": 0.0}]}
+        result = solve(self.report, specification, min_weight=0.05)
+        self.assertEqual(result["status"], "feasible")
+        self.assertEqual(result["min_weight"], 0.05)
+        self.assertTrue(all(weight >= 0.05 - 1e-7 for weight in result["weights"].values()))
+        self.assertLessEqual(result["max_violation"], 1e-7)
+
+    def test_floor_violation_is_detected(self):
+        class BelowFloor:
+            status = 0
+            success = True
+            x = [0.01, 0.01, 0.01, 0.97]
+            message = ""
+
+        specification = {"constraints": [{"name": "x", "rule": "red", "kind": "rule",
+                                           "predicate_indices": [], "min": 0.0}]}
+        with patch("exposure.design.linprog", return_value=BelowFloor()):
+            with self.assertRaisesRegex(RuntimeError, "constraint violation"):
+                solve(self.report, specification, min_weight=0.05)
+
+    def test_min_weight_floor_above_simplex_is_infeasible(self):
+        specification = {"constraints": [{"name": "x", "rule": "red", "kind": "rule",
+                                           "predicate_indices": [], "min": 0.0}]}
+        result = solve(self.report, specification, min_weight=0.3)
+        self.assertEqual(result["status"], "infeasible")
+        self.assertEqual(result["min_weight"], 0.3)
+        self.assertNotIn("weights", result)
+
+    def test_invalid_min_weight_values(self):
+        specification = {"constraints": [{"name": "x", "rule": "red", "kind": "rule",
+                                           "predicate_indices": [], "min": 0.0}]}
+        for value in (-0.01, float("nan"), float("inf"), True, "0.1", None):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                solve(self.report, specification, min_weight=value)
+
+    def test_zero_min_weight_matches_default(self):
+        specification = {"constraints": [{"name": "x", "rule": "red", "kind": "rule",
+                                           "predicate_indices": [], "min": 0.0}]}
+        default = solve(self.report, specification)
+        explicit = solve(self.report, specification, min_weight=0.0)
+        self.assertEqual(default["status"], "feasible")
+        self.assertEqual(explicit["status"], "feasible")
+        self.assertEqual(default["min_weight"], 0.0)
+        self.assertEqual(explicit["min_weight"], 0.0)
+        for name, weight in default["weights"].items():
+            self.assertAlmostEqual(weight, explicit["weights"][name])
+
+    def test_cli_min_weight_option(self):
+        with tempfile.TemporaryDirectory() as directory:
+            directory = Path(directory)
+            report_path = directory / "report.json"
+            constraints_path = directory / "constraints.json"
+            output = directory / "design.json"
+            report_path.write_text(json.dumps(self.report))
+            constraints_path.write_text(json.dumps({"constraints": [
+                {"name": "x", "rule": "red", "kind": "rule",
+                 "predicate_indices": [], "min": 0.0}
+            ]}))
+            subprocess.run([sys.executable, "-m", "exposure.design", "--report", str(report_path),
+                            "--constraints", str(constraints_path), "--min-weight", "0.05",
+                            "--output", str(output)], check=True, capture_output=True, text=True)
+            result = json.loads(output.read_text())
+            self.assertEqual(result["status"], "feasible")
+            self.assertEqual(result["min_weight"], 0.05)
+            self.assertTrue(all(weight >= 0.05 - 1e-7 for weight in result["weights"].values()))
+
     def test_infeasible_constraints_have_no_weights(self):
         base = {"rule": "red", "kind": "rule", "predicate_indices": []}
         specification = {"constraints": [{**base, "name": "low", "max": 0.1},
