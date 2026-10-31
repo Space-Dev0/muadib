@@ -4,9 +4,10 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from exposure.measure import estimate, load_rules, wilson_interval
-from exposure.rules import Attribute
+from exposure.rules import Attribute, SceneObject
 
 
 class ExposureMeasurementTests(unittest.TestCase):
@@ -33,6 +34,38 @@ class ExposureMeasurementTests(unittest.TestCase):
         self.assertLess(wilson_interval(10, 10)[0], 1)
         self.assertAlmostEqual(wilson_interval(10, 10)[1], 1)
 
+    def test_subsets_keep_shared_and_distinct_variables(self):
+        result = estimate(self.rules, samples=80, seed=7, include_subsets=True)
+        column = next(c for c in result["columns"] if c["condition"] == "red_left_of_square")
+        subsets = column["predicate_subsets"]["red_left_of_square"]
+        self.assertEqual([entry["predicate_indices"] for entry in subsets],
+                         [[0], [1], [2], [0, 1], [0, 2], [1, 2]])
+        self.assertTrue(all(entry["successes"] == 80 for entry in subsets))
+        red_column = next(c for c in result["columns"] if c["condition"] == "red")
+        self.assertEqual(red_column["predicate_subsets"]["red_left_of_square"][0]["successes"], 80)
+        self.assertLess(red_column["predicate_subsets"]["red_left_of_square"][4]["successes"], 80)
+        self.assertNotIn("predicate_subsets", estimate(self.rules, samples=1, seed=7)["columns"][0])
+
+    def test_pair_requires_distinct_objects_when_variables_differ(self):
+        rules = {"red": (Attribute("a", "color", "red"),),
+                 "red_and_square": (Attribute("a", "color", "red"),
+                                    Attribute("b", "shape", "square"))}
+        objects = (SceneObject("red", "square", 1, 1),
+                   SceneObject("blue", "circle", 2, 2),
+                   SceneObject("green", "triangle", 3, 3))
+        # Isolate the red column with a known scene whose only red object is also
+        # the only square. Singleton events hold, but their conjunction does not.
+        pair_scene = (SceneObject("red", "circle", 1, 1),
+                      SceneObject("blue", "square", 2, 2),
+                      SceneObject("green", "triangle", 3, 3))
+        def sample(_rng, predicates, _max_attempts):
+            return (objects if predicates == rules["red"] else pair_scene), 1
+
+        with patch("exposure.measure.sample_conditioned", side_effect=sample):
+            column = estimate(rules, samples=1, seed=1, include_subsets=True)["columns"][0]
+        entries = column["predicate_subsets"]["red_and_square"]
+        self.assertEqual([entry["successes"] for entry in entries], [1, 1, 0])
+
     def test_invalid_and_impossible_inputs_fail(self):
         with self.assertRaises(ValueError):
             load_rules({})
@@ -46,11 +79,12 @@ class ExposureMeasurementTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "report.json"
             subprocess.run([sys.executable, "-m", "exposure.measure", "--rules", "examples/exposure_rules.json",
-                            "--samples", "10", "--seed", "4", "--output", str(output)],
+                            "--samples", "10", "--seed", "4", "--include-subsets", "--output", str(output)],
                            check=True, capture_output=True, text=True)
             result = json.loads(output.read_text())
             self.assertEqual(result["rules"], self.data)
             self.assertEqual(result["samples_per_condition"], 10)
+            self.assertIn("predicate_subsets", result["columns"][0])
 
     def test_cli_rejects_duplicate_rule_names(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -10,7 +10,7 @@ not training results or a fitted exposure design.
 From the repository root:
 
 ```sh
-uv run python -m exposure.measure --rules examples/exposure_rules.json --samples 200 --seed 42 --max-attempts 10000 --output outputs/exposure.json
+uv run python -m exposure.measure --rules examples/exposure_rules.json --samples 200 --seed 42 --max-attempts 10000 --include-subsets --output outputs/exposure.json
 ```
 
 This loads the named rule set in `examples/exposure_rules.json`, samples 200
@@ -22,6 +22,8 @@ accepted scenes for each condition, and writes the report to
   `1000`.
 - `--seed` defaults to `0`.
 - `--max-attempts` is the rejection budget per scene; it defaults to `10000`.
+- `--include-subsets` also measures singleton and pairwise predicate subsets for
+  every rule; it is off by default.
 - `--output` defaults to `outputs/exposure.json`.
 
 ## Named JSON rule-set format
@@ -73,9 +75,43 @@ model exposure. A condition's own cell is expected to have
 conditioning rule.
 
 The report also includes `schema_version`, `seed`, `samples_per_condition`,
-`max_attempts_per_scene`, `interpretation`, `rule_order`, `columns`, and the
-original `rules` object. `interpretation` is
+`include_subsets`, `max_attempts_per_scene`, `interpretation`, `rule_order`,
+`columns`, and the original `rules` object. `interpretation` is
 `"scene satisfaction given requested condition"`.
+
+## Predicate subsets
+
+With `--include-subsets`, the top-level `include_subsets` flag is `true` and
+each column also contains `predicate_subsets`. Each rule name maps to entries
+for every singleton and every pair of predicates from that rule. This does not
+enumerate triples or other larger subsets.
+
+Each entry has `predicate_indices`, a zero-based list of indices into the
+original rule's predicate list. Singles come first in index order, followed by
+all pairs. For a three-predicate rule, the order is `[0]`, `[1]`, `[2]`,
+`[0, 1]`, `[0, 2]`, `[1, 2]`. Each entry also has `successes`, `probability`,
+and `wilson_95`, using the same accepted-scene denominator and interval method
+as the full-rule measurements.
+
+Each subset is evaluated separately. Variable identifiers are retained within
+a subset, but the variables are existentially bound anew for each subset.
+Bindings are not carried over from the full rule or from another subset.
+Distinct variables require distinct objects. For example, in a subset
+containing both the red attribute for `a` and the relation `a left_of b`, `a`
+is the same object across those predicates, `b` must be a different object, and
+both bindings are chosen fresh for that subset. A singleton containing only `b`
+binds only `b`.
+
+When `--include-subsets` is omitted, `include_subsets` is `false` and no
+`predicate_subsets` entries are written.
+
+## Paired measurements and current scope
+
+Within a column, all full-rule measurements and predicate-subset measurements
+use the same accepted scenes. They are paired and correlated, not independent
+samples. Columns do not share scenes. The report does not yet calculate lift or
+other contrasts, does not enforce fixed marginals, and does not validate the
+research design.
 
 ## Reproducibility and rule ordering
 
