@@ -1,22 +1,36 @@
 # Which Exposure Matters?
 
-This project implements the research proposal in stages. The first stage defines
-how rules are evaluated against ground-truth scene annotations. It does not yet
-render images, train a model, download a dataset, or provide CUDA acceleration.
+This project implements the research proposal in stages. It currently evaluates
+rules on annotations and renders simple synthetic scenes. It does not yet train
+a model, download an external dataset, or provide CUDA acceleration.
 
 ## Run the first checks
 
 With Python 3.11+ and uv installed, from this directory:
 
 ```sh
-uv run --no-sync python -m unittest discover -s tests -v
+uv sync
+uv run python -m unittest discover -s tests -v
 ```
 
-The first step has no third-party dependencies and runs on a CPU. It uses
+The checks run on a CPU. Rule evaluation uses
 distinct object assignments, existential rule semantics, and image coordinates
 where larger y means lower on the image. `left_of` and `above` compare object
 centers strictly, so ties do not satisfy a relation. Pair and marginal exposure
 semantics need to be locked in the experiment specification before analysis.
+
+## Render a scene
+
+```sh
+uv run python -m exposure.render --seed 42 --output outputs/example
+```
+
+This creates `outputs/example.png` and `outputs/example.json`. The renderer
+uses Pillow on the CPU, draws three separated shapes with antialiased edges,
+and records color, shape, and center coordinates for each object. The seed
+reproduces the image and annotations with the same dependency versions. This
+prototype samples objects independently; it does not yet generate scenes for
+a requested rule, build masks, or implement the exposure design.
 
 ## Dataset and hardware plan
 
