@@ -62,7 +62,7 @@ $env:UV_PROJECT_ENVIRONMENT = "..\.venv"
 ```
 
 Invoke project modules with `..\.venv\Scripts\python.exe -m ...`, for example
-`..\.venv\Scripts\python.exe -m exposure.pilot_train`. Locked `uv sync`, 123
+`..\.venv\Scripts\python.exe -m exposure.pilot_train`. Locked `uv sync`, 127
 Windows tests, and a short project CUDA run completed.
 
 ## Run the preflight on the Windows machine

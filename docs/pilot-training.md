@@ -50,7 +50,7 @@ $env:UV_PROJECT_ENVIRONMENT = "..\.venv"
 ```
 
 Then invoke the pilot with `..\.venv\Scripts\python.exe -m exposure.pilot_train`
-and the arguments below. Locked `uv sync` and 123 Windows tests passed.
+and the arguments below. Locked `uv sync` and all 127 updated Windows tests passed.
 
 ## CPU mechanics smoke
 
@@ -106,7 +106,11 @@ When `--deterministic` is enabled:
 - Operations without deterministic implementations raise runtime errors.
 - Strict determinism does not guarantee bitwise reproducibility across different
   hardware architectures, CUDA versions, or driver versions. The integrated
-  deterministic option has not yet been tested on the GPU laptop.
+  `--deterministic` CUDA flag has now been tested on the RTX 3050: two independent
+  two-step runs matched model weights, a four-step run matched a 2+2 resumed run
+  for model, EMA, optimizer, Python/CPU/CUDA RNG and exposure counts, and two
+  same-seed sample PNGs matched byte-for-byte. This is a small two-timestep wiring
+  test, not evidence of research quality or determinism on other hardware.
 
 Sample with:
 
@@ -181,9 +185,9 @@ forward/backward/AdamW steps. It reported a finite loss, a measured time of
 project pilot fit, learning evidence, Stage 0 passage, or a study.
 
 The pilot still has no reference model, validated model outputs,
-controlled guidance sweep, or human audit. Project pilot fit on the GPU,
-training quality, and any Stage 0 gate remain unestablished. The integrated
-deterministic option has not yet been evaluated on the GPU laptop.
+controlled guidance sweep, or human audit. Training quality and the Stage 0
+gates remain unestablished. The deterministic CUDA check above was a small
+two-timestep wiring test, not evidence of research quality.
 
 The 100-step CUDA run used four example rules, batch size 2, width 16, 1,000
 diffusion timesteps, seed 43, and code revision `7d9dfe2`. Its training time was
@@ -198,7 +202,8 @@ and 2,000 training steps (4,000 scenes). Training took 167.536 seconds
 including rendering, with 43,783,680 bytes peak allocated and 65,011,712 bytes
 reserved. The sampled image was still visually noise. The checkpoint and sample
 are in the laptop's ignored `outputs/gpu-pilot-2000-_9x17fxs/` directory. This
-short run does not establish model quality or provide an audit image set.
+short run does not establish model quality or provide an audit image set. Both the
+100- and 2,000-step samples remained noise, and Stage 0 remains unpassed.
 
 See the [research and hardware plan](research-and-hardware-plan.md),
 [Stage 0 status](stage0-status.md), and the

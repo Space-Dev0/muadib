@@ -44,7 +44,7 @@ the `source` subdirectory of the project folder on the laptop; the existing
 isolated `.venv` remains in its parent. From the clone, PowerShell should set
 `$env:UV_PROJECT_ENVIRONMENT` to `..\.venv` and run
 `..\.venv\Scripts\python.exe -m uv sync --locked --inexact --extra train`.
-Locked `uv sync` and all 123 Windows tests passed. OpenCL is not part of this
+Locked `uv sync` and all 127 Windows tests passed. OpenCL is not part of this
 implementation.
 
 The optional training dependency is locked; CUDA execution is verified for the
@@ -81,7 +81,7 @@ established, and no reviews have been completed.
 - The preflight itself installed nothing; the later isolated-venv installation
   is complete.
 - The public repository is cloned into the laptop's `source` subdirectory, with
-  the isolated `.venv` in its parent. Locked sync and 123 Windows tests passed.
+  the isolated `.venv` in its parent. Locked sync and 127 Windows tests passed.
 - No validated model outputs, reference model, controlled guidance
   sweep, or human audit exists.
 - No image reviews have been completed.
