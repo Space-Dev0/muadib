@@ -60,7 +60,7 @@ train/checkpoint/sample mechanical sample passed in a separate CPU PyTorch 2.9.1
 environment; these are mechanics only, not learning evidence. The laptop CUDA
 environment is installed and a generic CUDA smoke completed, but no project
 pilot result has been validated on CUDA. No validated model outputs, reference
-model, resume, controlled guidance sweep, or human audit exists. No mixed
+model, controlled guidance sweep, or human audit exists. No mixed
 precision is implemented.
 
 ## Human review capacity
@@ -82,7 +82,7 @@ established, and no reviews have been completed.
   is complete.
 - The public repository is cloned into the laptop's `source` subdirectory, with
   the isolated `.venv` in its parent. Locked sync and 123 Windows tests passed.
-- No validated model outputs, reference model, resume, controlled guidance
+- No validated model outputs, reference model, controlled guidance
   sweep, or human audit exists.
 - No image reviews have been completed.
 - Pair and marginal exposure semantics must be locked in the experiment

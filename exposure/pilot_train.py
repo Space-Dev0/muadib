@@ -1,26 +1,34 @@
 """Small online conditional diffusion instrument, not a research result.
 
 Uses predicate/object-slot tokens, cross-attention, DDPM noise prediction,
-classifier-free dropout, AdamW and EMA. Sampling and loss are preliminary;
-there is no resume, validation, guidance sweep, or Stage 0 gate decision.
+classifier-free dropout, AdamW and EMA. Version 2 checkpoints can resume on
+the same device type and compatible runtime, preserving random streams. Resume
+checks Python/PyTorch/NumPy/Pillow versions and fingerprints project code used
+by the pilot; exact results across hardware or drivers are not guaranteed.
+Sampling and loss are preliminary; there is no validation, guidance sweep, or
+Stage 0 gate decision.
 """
 
 import argparse
 import copy
+import hashlib
 import json
 import math
 import random
+import sys
 import tempfile
 import time
 import warnings
 from pathlib import Path
 
 import numpy as np
+import PIL
 import torch
 from PIL import Image
 from torch import nn
 from torch.nn import functional as F
 
+from exposure import measure as _measure_module, render as _render_module, rules as _rules_module
 from exposure.measure import load_rules, unique_object
 from exposure.render import COLORS, SHAPES, render_conditioned
 from exposure.rules import Attribute, satisfies
@@ -133,9 +141,47 @@ def _weights(names: list[str], raw: object | None) -> list[float]:
     return [float(w) for w in weights]
 
 
+def _runtime(device: str) -> dict:
+    """Identify RNG implementations and, for CUDA, the visible device layout."""
+    paths = {"pilot_train": Path(__file__), "measure": Path(_measure_module.__file__),
+             "render": Path(_render_module.__file__), "rules": Path(_rules_module.__file__)}
+    fingerprints = {name: hashlib.sha256(path.read_bytes()).hexdigest() for name, path in paths.items()}
+    info = {"python": [sys.version_info.major, sys.version_info.minor, sys.version_info.micro],
+            "torch": str(torch.__version__), "device": device, "cuda_version": None,
+            "numpy": np.__version__, "pillow": PIL.__version__, "code_sha256": fingerprints,
+            "cuda_devices": []}
+    if device == "cuda":
+        info["cuda_version"] = torch.version.cuda
+        info["cuda_devices"] = [
+            {"name": torch.cuda.get_device_name(i),
+             "capability": list(torch.cuda.get_device_capability(i))}
+            for i in range(torch.cuda.device_count())
+        ]
+    return info
+
+
+def _resume_parts(checkpoint: object) -> tuple[dict, dict, dict]:
+    """Validate presence of state needed to resume a version 2 checkpoint."""
+    required = {"schema_version", "config", "rules", "model", "ema", "optimizer", "report", "rng"}
+    if not isinstance(checkpoint, dict) or checkpoint.get("schema_version") != 2 or not required <= checkpoint.keys():
+        raise ValueError("Checkpoint lacks required resume state; version 2 is required")
+    config, report, rng = checkpoint["config"], checkpoint["report"], checkpoint["rng"]
+    config_keys = {"steps", "batch_size", "seed", "width", "timesteps", "lr", "dropout", "ema_decay", "max_attempts"}
+    report_keys = {"device", "weights", "condition_counts", "realized_rule_counts_by_condition",
+                   "sampling_attempts", "elapsed_seconds", "peak_cuda_allocated_bytes", "peak_cuda_reserved_bytes"}
+    if (not isinstance(config, dict) or not config_keys <= config.keys() or
+            not isinstance(report, dict) or not report_keys <= report.keys() or
+            not isinstance(rng, dict) or set(rng) != {"runtime", "python", "torch_cpu", "torch_cuda"}):
+        raise ValueError("Checkpoint lacks required resume state")
+    if type(config["steps"]) is not int or config["steps"] < 1:
+        raise ValueError("Checkpoint has invalid completed step count")
+    return config, report, rng
+
+
 def train(definitions: dict, weights: object | None, *, steps: int, batch_size: int, seed: int,
           device: str, width: int, timesteps: int, lr: float, dropout: float,
-          ema_decay: float, max_attempts: int) -> tuple[dict, dict]:
+          ema_decay: float, max_attempts: int, resume: dict | None = None) -> tuple[dict, dict]:
+    """Run ``steps`` additional updates, optionally continuing a version 2 checkpoint."""
     if steps < 1 or batch_size < 1 or seed < 0 or max_attempts < 1:
         raise ValueError("steps, batch size, and attempts must be positive; seed must be nonnegative")
     if not math.isfinite(lr) or lr <= 0 or not 0 <= dropout < 1 or not 0 <= ema_decay < 1:
@@ -149,15 +195,69 @@ def train(definitions: dict, weights: object | None, *, steps: int, batch_size: 
     names = list(rules)
     probs = _weights(names, weights)
     tokens = encode_rules(rules).to(target)
+    runtime = _runtime(device)
+    previous_steps, previous_elapsed = 0, 0.0
+    previous_allocated, previous_reserved = None, None
+    prior_report = prior_rng = None
+    if resume is not None:
+        prior_config, prior_report, prior_rng = _resume_parts(resume)
+        expected = {"batch_size": batch_size, "seed": seed, "width": width, "timesteps": timesteps,
+                    "lr": lr, "dropout": dropout, "ema_decay": ema_decay, "max_attempts": max_attempts}
+        if (any(prior_config[key] != value for key, value in expected.items()) or
+                prior_report["device"] != device or prior_rng["runtime"] != runtime or
+                list(resume["rules"]) != names or resume["rules"] != definitions or
+                _weights(names, prior_report["weights"]) != probs):
+            raise ValueError("Incompatible resume configuration, rules, weights, device or runtime")
+        previous_steps = prior_config["steps"]
+        previous_elapsed = prior_report["elapsed_seconds"]
+        previous_allocated = prior_report["peak_cuda_allocated_bytes"]
+        previous_reserved = prior_report["peak_cuda_reserved_bytes"]
+        if (isinstance(previous_elapsed, bool) or not isinstance(previous_elapsed, (int, float)) or
+                not math.isfinite(previous_elapsed) or previous_elapsed < 0 or
+                (device == "cpu" and (previous_allocated is not None or previous_reserved is not None)) or
+                (device == "cuda" and any(type(value) is not int or value < 0
+                                          for value in (previous_allocated, previous_reserved)))):
+            raise ValueError("Checkpoint has invalid timing or peak-memory measurements")
     torch.manual_seed(seed)
     rng = random.Random(seed)
     model = PilotUNet(width, timesteps).to(target)
     ema = copy.deepcopy(model).eval()
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
     _, alpha_bar = schedule(timesteps, target)
-    counts = {name: 0 for name in names}
-    cooccurrence = {name: {event: 0 for event in names} for name in names}
-    attempts_total = 0
+    if resume is None:
+        counts = {name: 0 for name in names}
+        cooccurrence = {name: {event: 0 for event in names} for name in names}
+        attempts_total = 0
+    else:
+        counts = copy.deepcopy(prior_report["condition_counts"])
+        cooccurrence = copy.deepcopy(prior_report["realized_rule_counts_by_condition"])
+        attempts_total = prior_report["sampling_attempts"]
+        if (not isinstance(counts, dict) or set(counts) != set(names) or
+                any(type(value) is not int or value < 0 for value in counts.values()) or
+                sum(counts.values()) != previous_steps * batch_size or
+                not isinstance(cooccurrence, dict) or set(cooccurrence) != set(names) or
+                any(not isinstance(row, dict) or set(row) != set(names) or
+                    any(type(value) is not int or value < 0 or value > counts[name] for value in row.values())
+                    for name, row in cooccurrence.items()) or
+                type(attempts_total) is not int or attempts_total < sum(counts.values())):
+            raise ValueError("Checkpoint has invalid accumulated exposure counts")
+        try:
+            model.load_state_dict(resume["model"])
+            ema.load_state_dict(resume["ema"])
+            # Optimizer loading may retain CPU tensor aliases; the caller's
+            # checkpoint must stay unchanged when resumed updates run.
+            optimizer.load_state_dict(copy.deepcopy(resume["optimizer"]))
+            rng.setstate(prior_rng["python"])
+            torch.set_rng_state(prior_rng["torch_cpu"])
+            if device == "cuda":
+                states = prior_rng["torch_cuda"]
+                if not isinstance(states, list) or len(states) != torch.cuda.device_count():
+                    raise ValueError("CUDA RNG state does not match visible devices")
+                torch.cuda.set_rng_state_all(states)
+            elif prior_rng["torch_cuda"] is not None:
+                raise ValueError("CPU checkpoint has unexpected CUDA RNG state")
+        except (KeyError, TypeError, RuntimeError, ValueError) as exc:
+            raise ValueError(f"Invalid checkpoint model, optimizer or random state: {exc}") from exc
     if target.type == "cuda":
         torch.cuda.synchronize(target)
         torch.cuda.reset_peak_memory_stats(target)
@@ -197,24 +297,26 @@ def train(definitions: dict, weights: object | None, *, steps: int, batch_size: 
         last_loss = float(loss.detach().cpu())
     if target.type == "cuda":
         torch.cuda.synchronize(target)
-    elapsed = time.perf_counter() - start
-    config = {"steps": steps, "batch_size": batch_size, "seed": seed, "width": width,
+    elapsed = previous_elapsed + time.perf_counter() - start
+    config = {"steps": previous_steps + steps, "batch_size": batch_size, "seed": seed, "width": width,
               "timesteps": timesteps, "lr": lr, "dropout": dropout, "ema_decay": ema_decay,
               "max_attempts": max_attempts}
     terminal_alpha_bar = float(alpha_bar[-1].cpu())
     result = {"config": config, "device": device, "last_loss": last_loss, "elapsed_seconds": elapsed,
               "terminal_alpha_bar": terminal_alpha_bar,
               "prior_approximation_warning": terminal_alpha_bar > 0.01,
-              "peak_cuda_allocated_bytes": torch.cuda.max_memory_allocated(target) if device == "cuda" else None,
-              "peak_cuda_reserved_bytes": torch.cuda.max_memory_reserved(target) if device == "cuda" else None,
+              "peak_cuda_allocated_bytes": max(previous_allocated or 0, torch.cuda.max_memory_allocated(target)) if device == "cuda" else None,
+              "peak_cuda_reserved_bytes": max(previous_reserved or 0, torch.cuda.max_memory_reserved(target)) if device == "cuda" else None,
               "condition_counts": counts, "realized_rule_counts_by_condition": cooccurrence,
               "sampling_attempts": attempts_total, "weights": dict(zip(names, probs, strict=True)),
               "note": ("Exploratory pilot only; no Stage 0 gate or model performance claim. "
                        "Timing includes online rendering and has no warmup; seeds do not guarantee "
                        "bitwise equality across hardware or PyTorch versions.")}
-    checkpoint = {"schema_version": 1, "config": config, "rules": definitions,
+    checkpoint = {"schema_version": 2, "config": config, "rules": definitions,
                   "model": model.state_dict(), "ema": ema.state_dict(), "optimizer": optimizer.state_dict(),
-                  "report": result}
+                  "report": result, "rng": {"runtime": runtime, "python": rng.getstate(),
+                                            "torch_cpu": torch.get_rng_state(),
+                                            "torch_cuda": torch.cuda.get_rng_state_all() if device == "cuda" else None}}
     return checkpoint, result
 
 
@@ -301,6 +403,11 @@ def main() -> None:
     fit.add_argument("--dropout", type=float, default=0.1)
     fit.add_argument("--ema-decay", type=float, default=0.999)
     fit.add_argument("--max-attempts", type=int, default=10000)
+    resume_parser = sub.add_parser("resume", help="run additional updates from a version 2 checkpoint")
+    resume_parser.add_argument("--checkpoint", type=Path, required=True)
+    resume_parser.add_argument("--steps", type=int, required=True, help="number of additional updates")
+    resume_parser.add_argument("--output", type=Path, required=True, help="new checkpoint path")
+    resume_parser.add_argument("--device", choices=("cpu", "cuda"), help="must match checkpoint device")
     generate = sub.add_parser("sample")
     generate.add_argument("--checkpoint", type=Path, required=True)
     generate.add_argument("--rule", required=True)
@@ -319,6 +426,17 @@ def main() -> None:
                                        seed=args.seed, device=args.device, width=args.width,
                                        timesteps=args.timesteps, lr=args.lr, dropout=args.dropout,
                                        ema_decay=args.ema_decay, max_attempts=args.max_attempts)
+            save_checkpoint(args.output, checkpoint)
+            print(json.dumps(result, indent=2, allow_nan=False))
+        elif args.command == "resume":
+            old = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
+            config, prior_report, _ = _resume_parts(old)
+            device = args.device or prior_report["device"]
+            checkpoint, result = train(old["rules"], prior_report["weights"], steps=args.steps,
+                                       batch_size=config["batch_size"], seed=config["seed"], device=device,
+                                       width=config["width"], timesteps=config["timesteps"], lr=config["lr"],
+                                       dropout=config["dropout"], ema_decay=config["ema_decay"],
+                                       max_attempts=config["max_attempts"], resume=old)
             save_checkpoint(args.output, checkpoint)
             print(json.dumps(result, indent=2, allow_nan=False))
         else:

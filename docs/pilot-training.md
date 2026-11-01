@@ -92,6 +92,24 @@ uv run --extra train python -m exposure.pilot_train sample --checkpoint outputs/
 Choose new output paths for every run. On the laptop, invoke the same arguments
 with `..\.venv\Scripts\python.exe -m exposure.pilot_train`.
 
+## Resume completed segments
+
+New version 2 checkpoints preserve optimizer, EMA, random states, and exposure
+counts. Continue a completed segment with a new output path:
+
+```sh
+uv run --extra train python -m exposure.pilot_train resume --checkpoint outputs/pilot-run-20261101-01/pilot.pt --steps 2000 --output outputs/pilot-run-20261101-01/pilot-next.pt
+```
+
+`--steps` adds updates to the saved count. Resume requires the same device type,
+visible CUDA layout, Python/PyTorch/NumPy/Pillow versions, and source hashes for
+the pilot, renderer, rules, and measurement code. The implementation rejects
+incompatible checkpoints; it does not promise bitwise identity across hardware
+or drivers. Save completed segments regularly: checkpoints are not automatic
+during a segment. Older version 1 checkpoints, including the 100- and 2,000-step
+GPU explorations below, can be sampled but cannot be resumed because they lack
+the required random state.
+
 ## Provenance, counts, memory, and timing
 
 The checkpoint records `schema_version`, the configuration, rule definitions,
@@ -123,7 +141,7 @@ forward/backward/AdamW steps. It reported a finite loss, a measured time of
 4,194,304 bytes peak reserved. This is a generic CUDA smoke only. It is not
 project pilot fit, learning evidence, Stage 0 passage, or a study.
 
-The pilot still has no resume support, reference model, validated model outputs,
+The pilot still has no reference model, validated model outputs,
 controlled guidance sweep, or human audit. Project pilot fit on the GPU,
 training quality, and any Stage 0 gate remain unestablished.
 
