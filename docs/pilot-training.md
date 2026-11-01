@@ -171,6 +171,24 @@ optimizer state, the training report, and the `rng` state. The runtime state in
 Sampling writes only a PNG. It does not emit scene annotations, metrics, or a
 validated evaluation.
 
+## One-step denoising probe
+
+`exposure.denoise_probe` compares raw weights, EMA weights, and a zero-noise
+baseline on the same seeded CPU renders and noise draws. It reports noise MSE
+and reconstructed clean-image MSE at each requested timestep. For example:
+
+```sh
+uv run --extra train python -m exposure.denoise_probe --checkpoint outputs/deterministic-pilot-5549zx7k/step-8000.pt --rule red --samples 8 --timesteps 20 100 500 --seed 370 --output outputs/denoise-probe-8000-red.json
+```
+
+The output path must be new. On the laptop, use the parent virtual-environment
+Python as described above. Comparing the 4,000- and 8,000-step checkpoints on
+the same eight renders and noise draws gave EMA noise MSEs of 0.2644 versus
+0.1378 at timestep 20, 0.0804 versus 0.0510 at 100, and 0.0323 versus 0.0162
+at 500; the zero predictor was approximately 1 at each timestep. This small
+one-step check does not validate full generation or establish why samples are
+noisy.
+
 ## Evidence and omissions
 
 CPU pilot tests and the one-step train/checkpoint/sample mechanical sample
@@ -210,8 +228,23 @@ timesteps, seed 45, and code revision `4287d88`. Cumulative recorded training
 time was 409.956 seconds, with peak allocated memory of 96,212,480 bytes and
 reserved memory of 111,149,056 bytes. The single sampled red image was still
 mostly noise, so it is not suitable for human audit or evidence of research
-quality; Stage 0 remains unpassed. The checkpoint and the one inspected sample
-are in ignored `outputs/deterministic-pilot-5549zx7k` on the GPU laptop.
+quality; Stage 0 remains unpassed.
+
+An 8,000-step deterministic pilot was measured at code revision `4287d88`:
+training continued the existing seed-45, batch-size-2, width-16, 1,000-timestep
+run in two additional 2,000-step checkpointed segments. Cumulative recorded
+training time was 802.497 seconds, with peak allocated memory of 96,212,480
+bytes and reserved memory of 111,149,056 bytes. Four example conditions were
+sampled once each using seeds 5, 6, 7, 8; visual inspection found noise or
+near-blank images with colored fragments, none clearly showing the intended
+three-object scene. This is only four inspected samples, not a formal quality
+score, and they are not ready for human audit. Checkpoints and samples are in
+ignored `outputs/deterministic-pilot-5549zx7k` on the laptop. Stage 0 remains
+explicitly unpassed.
+
+For the `red` condition and seed 5, separate samples from the raw and EMA
+weights were both visually noisy. This single comparison does not establish
+whether EMA affects quality in general.
 
 See the [research and hardware plan](research-and-hardware-plan.md),
 [Stage 0 status](stage0-status.md), and the

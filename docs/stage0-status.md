@@ -7,7 +7,7 @@ not confirmatory research findings.
 | --- | --- | --- |
 | Renderer and rules | 2D renderer, annotation-based rule evaluation and grammar witnesses | Finalize and validate the benchmark vocabulary and full counterbalancing. |
 | Candidate templates | Provisional 57-template generator covers all singleton colors and shapes in each one-attribute cell; a 100-scene-per-template sampling smoke test completed | Confirm full counterbalancing, held-out rules and sufficient sampling precision. |
-| Pilot training | Locked sync and 127 Windows tests passed. The deterministic CUDA option matched a small split run; a 4,000-step deterministic pilot (two 2,000-update segments with resume) completed. | The 100-, 2,000-, and 4,000-step samples were noise; no validated model outputs, reference model, controlled guidance sweep, or human audit. See [pilot training](pilot-training.md). |
+| Pilot training | Locked sync and 127 Windows tests passed. The deterministic CUDA option matched a small split run; an 8,000-step deterministic pilot (continued across four 2,000-update segments with resume) completed. | The 100-, 2,000-, 4,000-, and 8,000-step samples were noise or near-blank fragments; four inspected samples are not ready for human audit; no validated model outputs, reference model, or controlled guidance sweep. See [pilot training](pilot-training.md). |
 | Checker | Clean-render and controlled perturbation audits; conservative sharpening fallback | High rejection remains at brightness 1.10, blur 0.50, and blur 1.00; validate every relevant rule and audit generated images with human judgments. |
 | Exposure matrix and design | Monte Carlo estimates, LP feasibility and numerical minimum-KL allocation | Quantify matrix uncertainty and verify feasible exposure manipulations and leave-out probes on the final benchmark. |
 | Decorrelation | Twenty exploratory hit-and-run designs from the 57-condition pilot; pooled correlations and VIF computed over 1,140 rule-by-design rows | Define breadth, freeze the analysis table and uncertainty method, and evaluate the registered criteria. Current estimates do not assess the proposal gate. |
@@ -52,16 +52,18 @@ Windows tests passed. A 100-step project run, batch size 2 and width 16, took
 65,011,712 bytes reserved. Its sample was noise; these numbers are a short
 engineering measurement, not an estimate of the research budget.
 The 2,000-step run used 4,000 scenes and took 167.536 seconds including
-rendering; its sample was also noise. A 4,000-step deterministic project pilot
-was measured across two 2,000-update segments with checkpoint resume, using
-batch size 2, width 16, 1,000 diffusion timesteps, seed 45, and code revision
-`4287d88`. Cumulative recorded training time was 409.956 seconds, with peak
-allocated memory of 96,212,480 bytes and reserved memory of 111,149,056 bytes.
-The single sampled red image was still mostly noise, so it is not suitable for
-human audit or evidence of research quality; Stage 0 remains unpassed.
-The checkpoint and one inspected sample are in ignored
-`outputs/deterministic-pilot-5549zx7k` on the GPU laptop. None of the inspected
-samples are suitable for human audit. Checkpoints now follow schema version 3, recording
+rendering; its sample was also noise. An 8,000-step deterministic project pilot
+was measured at code revision `4287d88`: training continued the existing seed-45,
+batch-size-2, width-16, 1,000-timestep run across two additional 2,000-step
+checkpointed segments (building on the earlier 4,000-step checkpoint). Cumulative
+recorded training time was 802.497 seconds, with peak allocated memory of
+96,212,480 bytes and reserved memory of 111,149,056 bytes. Four example
+conditions were sampled once each using seeds 5, 6, 7, 8; visual inspection found
+noise or near-blank images with colored fragments, none clearly showing the
+intended three-object scene. This is only four inspected samples, not a formal
+quality score, and they are not ready for human audit. Checkpoints and samples
+are in ignored `outputs/deterministic-pilot-5549zx7k` on the laptop. Stage 0
+remains explicitly unpassed. Checkpoints now follow schema version 3, recording
 determinism state and PyTorch backend runtime flags. Strict deterministic training
 (`--deterministic`) configures the cuBLAS workspace and PyTorch deterministic
 algorithms while rejecting unsupported ops. Older v1 and v2 checkpoints remain
