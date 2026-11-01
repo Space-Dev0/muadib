@@ -3,7 +3,9 @@
 `exposure.design_diagnostics` pools estimated rule-by-design rows and reports
 Pearson correlations and variance inflation factors (VIF) for log mean
 predicate marginal, rule log lift, attribute-predicate count, and relation
-count. It does not create exposure designs.
+count. It does not create exposure designs. Use the
+[design sampler](design-sample.md) to generate exploratory designs that
+preserve estimated singleton exposures.
 
 Prepare a subset-enabled measurement report and a separate JSON file whose
 `designs` list contains at least three distinct names and complete weight maps:

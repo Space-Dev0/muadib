@@ -41,6 +41,8 @@ third renders a rule-conditioned scene to `outputs/example.png` and
   and VIF for candidate designs.
 - [Design subspace](docs/design-subspace.md): numerical singleton-preserving
   directions for an estimated exposure matrix.
+- [Design sampler](docs/design-sample.md): exploratory hit-and-run sampling
+  that preserves estimated singleton exposures.
 - [Mixture validation](docs/mixture-validation.md): compare matrix predictions
   against fresh sampled scenes.
 - [Mixture analysis](docs/mixture-analysis.md): weighted exposures, rule and
