@@ -19,6 +19,11 @@ completed on CUDA, and no model output has been validated.
 - Training uses AdamW and an EMA copy of the model. Sampling uses the EMA
   weights and a fixed DDPM sampler with a linear beta schedule.
 - No mixed precision is implemented.
+- Strict deterministic training is opt-in via `--deterministic`. When enabled,
+  it configures process-wide PyTorch determinism flags and cuBLAS workspace
+  settings; unsupported operations raise runtime errors. Checkpoints use
+  schema version 3 and record determinism flags. Older v1/v2 checkpoints can
+  still be sampled in default mode but cannot be resumed.
 
 ## Install the training extra
 
@@ -82,6 +87,27 @@ Defaults include `--timesteps 1000`, `--width 16`, `--lr 1e-4`, `--dropout 0.1`,
 `--ema-decay 0.999`, and `--max-attempts 10000`. Requesting `cuda` when PyTorch
 cannot access CUDA is an error; the command does not silently fall back to CPU.
 
+To opt into strict deterministic execution on CUDA, pass `--deterministic`:
+
+```sh
+uv run --extra train python -m exposure.pilot_train train --rules examples/exposure_rules.json --weights examples/uniform_weights.json --output outputs/pilot-run-20261101-01/pilot.pt --steps 100 --batch-size 2 --seed 0 --device cuda --deterministic
+```
+
+When `--deterministic` is enabled:
+
+- `CUBLAS_WORKSPACE_CONFIG` is set to `:4096:8` (or `:16:8` if already present in
+  the environment) before CUDA is initialized. If CUDA has already been
+  initialized in the process before this configuration, training raises an error
+  requiring a fresh process.
+- Process-wide PyTorch flags are enabled: `torch.use_deterministic_algorithms(True, warn_only=False)`,
+  `torch.backends.cudnn.deterministic = True`, `torch.backends.cudnn.benchmark = False`,
+  and TF32 math is disabled for both cuDNN and matrix multiplications
+  (`torch.backends.cudnn.allow_tf32 = False`, `torch.backends.cuda.matmul.allow_tf32 = False`).
+- Operations without deterministic implementations raise runtime errors.
+- Strict determinism does not guarantee bitwise reproducibility across different
+  hardware architectures, CUDA versions, or driver versions. The integrated
+  deterministic option has not yet been tested on the GPU laptop.
+
 Sample with:
 
 ```sh
@@ -94,26 +120,39 @@ with `..\.venv\Scripts\python.exe -m exposure.pilot_train`.
 
 ## Resume completed segments
 
-New version 2 checkpoints preserve optimizer, EMA, random states, and exposure
-counts. Continue a completed segment with a new output path:
+New version 3 checkpoints preserve optimizer, EMA, random states, determinism
+configuration, and exposure counts. Continue a completed segment with a new output path:
 
 ```sh
 uv run --extra train python -m exposure.pilot_train resume --checkpoint outputs/pilot-run-20261101-01/pilot.pt --steps 2000 --output outputs/pilot-run-20261101-01/pilot-next.pt
 ```
 
-`--steps` adds updates to the saved count. Resume requires the same device type,
-visible CUDA layout, Python/PyTorch/NumPy/Pillow versions, and source hashes for
-the pilot, renderer, rules, and measurement code. The implementation rejects
-incompatible checkpoints; it does not promise bitwise identity across hardware
-or drivers. Save completed segments regularly: checkpoints are not automatic
-during a segment. Older version 1 checkpoints, including the 100- and 2,000-step
-GPU explorations below, can be sampled but cannot be resumed because they lack
-the required random state.
+`--steps` adds updates to the saved count. Resume requires checkpoint schema
+version 3, the same device type, visible CUDA layout, matching determinism
+mode (inherited automatically), Python/PyTorch/NumPy/Pillow versions, and source
+hashes for the pilot, renderer, rules, and measurement code. The implementation
+rejects incompatible checkpoints; it does not promise bitwise identity across
+hardware or drivers. Save completed segments regularly: checkpoints are not
+automatic during a segment.
+
+### Compatibility with older checkpoints
+
+- **Schema version 3**: Supports both resume and sampling. When sampling from a
+  version 3 checkpoint, the sampling command automatically applies the
+  determinism mode saved in the checkpoint's configuration.
+- **Older v1 and v2 checkpoints**: Can still be sampled in the default
+  non-strict mode. However, they cannot be resumed (resuming strictly requires
+  schema version 3 and complete random stream state; attempting to resume an
+  older checkpoint raises a `ValueError`).
 
 ## Provenance, counts, memory, and timing
 
-The checkpoint records `schema_version`, the configuration, rule definitions,
-model, EMA, optimizer state, and the training report. The report includes:
+The checkpoint records `schema_version` (now schema version 3), the
+configuration (including `deterministic`), rule definitions, model, EMA,
+optimizer state, the training report, and the `rng` state. The runtime state in
+`rng["runtime"]` captures PyTorch determinism flags (`deterministic_algorithms`,
+`cudnn_deterministic`, `cudnn_benchmark`, `cudnn_allow_tf32`,
+`matmul_allow_tf32`, and `cublas_workspace_config`). The report includes:
 
 - `device` and `last_loss` (the final batch MSE, not a validation metric);
 - `elapsed_seconds`, which includes online rendering and has no warmup;
@@ -143,7 +182,8 @@ project pilot fit, learning evidence, Stage 0 passage, or a study.
 
 The pilot still has no reference model, validated model outputs,
 controlled guidance sweep, or human audit. Project pilot fit on the GPU,
-training quality, and any Stage 0 gate remain unestablished.
+training quality, and any Stage 0 gate remain unestablished. The integrated
+deterministic option has not yet been evaluated on the GPU laptop.
 
 The 100-step CUDA run used four example rules, batch size 2, width 16, 1,000
 diffusion timesteps, seed 43, and code revision `7d9dfe2`. Its training time was

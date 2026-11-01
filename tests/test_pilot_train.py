@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -62,6 +63,11 @@ class PilotTrainingTests(unittest.TestCase):
             other = pilot.sample(loaded, "red", seed=5, device="cpu", guidance=1)
             self.assertEqual(first.size, (64, 64))
             self.assertEqual(first.tobytes(), other.tobytes())
+            for version in (1, 2):
+                legacy = copy.deepcopy(loaded)
+                legacy["schema_version"] = version
+                del legacy["config"]["deterministic"]
+                self.assertEqual(pilot.sample(legacy, "red", seed=5, device="cpu", guidance=1).size, (64, 64))
 
     def test_invalid_weights_and_sampling_failure_abort(self):
         pilot = self.pilot
@@ -80,7 +86,7 @@ class PilotTrainingTests(unittest.TestCase):
     def test_resume_matches_uninterrupted_training(self):
         torch, pilot = self.torch, self.pilot
         options = dict(batch_size=2, seed=22, device="cpu", width=4, timesteps=3,
-                       lr=1e-4, dropout=0.1, ema_decay=0.9, max_attempts=10000)
+                       lr=1e-4, dropout=0.1, ema_decay=0.9, max_attempts=10000, deterministic=True)
         weights = {"red": 0.5, "blue_above": 0.5}
         full, full_report = pilot.train(self.definitions, weights, steps=4, **options)
         first, _ = pilot.train(self.definitions, weights, steps=2, **options)
@@ -91,8 +97,13 @@ class PilotTrainingTests(unittest.TestCase):
             before_optimizer = copy.deepcopy(restored["optimizer"])
             resumed, resumed_report = pilot.train(self.definitions, weights, steps=2, resume=restored, **options)
             replay, _ = pilot.train(self.definitions, weights, steps=2, resume=restored, **options)
-        self.assertEqual(resumed["schema_version"], 2)
+        self.assertEqual(resumed["schema_version"], 3)
         self.assertEqual(resumed["config"]["steps"], 4)
+        self.assertTrue(resumed["config"]["deterministic"])
+        self.assertTrue(resumed["rng"]["runtime"]["deterministic_algorithms"])
+        image = pilot.sample(resumed, "red", seed=5, device="cpu", guidance=1)
+        self.assertEqual(image.size, (64, 64))
+        self.assertTrue(torch.are_deterministic_algorithms_enabled())
         for key in ("condition_counts", "realized_rule_counts_by_condition", "sampling_attempts", "last_loss"):
             self.assertEqual(full_report[key], resumed_report[key])
         for state_name in ("model", "ema"):
@@ -116,14 +127,17 @@ class PilotTrainingTests(unittest.TestCase):
                        lr=1e-4, dropout=0.1, ema_decay=0.9, max_attempts=10000)
         weights = {"red": 1.0, "blue_above": 0.0}
         first, _ = pilot.train(self.definitions, weights, **options)
-        old = dict(first, schema_version=1)
-        with self.assertRaisesRegex(ValueError, "version 2"):
+        old = dict(first, schema_version=2)
+        with self.assertRaisesRegex(ValueError, "version 3"):
             pilot.train(self.definitions, weights, resume=old, **options)
         missing = copy.deepcopy(first)
         del missing["rng"]["torch_cpu"]
         with self.assertRaisesRegex(ValueError, "resume state"):
             pilot.train(self.definitions, weights, resume=missing, **options)
         changed = dict(options, batch_size=2)
+        with self.assertRaisesRegex(ValueError, "Incompatible"):
+            pilot.train(self.definitions, weights, resume=first, **changed)
+        changed = dict(options, deterministic=True)
         with self.assertRaisesRegex(ValueError, "Incompatible"):
             pilot.train(self.definitions, weights, resume=first, **changed)
         with self.assertRaisesRegex(ValueError, "Incompatible"):
@@ -163,9 +177,38 @@ class PilotTrainingTests(unittest.TestCase):
             failure = subprocess.run(base + ["--output", str(original)], capture_output=True, text=True)
             self.assertNotEqual(failure.returncode, 0)
             self.assertEqual(original.read_bytes(), before)
+            mismatch = subprocess.run(base + ["--output", str(output), "--deterministic"],
+                                      capture_output=True, text=True)
+            self.assertNotEqual(mismatch.returncode, 0)
+            self.assertIn("Incompatible", mismatch.stderr)
+            self.assertFalse(output.exists())
             run = subprocess.run(base + ["--output", str(output)], capture_output=True, text=True, check=True)
             self.assertEqual(json.loads(run.stdout)["config"]["steps"], 2)
             self.assertEqual(torch.load(output, map_location="cpu", weights_only=True)["config"]["steps"], 2)
+
+    def test_deterministic_cuda_requires_early_compatible_workspace(self):
+        pilot, torch = self.pilot, self.torch
+        try:
+            with patch.object(pilot, "_CUBLAS_CONFIGURED_BEFORE_INIT", None):
+                with patch.dict(os.environ, {}, clear=True), patch.object(torch.cuda, "is_initialized", return_value=False):
+                    pilot._configure_determinism(True, "cuda")
+                    self.assertEqual(os.environ["CUBLAS_WORKSPACE_CONFIG"], ":4096:8")
+                    self.assertTrue(torch.are_deterministic_algorithms_enabled())
+                    self.assertTrue(torch.backends.cudnn.deterministic)
+                    self.assertFalse(torch.backends.cudnn.benchmark)
+                    with patch.object(torch.cuda, "is_initialized", return_value=True):
+                        pilot._configure_determinism(True, "cuda")
+                with patch.dict(os.environ, {"CUBLAS_WORKSPACE_CONFIG": "invalid"}), \
+                        patch.object(torch.cuda, "is_initialized", return_value=False):
+                    with self.assertRaisesRegex(ValueError, "CUBLAS_WORKSPACE_CONFIG"):
+                        pilot._configure_determinism(True, "cuda")
+            with patch.object(pilot, "_CUBLAS_CONFIGURED_BEFORE_INIT", None), \
+                    patch.dict(os.environ, {"CUBLAS_WORKSPACE_CONFIG": ":4096:8"}), \
+                    patch.object(torch.cuda, "is_initialized", return_value=True):
+                with self.assertRaisesRegex(ValueError, "initialized before deterministic setup"):
+                    pilot._configure_determinism(True, "cuda")
+        finally:
+            pilot._configure_determinism(False, "cpu")
 
 
 if __name__ == "__main__":

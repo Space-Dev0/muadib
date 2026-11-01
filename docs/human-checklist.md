@@ -146,6 +146,7 @@ counts alone do not establish the `≤ 2%` target on real renders. See
   evidence, Stage 0 passage, or a study. A 100-step project run also completed
   on CUDA; its sample was noise. The public repository is cloned into `source`,
   with the isolated `.venv` in its parent; locked sync and 123 tests passed.
+  The integrated deterministic CUDA option still needs a GPU replay test.
 - [ ] Run the adapted replication and compare only the direction with MOSAIC
   unless a full reproduction is achieved. Codex can prepare and run the
   experiment; the human decides whether the direction matches and whether the
@@ -156,7 +157,7 @@ counts alone do not establish the `≤ 2%` target on real renders. See
 | Area | Current evidence | What is still missing |
 | --- | --- | --- |
 | Templates | Provisional 57-template set; every `K_attr = 1` cell covers all four colours and three shapes; 100-scene-per-template sampling smoke test | Final vocabulary and template decision, full counterbalancing, held-out leave-out set, proposal-scale A-matrix |
-| Pilot training | 100- and 2,000-step exploratory CUDA runs and samples completed; both samples were noise | Useful generated images, reference model, controlled guidance sweep and human audit |
+| Pilot training | 100- and 2,000-step exploratory CUDA runs completed (both samples noise); checkpoint schema 3 and opt-in deterministic CUDA (`--deterministic`) added | Useful generated images, reference model, controlled guidance sweep, human audit; integrated deterministic CUDA replay untested |
 | Checker | Clean-render and controlled-perturbation audits; rejection counts reported separately | Generated-image human audit, per-predicate/per-rule error report, evidence for `≤ 2%` on real renders |
 | Decorrelation | 20 exploratory designs and 1,140 rule-by-design rows from the 57-condition pilot; pooled correlation `-0.446`; VIF `11.61` for log lift and `13.72` for relation count | Registered gate analysis with breadth, uncertainty, and the final matrix. The current values do not establish the proposal criterion |
 | MOSAIC | Preliminary paper/code review only | Adapted contrast specification, GPU run, results, and direction comparison |

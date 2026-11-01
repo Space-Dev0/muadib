@@ -1,12 +1,15 @@
 """Small online conditional diffusion instrument, not a research result.
 
 Uses predicate/object-slot tokens, cross-attention, DDPM noise prediction,
-classifier-free dropout, AdamW and EMA. Version 2 checkpoints can resume on
+classifier-free dropout, AdamW and EMA. Version 3 checkpoints can resume on
 the same device type and compatible runtime, preserving random streams. Resume
 checks Python/PyTorch/NumPy/Pillow versions and fingerprints project code used
 by the pilot; exact results across hardware or drivers are not guaranteed.
 Sampling and loss are preliminary; there is no validation, guidance sweep, or
-Stage 0 gate decision.
+Stage 0 gate decision. Strict deterministic training is opt-in and changes
+process-wide PyTorch backend flags; unsupported operations raise errors. New
+checkpoints record that mode and sampling uses it too. Older v1/v2 checkpoints
+can be sampled in the default non-strict mode, but cannot be resumed.
 """
 
 import argparse
@@ -14,6 +17,7 @@ import copy
 import hashlib
 import json
 import math
+import os
 import random
 import sys
 import tempfile
@@ -32,6 +36,35 @@ from exposure import measure as _measure_module, render as _render_module, rules
 from exposure.measure import load_rules, unique_object
 from exposure.render import COLORS, SHAPES, render_conditioned
 from exposure.rules import Attribute, satisfies
+
+
+# A CUDA context already initialized by someone else cannot be proven to have
+# seen the cuBLAS workspace setting. Remember only configurations established
+# by this module before CUDA initialization in the current process.
+_CUBLAS_CONFIGURED_BEFORE_INIT: str | None = None
+
+
+def _configure_determinism(enabled: bool, device: str) -> None:
+    """Configure process-wide PyTorch flags; strict mode may reject unsupported ops."""
+    global _CUBLAS_CONFIGURED_BEFORE_INIT
+    if type(enabled) is not bool:
+        raise ValueError("deterministic must be a boolean")
+    if enabled and device == "cuda":
+        value = os.environ.get("CUBLAS_WORKSPACE_CONFIG")
+        if value is not None and value not in {":4096:8", ":16:8"}:
+            raise ValueError("CUBLAS_WORKSPACE_CONFIG must be :4096:8 or :16:8 for deterministic CUDA")
+        if torch.cuda.is_initialized():
+            if value is None or value != _CUBLAS_CONFIGURED_BEFORE_INIT:
+                raise ValueError("CUDA was initialized before deterministic setup; start a new process")
+        else:
+            value = value or ":4096:8"
+            os.environ["CUBLAS_WORKSPACE_CONFIG"] = value
+            _CUBLAS_CONFIGURED_BEFORE_INIT = value
+    torch.use_deterministic_algorithms(enabled, warn_only=False)
+    torch.backends.cudnn.deterministic = enabled
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.allow_tf32 = False
+    torch.backends.cuda.matmul.allow_tf32 = False
 
 
 def encode_rules(rules: dict) -> torch.Tensor:
@@ -149,6 +182,12 @@ def _runtime(device: str) -> dict:
     info = {"python": [sys.version_info.major, sys.version_info.minor, sys.version_info.micro],
             "torch": str(torch.__version__), "device": device, "cuda_version": None,
             "numpy": np.__version__, "pillow": PIL.__version__, "code_sha256": fingerprints,
+            "deterministic_algorithms": torch.are_deterministic_algorithms_enabled(),
+            "cudnn_deterministic": torch.backends.cudnn.deterministic,
+            "cudnn_benchmark": torch.backends.cudnn.benchmark,
+            "cudnn_allow_tf32": torch.backends.cudnn.allow_tf32,
+            "matmul_allow_tf32": torch.backends.cuda.matmul.allow_tf32,
+            "cublas_workspace_config": os.environ.get("CUBLAS_WORKSPACE_CONFIG") if device == "cuda" else None,
             "cuda_devices": []}
     if device == "cuda":
         info["cuda_version"] = torch.version.cuda
@@ -161,12 +200,12 @@ def _runtime(device: str) -> dict:
 
 
 def _resume_parts(checkpoint: object) -> tuple[dict, dict, dict]:
-    """Validate presence of state needed to resume a version 2 checkpoint."""
+    """Validate presence of state needed to resume a version 3 checkpoint."""
     required = {"schema_version", "config", "rules", "model", "ema", "optimizer", "report", "rng"}
-    if not isinstance(checkpoint, dict) or checkpoint.get("schema_version") != 2 or not required <= checkpoint.keys():
-        raise ValueError("Checkpoint lacks required resume state; version 2 is required")
+    if not isinstance(checkpoint, dict) or checkpoint.get("schema_version") != 3 or not required <= checkpoint.keys():
+        raise ValueError("Checkpoint lacks required resume state; version 3 is required")
     config, report, rng = checkpoint["config"], checkpoint["report"], checkpoint["rng"]
-    config_keys = {"steps", "batch_size", "seed", "width", "timesteps", "lr", "dropout", "ema_decay", "max_attempts"}
+    config_keys = {"steps", "batch_size", "seed", "width", "timesteps", "lr", "dropout", "ema_decay", "max_attempts", "deterministic"}
     report_keys = {"device", "weights", "condition_counts", "realized_rule_counts_by_condition",
                    "sampling_attempts", "elapsed_seconds", "peak_cuda_allocated_bytes", "peak_cuda_reserved_bytes"}
     if (not isinstance(config, dict) or not config_keys <= config.keys() or
@@ -180,14 +219,16 @@ def _resume_parts(checkpoint: object) -> tuple[dict, dict, dict]:
 
 def train(definitions: dict, weights: object | None, *, steps: int, batch_size: int, seed: int,
           device: str, width: int, timesteps: int, lr: float, dropout: float,
-          ema_decay: float, max_attempts: int, resume: dict | None = None) -> tuple[dict, dict]:
-    """Run ``steps`` additional updates, optionally continuing a version 2 checkpoint."""
+          ema_decay: float, max_attempts: int, deterministic: bool = False,
+          resume: dict | None = None) -> tuple[dict, dict]:
+    """Run updates, optionally restoring a v3 checkpoint; changes global torch flags."""
     if steps < 1 or batch_size < 1 or seed < 0 or max_attempts < 1:
         raise ValueError("steps, batch size, and attempts must be positive; seed must be nonnegative")
     if not math.isfinite(lr) or lr <= 0 or not 0 <= dropout < 1 or not 0 <= ema_decay < 1:
         raise ValueError("invalid learning rate, dropout or EMA decay")
     if device not in {"cpu", "cuda"}:
         raise ValueError("device must be cpu or cuda")
+    _configure_determinism(deterministic, device)
     target = torch.device(device)
     if target.type == "cuda" and not torch.cuda.is_available():
         raise ValueError("CUDA was requested but PyTorch cannot access it")
@@ -202,7 +243,8 @@ def train(definitions: dict, weights: object | None, *, steps: int, batch_size: 
     if resume is not None:
         prior_config, prior_report, prior_rng = _resume_parts(resume)
         expected = {"batch_size": batch_size, "seed": seed, "width": width, "timesteps": timesteps,
-                    "lr": lr, "dropout": dropout, "ema_decay": ema_decay, "max_attempts": max_attempts}
+                    "lr": lr, "dropout": dropout, "ema_decay": ema_decay, "max_attempts": max_attempts,
+                    "deterministic": deterministic}
         if (any(prior_config[key] != value for key, value in expected.items()) or
                 prior_report["device"] != device or prior_rng["runtime"] != runtime or
                 list(resume["rules"]) != names or resume["rules"] != definitions or
@@ -300,7 +342,7 @@ def train(definitions: dict, weights: object | None, *, steps: int, batch_size: 
     elapsed = previous_elapsed + time.perf_counter() - start
     config = {"steps": previous_steps + steps, "batch_size": batch_size, "seed": seed, "width": width,
               "timesteps": timesteps, "lr": lr, "dropout": dropout, "ema_decay": ema_decay,
-              "max_attempts": max_attempts}
+              "max_attempts": max_attempts, "deterministic": deterministic}
     terminal_alpha_bar = float(alpha_bar[-1].cpu())
     result = {"config": config, "device": device, "last_loss": last_loss, "elapsed_seconds": elapsed,
               "terminal_alpha_bar": terminal_alpha_bar,
@@ -312,7 +354,7 @@ def train(definitions: dict, weights: object | None, *, steps: int, batch_size: 
               "note": ("Exploratory pilot only; no Stage 0 gate or model performance claim. "
                        "Timing includes online rendering and has no warmup; seeds do not guarantee "
                        "bitwise equality across hardware or PyTorch versions.")}
-    checkpoint = {"schema_version": 2, "config": config, "rules": definitions,
+    checkpoint = {"schema_version": 3, "config": config, "rules": definitions,
                   "model": model.state_dict(), "ema": ema.state_dict(), "optimizer": optimizer.state_dict(),
                   "report": result, "rng": {"runtime": runtime, "python": rng.getstate(),
                                             "torch_cpu": torch.get_rng_state(),
@@ -354,10 +396,14 @@ def save_checkpoint(path: Path, checkpoint: dict) -> None:
 def sample(checkpoint: dict, rule: str, *, seed: int, device: str, guidance: float) -> Image.Image:
     if seed < 0 or not math.isfinite(guidance) or guidance < 0:
         raise ValueError("seed and guidance must be finite and nonnegative")
-    if device not in {"cpu", "cuda"} or (device == "cuda" and not torch.cuda.is_available()):
+    if device not in {"cpu", "cuda"}:
+        raise ValueError("Requested device is unavailable")
+    config = checkpoint["config"]
+    _configure_determinism(config.get("deterministic", False), device)
+    if device == "cuda" and not torch.cuda.is_available():
         raise ValueError("Requested device is unavailable")
     target = torch.device(device)
-    definitions, config = checkpoint["rules"], checkpoint["config"]
+    definitions = checkpoint["rules"]
     rules = load_rules(definitions)
     if rule not in rules:
         raise ValueError("Unknown rule")
@@ -403,11 +449,14 @@ def main() -> None:
     fit.add_argument("--dropout", type=float, default=0.1)
     fit.add_argument("--ema-decay", type=float, default=0.999)
     fit.add_argument("--max-attempts", type=int, default=10000)
-    resume_parser = sub.add_parser("resume", help="run additional updates from a version 2 checkpoint")
+    fit.add_argument("--deterministic", action="store_true", help="require deterministic PyTorch algorithms")
+    resume_parser = sub.add_parser("resume", help="run additional updates from a version 3 checkpoint")
     resume_parser.add_argument("--checkpoint", type=Path, required=True)
     resume_parser.add_argument("--steps", type=int, required=True, help="number of additional updates")
     resume_parser.add_argument("--output", type=Path, required=True, help="new checkpoint path")
     resume_parser.add_argument("--device", choices=("cpu", "cuda"), help="must match checkpoint device")
+    resume_parser.add_argument("--deterministic", action="store_true", default=None,
+                               help="require a deterministic checkpoint; mode is inherited by default")
     generate = sub.add_parser("sample")
     generate.add_argument("--checkpoint", type=Path, required=True)
     generate.add_argument("--rule", required=True)
@@ -425,7 +474,8 @@ def main() -> None:
             checkpoint, result = train(definitions, weights, steps=args.steps, batch_size=args.batch_size,
                                        seed=args.seed, device=args.device, width=args.width,
                                        timesteps=args.timesteps, lr=args.lr, dropout=args.dropout,
-                                       ema_decay=args.ema_decay, max_attempts=args.max_attempts)
+                                       ema_decay=args.ema_decay, max_attempts=args.max_attempts,
+                                       deterministic=args.deterministic)
             save_checkpoint(args.output, checkpoint)
             print(json.dumps(result, indent=2, allow_nan=False))
         elif args.command == "resume":
@@ -436,7 +486,9 @@ def main() -> None:
                                        batch_size=config["batch_size"], seed=config["seed"], device=device,
                                        width=config["width"], timesteps=config["timesteps"], lr=config["lr"],
                                        dropout=config["dropout"], ema_decay=config["ema_decay"],
-                                       max_attempts=config["max_attempts"], resume=old)
+                                       max_attempts=config["max_attempts"],
+                                       deterministic=(config["deterministic"] if args.deterministic is None
+                                                      else args.deterministic), resume=old)
             save_checkpoint(args.output, checkpoint)
             print(json.dumps(result, indent=2, allow_nan=False))
         else:
