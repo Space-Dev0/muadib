@@ -1,18 +1,19 @@
 # Windows GPU access for a research preflight
 
-This note covers safe, practical SSH access to the reported Windows RTX 3050
-laptop for a **GPU preflight only**. It is not a training setup guide and does
-not establish that the machine is reachable or suitable.
+This note covers safe, practical SSH access and the current repository layout on
+the reported Windows RTX 3050 laptop. It is not a training guide and does not
+establish project model fit.
 
 ## Reported hardware and unverified points
 
 - Reported target: NVIDIA GeForce RTX 3050 6GB Laptop GPU, 6144 MiB, driver
   581.83, on a Windows laptop.
-- Unverified: network reachability, SSH access, Windows edition, CUDA/PyTorch
-  compatibility, available GPU time, and whether any model or batch size fits.
-- 6 GB of VRAM is not a fit guarantee. Capacity must be measured; a successful
-  login does not prove CUDA works.
-- No access, budget, installation, training, or validation is assumed here.
+- Verified: user-authorized SSH access, Windows 11 AMD64, Python 3.13.6, and
+  CUDA availability through the installed PyTorch environment.
+- Unverified: available GPU time and whether the project pilot or any batch size
+  fits. The earlier generic CUDA smoke does not establish project pilot fit.
+- 6 GB of VRAM is not a fit guarantee. Capacity must be measured.
+- No GPU-time budget, project training, or validation is assumed here.
 
 ## Prerequisites on the Windows laptop
 
@@ -22,8 +23,9 @@ not establish that the machine is reachable or suitable.
 - **Key-based authentication:** use an existing key pair or create one, place
   the public key in the account's `authorized_keys`, and keep the private key on the client.
   Confirm that login works without sending a password.
-- **Account and repository:** use an account that can reach the repository and
-  run Python from it.
+- **Repository:** the public repository is cloned into the `source`
+  subdirectory of the project folder. The existing isolated `.venv` remains in
+  its parent.
 - **Network reachability:** identify the laptop's hostname or IP address and SSH
   port, and confirm the route from the client, for example over the same LAN or
   an approved VPN.
@@ -47,29 +49,45 @@ the password.
 
 The Codex environment may need network permission before it can reach the laptop.
 
-## Run the preflight on the Windows machine
+## Repository and environment layout
 
-From the repository on the Windows laptop, in PowerShell or a terminal:
+At the user's request, the GitHub repository was made public and cloned into
+the `source` subdirectory of the project folder on the Windows laptop. The
+existing isolated `.venv` remains in the parent project folder. From PowerShell
+in the clone, set the project environment and synchronize with:
 
 ```powershell
-python -m exposure.gpu_preflight
+$env:UV_PROJECT_ENVIRONMENT = "..\.venv"
+..\.venv\Scripts\python.exe -m uv sync --locked --inexact --extra train
+```
+
+Invoke project modules with `..\.venv\Scripts\python.exe -m ...`, for example
+`..\.venv\Scripts\python.exe -m exposure.pilot_train`. Locked `uv sync`, 123
+Windows tests, and a short project CUDA run completed.
+
+## Run the preflight on the Windows machine
+
+From the cloned `source` directory on the Windows laptop, in PowerShell:
+
+```powershell
+..\.venv\Scripts\python.exe -m exposure.gpu_preflight
 ```
 
 The command reports:
 
 - the operating system and Python version;
 - the NVIDIA driver and GPU information;
-- whether PyTorch with CUDA is available, if PyTorch is already installed.
+- whether PyTorch with CUDA is available.
 
 It does not install packages, change drivers, download data, or train a model.
 Share the command output, not credentials.
 
 ## Safety and interpretation
 
-- Actual reachability and GPU/PyTorch compatibility remain unverified until the
-  preflight is run on the laptop.
-- A preflight pass is not a hardware-fit result, a Stage 0 gate, or permission
-  for an unbounded training run.
+- SSH access and CUDA availability are established, but project model fit,
+  available GPU time, and validation remain unverified.
+- A preflight pass is not a project-fit result, a Stage 0 gate, or a budget for
+  an unbounded training run.
 - For the broader plan, see
   [research and hardware plan](research-and-hardware-plan.md) and the
   [human checklist](human-checklist.md).

@@ -1,8 +1,8 @@
 # Exploratory pilot training
 
 **Preliminary and non-confirmatory. Stage 0 has not passed.** This is an
-instrument-development pilot, not a research result. No project pilot model has
-been trained on CUDA, and no model output has been validated.
+instrument-development pilot, not a research result. A short project run has
+completed on CUDA, and no model output has been validated.
 
 ## What the pilot implements
 
@@ -33,16 +33,19 @@ without the training extra.
 The prepared Windows laptop installation is complete. Its isolated virtual
 environment has `uv` 0.13.6, PyTorch 2.9.1+cu128 with CUDA 12.8, NumPy 2.5.4,
 Pillow 13.0.0, and SciPy 1.18.1, and `torch.cuda.is_available()` returns true.
-`uv` is inside the project virtual environment rather than on PATH. The
-repository has not been transferred, so the project commands have not been run
-there. Once it is present, run this in PowerShell to preserve `uv`:
+`uv` is inside the project virtual environment rather than on PATH. At the
+user's request, the GitHub repository was made public and cloned into the
+`source` subdirectory of the project folder; the existing `.venv` remains in
+its parent. From the clone,
+run this in PowerShell to preserve and target that environment:
 
 ```powershell
-.venv\Scripts\python.exe -m uv sync --inexact --extra train
+$env:UV_PROJECT_ENVIRONMENT = "..\.venv"
+..\.venv\Scripts\python.exe -m uv sync --locked --inexact --extra train
 ```
 
-Then invoke the pilot with `.venv\Scripts\python.exe -m exposure.pilot_train`
-and the arguments below.
+Then invoke the pilot with `..\.venv\Scripts\python.exe -m exposure.pilot_train`
+and the arguments below. Locked `uv sync` and 123 Windows tests passed.
 
 ## CPU mechanics smoke
 
@@ -68,9 +71,8 @@ checkpoint loading and image writing; it is not evidence that the model learned.
 
 ## Exploratory GPU run
 
-The CUDA environment is installed and reports CUDA as available, but no project
-pilot training has been run yet. After the repository transfer is authorized,
-the same commands can use `--device cuda`:
+The CUDA environment is installed and reports CUDA as available. The repository
+is cloned on the laptop. A short project run completed with `--device cuda`:
 
 ```sh
 uv run --extra train python -m exposure.pilot_train train --rules examples/exposure_rules.json --weights examples/uniform_weights.json --output outputs/pilot-run-20261101-01/pilot.pt --steps 100 --batch-size 2 --seed 0 --device cuda
@@ -87,7 +89,8 @@ uv run --extra train python -m exposure.pilot_train sample --checkpoint outputs/
 ```
 
 `--guidance` is available, but no controlled guidance sweep has been validated.
-Choose new output paths for every run.
+Choose new output paths for every run. On the laptop, invoke the same arguments
+with `..\.venv\Scripts\python.exe -m exposure.pilot_train`.
 
 ## Provenance, counts, memory, and timing
 
@@ -124,8 +127,13 @@ The pilot still has no resume support, reference model, validated model outputs,
 controlled guidance sweep, or human audit. Project pilot fit on the GPU,
 training quality, and any Stage 0 gate remain unestablished.
 
-The repository has not been transferred to the laptop, and no project model
-training has run on the GPU.
+The 100-step CUDA run used four example rules, batch size 2, width 16, 1,000
+diffusion timesteps, seed 43, and code revision `7d9dfe2`. Its training time was
+10.997 seconds including rendering, and peak CUDA memory was 43,783,680 bytes
+allocated and 65,011,712 bytes reserved. Its checkpoint and sample are in the
+laptop's ignored `outputs/gpu-pilot-i6qbsa_j/` directory. The sample was visually
+noise; it is not suitable for human review or evidence of learning. Longer-run
+memory, quality, and the research compute budget remain unvalidated.
 
 See the [research and hardware plan](research-and-hardware-plan.md),
 [Stage 0 status](stage0-status.md), and the

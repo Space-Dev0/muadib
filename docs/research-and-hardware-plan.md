@@ -2,9 +2,9 @@
 
 The project implements the research proposal in stages. The current stage is a
 CPU prototype for rendering and rule evaluation, plus an exploratory pilot
-training instrument. A CUDA environment is installed on the prepared laptop,
-but no project pilot model has been trained on CUDA, no external dataset is
-downloaded, and the exposure design is not yet validated.
+training instrument. A CUDA environment is installed on the prepared laptop.
+Stage 0 has not passed, no project pilot output is validated, no
+external dataset is downloaded, and the exposure design is not yet validated.
 
 ## Dataset plan
 
@@ -39,11 +39,16 @@ finite loss, 0.0695 seconds measured time, 1,804,288 bytes peak allocated, and
 project pilot fit, learning evidence, Stage 0 passage, or a study. Available GPU
 time remains unverified.
 
-The repository has not been transferred to the laptop. OpenCL is not part of
-this implementation.
+At the user's request, the GitHub repository was made public and cloned into
+the `source` subdirectory of the project folder on the laptop; the existing
+isolated `.venv` remains in its parent. From the clone, PowerShell should set
+`$env:UV_PROJECT_ENVIRONMENT` to `..\.venv` and run
+`..\.venv\Scripts\python.exe -m uv sync --locked --inexact --extra train`.
+Locked `uv sync` and all 123 Windows tests passed. OpenCL is not part of this
+implementation.
 
 The optional training dependency is locked; CUDA execution is verified for the
-generic smoke, while project model fit and GPU time remain to be measured.
+generic smoke. A short project run also fit; longer-run compute is unmeasured.
 
 ## Pilot training
 
@@ -54,9 +59,9 @@ dropout, AdamW, EMA, and a fixed sampler. CPU pilot tests and the one-step
 train/checkpoint/sample mechanical sample passed in a separate CPU PyTorch 2.9.1
 environment; these are mechanics only, not learning evidence. The laptop CUDA
 environment is installed and a generic CUDA smoke completed, but no project
-pilot training has run on CUDA. No validated model outputs, reference model,
-resume, controlled guidance sweep, or human audit exists. No mixed precision is
-implemented.
+pilot result has been validated on CUDA. No validated model outputs, reference
+model, resume, controlled guidance sweep, or human audit exists. No mixed
+precision is implemented.
 
 ## Human review capacity
 
@@ -67,15 +72,16 @@ established, and no reviews have been completed.
 ## Current limitations
 
 - Rendering and rule evaluation run on the CPU only.
-- Exploratory pilot training code exists, but no project pilot model has been
-  trained on CUDA.
+- A 100-step CUDA project run completed, but its sample was noise and is not
+  suitable for review or evaluation.
 - No external dataset is downloaded or bundled.
 - The isolated laptop environment is installed and `torch.cuda.is_available()`
   is true; a generic CUDA smoke completed. Project pilot fit and available GPU
   time remain unverified.
 - The preflight itself installed nothing; the later isolated-venv installation
   is complete.
-- The repository has not been transferred to the laptop.
+- The public repository is cloned into the laptop's `source` subdirectory, with
+  the isolated `.venv` in its parent. Locked sync and 123 Windows tests passed.
 - No validated model outputs, reference model, resume, controlled guidance
   sweep, or human audit exists.
 - No image reviews have been completed.
