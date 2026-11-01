@@ -47,9 +47,9 @@ and continue exploratory implementation while the final choices are pending.
    any result as the gate evaluation. **You only.** Blocks the decorrelation
    gate. See [design diagnostics](design-diagnostics.md).
 5. [x] **SSH access confirmed for the pilot machine.** A user-authorized,
-   read-only GPU preflight succeeded. The exploratory pilot's CPU mechanics have
-   passed, but no actual CUDA training has been run. The repository has not been
-   transferred; transfer awaits explicit authorization. The pilot's audit image
+   read-only GPU preflight succeeded. CPU pilot tests and the mechanical sample
+   have passed, but no project model has been trained on the GPU. The repository
+   has not been transferred to the laptop. The pilot's audit image
    pool still needs to be generated once available GPU time and budget are
    agreed. At least 300 generated images must be human-audited in a
    complexity-stratified sample. Blocks the human audit and checker gate. See
@@ -60,14 +60,15 @@ and continue exploratory implementation while the final choices are pending.
    independence, participation, and blinding; reviewers must judge images
    without seeing checker predictions or gold labels. Actual reviews remain
    outstanding. **Human-only.** Blocks the checker gate.
-7. [ ] **Confirm available GPU time, budget, and a compatible PyTorch/CUDA
-   setup.** The read-only preflight reported Windows 11 AMD64, Python 3.13.6, an
-   NVIDIA GeForce RTX 3050 6GB Laptop GPU (6144 MiB, driver 581.83), Git 2.48.1,
-   and pip 25.2. `uv` is now installed in an isolated venv on the remote machine
-   and the CUDA PyTorch download is in progress. CUDA through PyTorch, memory
-   fit, and available GPU time remain unverified. Complete the environment and
-   run a short pilot; no actual CUDA training has occurred.
-   Blocks the pilot and MOSAIC replication. See
+7. [ ] **Confirm available GPU time and budget for project runs.** The laptop
+   preflight reported Windows 11 AMD64, Python 3.13.6, an NVIDIA GeForce RTX
+   3050 6GB Laptop GPU (6144 MiB, driver 581.83), Git 2.48.1, and pip 25.2. Its
+   isolated environment is now complete with `uv` 0.13.6, PyTorch 2.9.1+cu128
+   with CUDA 12.8, NumPy 2.5.4, Pillow 13.0.0, and SciPy 1.18.1;
+   `torch.cuda.is_available()` is true, and a generic CUDA smoke completed.
+   Project pilot fit and available GPU time remain unverified, and no project
+   model has been trained on the GPU. Confirm the available GPU time and set a
+   budget for longer project runs. See
    [research and hardware plan](research-and-hardware-plan.md) and
    [pilot training](pilot-training.md).
 8. [ ] **Review the proposed MOSAIC adaptation and arrange any required access.**
@@ -88,10 +89,10 @@ decisions.
 - [x] Prepare separate predicate questions and score independent judgments by
   predicate event using the existing audit workflow. Actual judgments and
   generated-image results remain outstanding.
-- [ ] After repository transfer, complete and verify the PyTorch/CUDA
-  environment, then run the exploratory pilot and record
-  its provenance. No actual CUDA training has occurred, and compatibility is not
-  assumed. See [pilot training](pilot-training.md).
+- [ ] After repository transfer, run the exploratory pilot in the verified CUDA
+  environment and record its provenance. No project pilot model has been trained
+  on CUDA; the generic CUDA smoke does not establish project fit. See
+  [pilot training](pilot-training.md).
 - [ ] Improve checker rejection handling under brightening and blur, rerun
   clean and perturbation audits, and evaluate the checker against the supplied
   generated images.
@@ -133,11 +134,15 @@ counts alone do not establish the `≤ 2%` target on real renders. See
   (Section 12, p. 9). **Human decision.**
 - [x] A user-authorized, read-only SSH GPU preflight succeeded. It reported
   Windows 11 AMD64, Python 3.13.6, an NVIDIA GeForce RTX 3050 6GB Laptop GPU
-  (6144 MiB, driver 581.83), Git 2.48.1, and pip 25.2. `uv` was not on PATH and
-  PyTorch was not installed during the preflight. Since then, `uv` has been
-  installed in an isolated venv and the CUDA PyTorch download is in progress.
-  CUDA through PyTorch, memory fit, and available GPU time remain unverified.
-  No actual CUDA pilot training has occurred.
+  (6144 MiB, driver 581.83), Git 2.48.1, and pip 25.2. The isolated environment
+  is now complete with `uv` 0.13.6, PyTorch 2.9.1+cu128 with CUDA 12.8, NumPy
+  2.5.4, Pillow 13.0.0, and SciPy 1.18.1; `torch.cuda.is_available()` is true.
+  A generic two-layer 64×64 synthetic convolution model completed two warmup and
+  three timed CUDA forward/backward/AdamW steps with finite loss, 0.0695 seconds
+  measured time, 1,804,288 bytes peak allocated, and 4,194,304 bytes peak
+  reserved. This is a generic CUDA smoke, not project pilot fit, learning
+  evidence, Stage 0 passage, or a study. Project fit and available GPU time
+  remain unverified; no project model has been trained on the GPU.
 - [ ] Run the adapted replication and compare only the direction with MOSAIC
   unless a full reproduction is achieved. Codex can prepare and run the
   experiment; the human decides whether the direction matches and whether the
@@ -148,11 +153,11 @@ counts alone do not establish the `≤ 2%` target on real renders. See
 | Area | Current evidence | What is still missing |
 | --- | --- | --- |
 | Templates | Provisional 57-template set; every `K_attr = 1` cell covers all four colours and three shapes; 100-scene-per-template sampling smoke test | Final vocabulary and template decision, full counterbalancing, held-out leave-out set, proposal-scale A-matrix |
-| Pilot training | Exploratory online conditional diffusion instrument; CPU unit tests and one-step CLI smoke in a separate CPU PyTorch 2.9.1 environment | Actual CUDA training, validated model outputs, reference model, resume, controlled guidance sweep, human audit; GPU fit unverified |
+| Pilot training | Exploratory online conditional diffusion instrument; CPU pilot tests and one-step mechanical sample passed in a separate CPU PyTorch 2.9.1 environment; laptop environment has PyTorch 2.9.1+cu128 with CUDA 12.8 and `torch.cuda.is_available()` true; generic CUDA smoke completed | Project CUDA training, validated model outputs, reference model, resume, controlled guidance sweep, human audit; project fit and GPU time unverified |
 | Checker | Clean-render and controlled-perturbation audits; rejection counts reported separately | Generated-image human audit, per-predicate/per-rule error report, evidence for `≤ 2%` on real renders |
 | Decorrelation | 20 exploratory designs and 1,140 rule-by-design rows from the 57-condition pilot; pooled correlation `-0.446`; VIF `11.61` for log lift and `13.72` for relation count | Registered gate analysis with breadth, uncertainty, and the final matrix. The current values do not establish the proposal criterion |
 | MOSAIC | Preliminary paper/code review only | Adapted contrast specification, GPU run, results, and direction comparison |
-| GPU | Read-only SSH preflight succeeded: Windows 11 AMD64, Python 3.13.6, RTX 3050 6GB Laptop GPU (6144 MiB, driver 581.83), Git 2.48.1, pip 25.2; `uv` now in isolated venv; CUDA PyTorch downloading; repository not transferred | Repository transfer authorization, completed CUDA torch install, PyTorch CUDA test, memory-fit measurement and GPU time/budget |
+| GPU | Read-only SSH preflight succeeded: Windows 11 AMD64, Python 3.13.6, RTX 3050 6GB Laptop GPU (6144 MiB, driver 581.83), Git 2.48.1, pip 25.2; isolated env complete with `uv` 0.13.6, PyTorch 2.9.1+cu128, CUDA 12.8, NumPy 2.5.4, Pillow 13.0.0, SciPy 1.18.1; `torch.cuda.is_available()` true; generic two-layer 64×64 CUDA smoke finite (0.0695 s, 1,804,288 bytes allocated, 4,194,304 bytes reserved); repository not transferred | Repository transfer authorization, project pilot fit, GPU time/budget |
 | Human audit | Blinded rule and predicate prepare/predict/score workflow; four team members reported as potential reviewers available later | Confirmed independence/blinding, at least 300 real generated images, actual judgments |
 
 See [Stage 0 status](stage0-status.md) for the full current report and commands.

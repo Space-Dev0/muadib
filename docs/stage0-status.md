@@ -7,7 +7,7 @@ not confirmatory research findings.
 | --- | --- | --- |
 | Renderer and rules | 2D renderer, annotation-based rule evaluation and grammar witnesses | Finalize and validate the benchmark vocabulary and full counterbalancing. |
 | Candidate templates | Provisional 57-template generator covers all singleton colors and shapes in each one-attribute cell; a 100-scene-per-template sampling smoke test completed | Confirm full counterbalancing, held-out rules and sufficient sampling precision. |
-| Pilot training | Exploratory online conditional diffusion instrument; CPU unit tests and a one-step train/checkpoint/sample CLI smoke passed in a separate CPU PyTorch 2.9.1 environment | No actual CUDA training, validated model outputs, reference model, resume, controlled guidance sweep, or human audit; GPU fit unverified. See [pilot training](pilot-training.md). |
+| Pilot training | Exploratory online conditional diffusion instrument; CPU pilot tests and the one-step mechanical sample passed in a separate CPU PyTorch 2.9.1 environment; laptop isolated venv has PyTorch 2.9.1+cu128 with CUDA 12.8 and `torch.cuda.is_available()` true; generic CUDA smoke completed | No project CUDA training, validated model outputs, reference model, resume, controlled guidance sweep, or human audit; project fit and GPU time unverified. See [pilot training](pilot-training.md). |
 | Checker | Clean-render and controlled perturbation audits; conservative sharpening fallback | High rejection remains at brightness 1.10, blur 0.50, and blur 1.00; validate every relevant rule and audit generated images with human judgments. |
 | Exposure matrix and design | Monte Carlo estimates, LP feasibility and numerical minimum-KL allocation | Quantify matrix uncertainty and verify feasible exposure manipulations and leave-out probes on the final benchmark. |
 | Decorrelation | Twenty exploratory hit-and-run designs from the 57-condition pilot; pooled correlations and VIF computed over 1,140 rule-by-design rows | Define breadth, freeze the analysis table and uncertainty method, and evaluate the registered criteria. Current estimates do not assess the proposal gate. |
@@ -35,11 +35,17 @@ only if two mild `UnsharpMask` settings with radii `0.5` and `0.6` and percent
 validate generated images, pass Stage 0, or ensure robustness.
 
 The proposal's checker, design-decorrelation and MOSAIC gates must be evaluated
-using the agreed final instruments and data. No actual CUDA model training or
-Stage 1 pilot has been run; only CPU pilot mechanics have been exercised. The
-remote `uv` environment is being prepared and the CUDA PyTorch download is in
-progress, so GPU fit is unverified, and repository transfer awaits explicit
-authorization. No GPU-hours estimate has yet been measured.
+using the agreed final instruments and data. No project CUDA model training or
+Stage 1 pilot has been run. CPU pilot tests and the mechanical sample have
+passed, and the laptop's isolated environment has `uv` 0.13.6, PyTorch
+2.9.1+cu128 with CUDA 12.8, NumPy 2.5.4, Pillow 13.0.0, and SciPy 1.18.1, with
+`torch.cuda.is_available()` true. A generic two-layer 64×64 synthetic
+convolution model completed two warmup and three timed CUDA
+forward/backward/AdamW steps with finite loss, 0.0695 seconds measured time,
+1,804,288 bytes peak allocated, and 4,194,304 bytes peak reserved. This generic
+smoke is not project pilot fit, learning evidence, Stage 0 passage, or a study.
+Project fit and available GPU time remain unverified. The repository has not
+been transferred to the laptop. No GPU-hours estimate has yet been measured.
 
 A 300-scene clean-render audit at seeds 30000–30299 covered all 57 candidate
 rules, with zero detector failures and zero observed rule errors. Some rules

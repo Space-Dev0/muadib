@@ -1,8 +1,8 @@
 # Exploratory pilot training
 
 **Preliminary and non-confirmatory. Stage 0 has not passed.** This is an
-instrument-development pilot, not a research result. No actual CUDA model
-training has been run, and no model output has been validated.
+instrument-development pilot, not a research result. No project pilot model has
+been trained on CUDA, and no model output has been validated.
 
 ## What the pilot implements
 
@@ -30,11 +30,19 @@ On Windows and Linux, this installs `torch==2.9.1` from the CUDA 12.8 index.
 The download is large. The repository itself still runs its normal CPU checks
 without the training extra.
 
-On the prepared Windows laptop, `uv` is inside the project virtual environment
-rather than on PATH. Once the repository is present, use
-`.venv\Scripts\python.exe -m uv sync --inexact --extra train` in PowerShell to
-preserve that `uv` installation, then invoke the pilot with
-`.venv\Scripts\python.exe -m exposure.pilot_train` and the arguments below.
+The prepared Windows laptop installation is complete. Its isolated virtual
+environment has `uv` 0.13.6, PyTorch 2.9.1+cu128 with CUDA 12.8, NumPy 2.5.4,
+Pillow 13.0.0, and SciPy 1.18.1, and `torch.cuda.is_available()` returns true.
+`uv` is inside the project virtual environment rather than on PATH. The
+repository has not been transferred, so the project commands have not been run
+there. Once it is present, run this in PowerShell to preserve `uv`:
+
+```powershell
+.venv\Scripts\python.exe -m uv sync --inexact --extra train
+```
+
+Then invoke the pilot with `.venv\Scripts\python.exe -m exposure.pilot_train`
+and the arguments below.
 
 ## CPU mechanics smoke
 
@@ -60,8 +68,9 @@ checkpoint loading and image writing; it is not evidence that the model learned.
 
 ## Exploratory GPU run
 
-This has **not** been run yet. After the CUDA environment is ready and the
-repository transfer is authorized, the same commands can use `--device cuda`:
+The CUDA environment is installed and reports CUDA as available, but no project
+pilot training has been run yet. After the repository transfer is authorized,
+the same commands can use `--device cuda`:
 
 ```sh
 uv run --extra train python -m exposure.pilot_train train --rules examples/exposure_rules.json --weights examples/uniform_weights.json --output outputs/pilot-run-20261101-01/pilot.pt --steps 100 --batch-size 2 --seed 0 --device cuda
@@ -100,17 +109,23 @@ validated evaluation.
 
 ## Evidence and omissions
 
-A separate CPU-only PyTorch 2.9.1 environment passed the real CPU unit tests and
-a one-step train/checkpoint/sample CLI smoke. These are mechanics only, not
-evidence of learning.
+CPU pilot tests and the one-step train/checkpoint/sample mechanical sample
+passed in a separate CPU PyTorch 2.9.1 environment. These are mechanics only,
+not evidence of learning.
+
+A generic CUDA smoke also completed on the laptop. A two-layer 64×64 synthetic
+convolution model ran two warmup steps and three timed CUDA
+forward/backward/AdamW steps. It reported a finite loss, a measured time of
+0.0695 seconds for the three timed steps, 1,804,288 bytes peak allocated, and
+4,194,304 bytes peak reserved. This is a generic CUDA smoke only. It is not
+project pilot fit, learning evidence, Stage 0 passage, or a study.
 
 The pilot still has no resume support, reference model, validated model outputs,
-controlled guidance sweep, or human audit. It does not establish GPU fit,
-training quality, or any Stage 0 gate.
+controlled guidance sweep, or human audit. Project pilot fit on the GPU,
+training quality, and any Stage 0 gate remain unestablished.
 
-On the remote laptop, `uv` is installed in an isolated venv and the CUDA PyTorch
-download is still in progress. GPU fit remains unverified. The repository has
-not been transferred; transfer awaits explicit authorization.
+The repository has not been transferred to the laptop, and no project model
+training has run on the GPU.
 
 See the [research and hardware plan](research-and-hardware-plan.md),
 [Stage 0 status](stage0-status.md), and the
