@@ -63,3 +63,5 @@ third renders a rule-conditioned scene to `outputs/example.png` and
   exposure semantics, unresolved decisions, and Stage 0 gates.
 - [Research and hardware plan](docs/research-and-hardware-plan.md): dataset
   strategy, CPU/CUDA plans, and current limitations.
+- [Windows GPU access](docs/windows-gpu-access.md): safe SSH access and the
+  read-only GPU preflight for the reported RTX 3050 laptop.
