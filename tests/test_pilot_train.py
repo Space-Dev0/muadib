@@ -83,6 +83,32 @@ class PilotTrainingTests(unittest.TestCase):
             pilot.train(impossible, None, steps=1, batch_size=1, seed=0, device="cpu", width=4,
                         timesteps=2, lr=1e-4, dropout=0.1, ema_decay=0.9, max_attempts=2)
 
+    def test_sampler_recovers_known_image_with_exact_noise_oracle(self):
+        torch, pilot = self.torch, self.pilot
+        import numpy as np
+        from exposure.render import render_scene
+
+        image = render_scene(42).image
+        clean = torch.from_numpy(np.array(image, dtype=np.float32, copy=True)).permute(2, 0, 1).unsqueeze(0) / 127.5 - 1
+        _, alpha_bar = pilot.schedule(1000, torch.device("cpu"))
+
+        class Oracle(torch.nn.Module):
+            def __init__(self, width, timesteps):
+                super().__init__()
+                self.register_buffer("clean", clean, persistent=False)
+                self.register_buffer("alpha_bar", alpha_bar, persistent=False)
+
+            def forward(self, x, timestep, tokens, drop=None):
+                abar = self.alpha_bar[timestep, None, None, None]
+                return (x - abar.sqrt() * self.clean) / (1 - abar).sqrt()
+
+        checkpoint = {"rules": self.definitions, "config": {"width": 4, "timesteps": 1000}, "ema": {}}
+        with patch.object(pilot, "PilotUNet", Oracle):
+            result = pilot.sample(checkpoint, "red", seed=5, device="cpu", guidance=1.0)
+        actual = np.asarray(result, dtype=np.int16)
+        expected = np.asarray(image, dtype=np.int16)
+        self.assertLessEqual(int(np.abs(actual - expected).max()), 1)
+
     def test_resume_matches_uninterrupted_training(self):
         torch, pilot = self.torch, self.pilot
         options = dict(batch_size=2, seed=22, device="cpu", width=4, timesteps=3,

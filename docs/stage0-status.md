@@ -7,7 +7,7 @@ not confirmatory research findings.
 | --- | --- | --- |
 | Renderer and rules | 2D renderer, annotation-based rule evaluation and grammar witnesses | Finalize and validate the benchmark vocabulary and full counterbalancing. |
 | Candidate templates | Provisional 57-template generator covers all singleton colors and shapes in each one-attribute cell; a 100-scene-per-template sampling smoke test completed | Confirm full counterbalancing, held-out rules and sufficient sampling precision. |
-| Pilot training | Locked sync and 127 Windows tests passed. The deterministic CUDA option matched a small split run; an 8,000-step deterministic pilot (continued across four 2,000-update segments with resume) completed. | The 100-, 2,000-, 4,000-, and 8,000-step samples were noise or near-blank fragments; four inspected samples are not ready for human audit; no validated model outputs, reference model, or controlled guidance sweep. See [pilot training](pilot-training.md). |
+| Pilot training | Locked sync and 127 Windows tests passed. A deterministic pilot reached 12,000 steps with checkpoints, and a small split-run replay matched. | Two inspected 12,000-step samples were noise; no validated model outputs, reference model, controlled guidance sweep, or human audit. See [pilot training](pilot-training.md). |
 | Checker | Clean-render and controlled perturbation audits; conservative sharpening fallback | High rejection remains at brightness 1.10, blur 0.50, and blur 1.00; validate every relevant rule and audit generated images with human judgments. |
 | Exposure matrix and design | Monte Carlo estimates, LP feasibility and numerical minimum-KL allocation | Quantify matrix uncertainty and verify feasible exposure manipulations and leave-out probes on the final benchmark. |
 | Decorrelation | Twenty exploratory hit-and-run designs from the 57-condition pilot; pooled correlations and VIF computed over 1,140 rule-by-design rows | Define breadth, freeze the analysis table and uncertainty method, and evaluate the registered criteria. Current estimates do not assess the proposal gate. |
@@ -69,6 +69,12 @@ determinism state and PyTorch backend runtime flags. Strict deterministic traini
 algorithms while rejecting unsupported ops. Older v1 and v2 checkpoints remain
 compatible for non-strict sampling, but resuming requires schema 3. A small
 integrated deterministic CUDA replay matched exactly; Stage 0 remains not passed.
+
+The run later reached 12,000 updates in 1,210.404 cumulative seconds. One red
+and one relational sample remained noise; two samples are not a quality score.
+One-step denoising errors decreased between 4,000 and 12,000 updates on a
+small matched probe, while an exact-noise oracle passed the sampler wiring
+check. Neither result validates generated images.
 
 A 300-scene clean-render audit at seeds 30000–30299 covered all 57 candidate
 rules, with zero detector failures and zero observed rule errors. Some rules

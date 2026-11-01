@@ -246,6 +246,21 @@ For the `red` condition and seed 5, separate samples from the raw and EMA
 weights were both visually noisy. This single comparison does not establish
 whether EMA affects quality in general.
 
+The same run continued to 12,000 updates in two more checkpointed segments.
+Cumulative training time was 1,210.404 seconds; peak allocated and reserved
+memory stayed at 96,212,480 and 111,149,056 bytes. One `red` sample and one
+`blue_above_circle` sample were visually noise. This is only two inspected
+samples and does not measure the full output distribution.
+
+On eight matched `red` renders, the 12,000-step EMA one-step noise MSE was
+0.1104, 0.0394, and 0.0115 at timesteps 20, 100, and 500 respectively, versus
+0.1378, 0.0510, and 0.0162 at 8,000 steps. A separate eight-render check at
+timestep 999 had noise MSE 0.0072 but reconstructed-image MSE about 179 on the
+`[-1, 1]` scale. Small noise errors are amplified when the remaining signal is
+very small; this observation does not by itself identify the cause of noisy
+samples. An exact-noise oracle also reconstructed a known image through the
+existing sampler, which checks its wiring without validating learned output.
+
 See the [research and hardware plan](research-and-hardware-plan.md),
 [Stage 0 status](stage0-status.md), and the
 [human checklist](human-checklist.md).
