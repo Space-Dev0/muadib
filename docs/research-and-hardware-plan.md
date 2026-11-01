@@ -23,14 +23,16 @@ synthetic study. See the
 ## Hardware plan
 
 The planned training backend is PyTorch on NVIDIA CUDA, with CPU support for
-small local checks. The reported target is a Windows laptop with an NVIDIA
-GeForce RTX 3050 6GB Laptop GPU, 6144 MiB and driver 581.83. Access to that
-machine, CUDA/PyTorch compatibility, and available GPU time have not been
-verified. The correct build has not been selected or installed, and OpenCL is
-not part of this implementation.
+small local checks. A user-authorized, read-only SSH GPU preflight succeeded on
+the reported laptop. It reported Windows 11 AMD64, Python 3.13.6, an NVIDIA
+GeForce RTX 3050 6GB Laptop GPU with 6144 MiB and driver 581.83, Git 2.48.1,
+and pip 25.2. `uv` is not on PATH and PyTorch is not installed. CUDA
+availability through PyTorch, memory fit, and available GPU time remain
+unverified. No training or installation occurred. The correct PyTorch build has
+not been selected or installed, and OpenCL is not part of this implementation.
 
-GPU support and a locked dependency set will be added and verified when access
-and the training stage are available.
+GPU support and a locked dependency set will be added and verified when the
+training environment is set up.
 
 ## Human review capacity
 
@@ -44,7 +46,10 @@ established, and no reviews have been completed.
 - No model training is implemented.
 - No external dataset is downloaded or bundled.
 - No CUDA acceleration is available yet.
-- Access to the reported GPU and its software compatibility are unverified.
+- The read-only GPU preflight succeeded, but CUDA through PyTorch, memory fit,
+  and available GPU time are unverified.
+- No packages were installed during the preflight, and no project training has
+  been run on the reported machine.
 - No image reviews have been completed.
 - Pair and marginal exposure semantics must be locked in the experiment
   specification before analysis.
