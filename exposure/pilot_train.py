@@ -1,0 +1,336 @@
+"""Small online conditional diffusion instrument, not a research result.
+
+Uses predicate/object-slot tokens, cross-attention, DDPM noise prediction,
+classifier-free dropout, AdamW and EMA. Sampling and loss are preliminary;
+there is no resume, validation, guidance sweep, or Stage 0 gate decision.
+"""
+
+import argparse
+import copy
+import json
+import math
+import random
+import tempfile
+import time
+import warnings
+from pathlib import Path
+
+import numpy as np
+import torch
+from PIL import Image
+from torch import nn
+from torch.nn import functional as F
+
+from exposure.measure import load_rules, unique_object
+from exposure.render import COLORS, SHAPES, render_conditioned
+from exposure.rules import Attribute, satisfies
+
+
+def encode_rules(rules: dict) -> torch.Tensor:
+    """Encode predicate kind, subject slot, object slot and attribute value."""
+    max_predicates = max(len(rule) for rule in rules.values())
+    tokens = torch.zeros((len(rules), max_predicates, 4), dtype=torch.long)
+    values = {value: index + 1 for index, value in enumerate((*COLORS, *SHAPES))}
+    for row, predicates in enumerate(rules.values()):
+        variables = sorted({variable for p in predicates for variable in
+                            ((p.variable,) if isinstance(p, Attribute) else (p.subject, p.object))})
+        if len(variables) > 3:
+            raise ValueError("The pilot supports at most three object variables per rule")
+        slots = {variable: i + 1 for i, variable in enumerate(variables)}
+        for col, predicate in enumerate(predicates):
+            if isinstance(predicate, Attribute):
+                tokens[row, col] = torch.tensor([1 if predicate.field == "color" else 2,
+                                                 slots[predicate.variable], 0, values[predicate.value]])
+            else:
+                tokens[row, col] = torch.tensor([3 if predicate.kind == "left_of" else 4,
+                                                 slots[predicate.subject], slots[predicate.object], 0])
+    return tokens
+
+
+class Residual(nn.Module):
+    def __init__(self, in_channels: int, out_channels: int, time_dim: int):
+        super().__init__()
+        self.norm1 = nn.GroupNorm(4, in_channels)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, 3, padding=1)
+        self.time = nn.Linear(time_dim, out_channels)
+        self.norm2 = nn.GroupNorm(4, out_channels)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, 3, padding=1)
+        self.skip = nn.Conv2d(in_channels, out_channels, 1) if in_channels != out_channels else nn.Identity()
+
+    def forward(self, x: torch.Tensor, time_embedding: torch.Tensor) -> torch.Tensor:
+        h = self.conv1(F.silu(self.norm1(x)))
+        h = h + self.time(F.silu(time_embedding))[:, :, None, None]
+        return self.skip(x) + self.conv2(F.silu(self.norm2(h)))
+
+
+class PilotUNet(nn.Module):
+    """A compact 64x64 U-Net with one cross-attention block at 16x16."""
+    def __init__(self, width: int, timesteps: int):
+        super().__init__()
+        if width < 4 or width % 4:
+            raise ValueError("width must be a positive multiple of four, at least four")
+        dim = width * 4
+        self.time = nn.Embedding(timesteps, dim)
+        self.kind = nn.Embedding(5, dim, padding_idx=0)
+        self.subject = nn.Embedding(4, dim, padding_idx=0)
+        self.object = nn.Embedding(4, dim, padding_idx=0)
+        self.value = nn.Embedding(8, dim, padding_idx=0)
+        self.null = nn.Parameter(torch.zeros(dim))
+        self.input = nn.Conv2d(3, width, 3, padding=1)
+        self.enc1 = Residual(width, width, dim)
+        self.down1 = nn.Conv2d(width, width * 2, 3, stride=2, padding=1)
+        self.enc2 = Residual(width * 2, width * 2, dim)
+        self.down2 = nn.Conv2d(width * 2, dim, 3, stride=2, padding=1)
+        self.middle = Residual(dim, dim, dim)
+        self.attention = nn.MultiheadAttention(dim, num_heads=4, batch_first=True)
+        self.dec2 = Residual(dim + width * 2, width * 2, dim)
+        self.dec1 = Residual(width * 3, width, dim)
+        self.output = nn.Sequential(nn.GroupNorm(4, width), nn.SiLU(), nn.Conv2d(width, 3, 3, padding=1))
+
+    def forward(self, x: torch.Tensor, t: torch.Tensor, tokens: torch.Tensor,
+                drop: torch.Tensor | None = None) -> torch.Tensor:
+        mask = tokens[:, :, 0] != 0
+        context = (self.kind(tokens[:, :, 0]) + self.subject(tokens[:, :, 1]) +
+                   self.object(tokens[:, :, 2]) + self.value(tokens[:, :, 3]))
+        if drop is not None:
+            mask = mask & ~drop[:, None]
+        empty = ~mask.any(dim=1)
+        if bool(empty.any()):
+            # Always expose one null token so attention never sees all padding.
+            context = context.clone()
+            mask = mask.clone()
+            context[empty, 0] = self.null
+            mask[empty, 0] = True
+        emb = self.time(t)
+        first = self.enc1(self.input(x), emb)
+        second = self.enc2(self.down1(first), emb)
+        middle = self.middle(self.down2(second), emb)
+        sequence = middle.flatten(2).transpose(1, 2)
+        attended, _ = self.attention(sequence, context, context, key_padding_mask=~mask, need_weights=False)
+        middle = middle + attended.transpose(1, 2).reshape_as(middle)
+        up = F.interpolate(middle, size=second.shape[-2:], mode="nearest")
+        up = self.dec2(torch.cat((up, second), dim=1), emb)
+        up = F.interpolate(up, size=first.shape[-2:], mode="nearest")
+        return self.output(self.dec1(torch.cat((up, first), dim=1), emb))
+
+
+def schedule(timesteps: int, device: torch.device) -> tuple[torch.Tensor, torch.Tensor]:
+    if timesteps < 2:
+        raise ValueError("timesteps must be at least two")
+    beta = torch.linspace(1e-4, 0.02, timesteps, device=device)
+    return beta, torch.cumprod(1.0 - beta, dim=0)
+
+
+def _weights(names: list[str], raw: object | None) -> list[float]:
+    if raw is None:
+        return [1.0 / len(names)] * len(names)
+    if not isinstance(raw, dict) or set(raw) != set(names):
+        raise ValueError("Weights must name each and only each rule")
+    weights = [raw[name] for name in names]
+    if any(isinstance(w, bool) or not isinstance(w, (int, float)) or not math.isfinite(w) or w < 0
+           for w in weights) or not math.isclose(math.fsum(weights), 1.0, rel_tol=0, abs_tol=1e-9):
+        raise ValueError("Weights must be finite, nonnegative, and sum to one")
+    return [float(w) for w in weights]
+
+
+def train(definitions: dict, weights: object | None, *, steps: int, batch_size: int, seed: int,
+          device: str, width: int, timesteps: int, lr: float, dropout: float,
+          ema_decay: float, max_attempts: int) -> tuple[dict, dict]:
+    if steps < 1 or batch_size < 1 or seed < 0 or max_attempts < 1:
+        raise ValueError("steps, batch size, and attempts must be positive; seed must be nonnegative")
+    if not math.isfinite(lr) or lr <= 0 or not 0 <= dropout < 1 or not 0 <= ema_decay < 1:
+        raise ValueError("invalid learning rate, dropout or EMA decay")
+    if device not in {"cpu", "cuda"}:
+        raise ValueError("device must be cpu or cuda")
+    target = torch.device(device)
+    if target.type == "cuda" and not torch.cuda.is_available():
+        raise ValueError("CUDA was requested but PyTorch cannot access it")
+    rules = load_rules(definitions)
+    names = list(rules)
+    probs = _weights(names, weights)
+    tokens = encode_rules(rules).to(target)
+    torch.manual_seed(seed)
+    rng = random.Random(seed)
+    model = PilotUNet(width, timesteps).to(target)
+    ema = copy.deepcopy(model).eval()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    _, alpha_bar = schedule(timesteps, target)
+    counts = {name: 0 for name in names}
+    cooccurrence = {name: {event: 0 for event in names} for name in names}
+    attempts_total = 0
+    if target.type == "cuda":
+        torch.cuda.synchronize(target)
+        torch.cuda.reset_peak_memory_stats(target)
+    start = time.perf_counter()
+    last_loss = None
+    for _ in range(steps):
+        indices = rng.choices(range(len(names)), weights=probs, k=batch_size)
+        batch = []
+        for index in indices:
+            name = names[index]
+            try:
+                scene, attempts = render_conditioned(rng.getrandbits(63), rules[name], max_attempts)
+            except ValueError as exc:
+                raise ValueError(f"Condition {name!r} could not be sampled: {exc}") from exc
+            counts[name] += 1
+            attempts_total += attempts
+            for event, predicates in rules.items():
+                cooccurrence[name][event] += int(satisfies(scene.objects, predicates))
+            pixels = np.array(scene.image, dtype=np.float32, copy=True)
+            batch.append(torch.from_numpy(pixels).permute(2, 0, 1) / 127.5 - 1.0)
+        clean = torch.stack(batch).to(target)
+        t = torch.randint(timesteps, (batch_size,), device=target)
+        noise = torch.randn_like(clean)
+        abar = alpha_bar[t, None, None, None]
+        noisy = abar.sqrt() * clean + (1 - abar).sqrt() * noise
+        drop = torch.rand(batch_size, device=target) < dropout
+        prediction = model(noisy, t, tokens[indices], drop)
+        loss = F.mse_loss(prediction, noise)
+        if not torch.isfinite(loss):
+            raise RuntimeError("Non-finite pilot loss; checkpoint not written")
+        optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        optimizer.step()
+        with torch.no_grad():
+            for average, parameter in zip(ema.parameters(), model.parameters(), strict=True):
+                average.lerp_(parameter, 1.0 - ema_decay)
+        last_loss = float(loss.detach().cpu())
+    if target.type == "cuda":
+        torch.cuda.synchronize(target)
+    elapsed = time.perf_counter() - start
+    config = {"steps": steps, "batch_size": batch_size, "seed": seed, "width": width,
+              "timesteps": timesteps, "lr": lr, "dropout": dropout, "ema_decay": ema_decay,
+              "max_attempts": max_attempts}
+    terminal_alpha_bar = float(alpha_bar[-1].cpu())
+    result = {"config": config, "device": device, "last_loss": last_loss, "elapsed_seconds": elapsed,
+              "terminal_alpha_bar": terminal_alpha_bar,
+              "prior_approximation_warning": terminal_alpha_bar > 0.01,
+              "peak_cuda_allocated_bytes": torch.cuda.max_memory_allocated(target) if device == "cuda" else None,
+              "peak_cuda_reserved_bytes": torch.cuda.max_memory_reserved(target) if device == "cuda" else None,
+              "condition_counts": counts, "realized_rule_counts_by_condition": cooccurrence,
+              "sampling_attempts": attempts_total, "weights": dict(zip(names, probs, strict=True)),
+              "note": ("Exploratory pilot only; no Stage 0 gate or model performance claim. "
+                       "Timing includes online rendering and has no warmup; seeds do not guarantee "
+                       "bitwise equality across hardware or PyTorch versions.")}
+    checkpoint = {"schema_version": 1, "config": config, "rules": definitions,
+                  "model": model.state_dict(), "ema": ema.state_dict(), "optimizer": optimizer.state_dict(),
+                  "report": result}
+    return checkpoint, result
+
+
+def _load_json(path: Path) -> object:
+    return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+
+
+def save_checkpoint(path: Path, checkpoint: dict) -> None:
+    if path.exists():
+        raise ValueError("Checkpoint already exists; select a new output path")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(dir=path.parent, prefix=".pilot-", delete=False) as file:
+            temporary = Path(file.name)
+            torch.save(checkpoint, file)
+        # Exclusive creation prevents overwriting an existing output.
+        created = False
+        try:
+            with path.open("xb") as output:
+                created = True
+                with temporary.open("rb") as source:
+                    import shutil
+                    shutil.copyfileobj(source, output)
+        except Exception:
+            if created:
+                path.unlink(missing_ok=True)
+            raise
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
+@torch.no_grad()
+def sample(checkpoint: dict, rule: str, *, seed: int, device: str, guidance: float) -> Image.Image:
+    if seed < 0 or not math.isfinite(guidance) or guidance < 0:
+        raise ValueError("seed and guidance must be finite and nonnegative")
+    if device not in {"cpu", "cuda"} or (device == "cuda" and not torch.cuda.is_available()):
+        raise ValueError("Requested device is unavailable")
+    target = torch.device(device)
+    definitions, config = checkpoint["rules"], checkpoint["config"]
+    rules = load_rules(definitions)
+    if rule not in rules:
+        raise ValueError("Unknown rule")
+    names = list(rules)
+    tokens = encode_rules(rules)[names.index(rule):names.index(rule) + 1].to(target)
+    model = PilotUNet(config["width"], config["timesteps"]).to(target)
+    model.load_state_dict(checkpoint["ema"])
+    model.eval()
+    beta, alpha_bar = schedule(config["timesteps"], target)
+    if float(alpha_bar[-1].cpu()) > 0.01:
+        warnings.warn("Terminal signal is not close to zero; sampling from Gaussian noise is only a smoke approximation",
+                      RuntimeWarning, stacklevel=2)
+    generator = torch.Generator(device=target).manual_seed(seed)
+    x = torch.randn((1, 3, 64, 64), device=target, generator=generator)
+    for step in range(config["timesteps"] - 1, -1, -1):
+        t = torch.tensor([step], device=target)
+        conditional = model(x, t, tokens)
+        if guidance != 1.0:
+            unconditional = model(x, t, tokens, torch.ones(1, dtype=torch.bool, device=target))
+            conditional = unconditional + guidance * (conditional - unconditional)
+        x = (x - beta[step] / (1 - alpha_bar[step]).sqrt() * conditional) / (1 - beta[step]).sqrt()
+        if step:
+            variance = beta[step] * (1 - alpha_bar[step - 1]) / (1 - alpha_bar[step])
+            x = x + variance.sqrt() * torch.randn(x.shape, device=target, generator=generator)
+    image = ((x[0].clamp(-1, 1) + 1) * 127.5).round().to(torch.uint8).permute(1, 2, 0).cpu().numpy()
+    return Image.fromarray(image, mode="RGB")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Exploratory online conditional diffusion pilot")
+    sub = parser.add_subparsers(dest="command", required=True)
+    fit = sub.add_parser("train")
+    fit.add_argument("--rules", type=Path, required=True)
+    fit.add_argument("--weights", type=Path)
+    fit.add_argument("--output", type=Path, required=True)
+    fit.add_argument("--steps", type=int, default=100)
+    fit.add_argument("--batch-size", type=int, default=2)
+    fit.add_argument("--seed", type=int, default=0)
+    fit.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
+    fit.add_argument("--width", type=int, default=16)
+    fit.add_argument("--timesteps", type=int, default=1000)
+    fit.add_argument("--lr", type=float, default=1e-4)
+    fit.add_argument("--dropout", type=float, default=0.1)
+    fit.add_argument("--ema-decay", type=float, default=0.999)
+    fit.add_argument("--max-attempts", type=int, default=10000)
+    generate = sub.add_parser("sample")
+    generate.add_argument("--checkpoint", type=Path, required=True)
+    generate.add_argument("--rule", required=True)
+    generate.add_argument("--output", type=Path, required=True)
+    generate.add_argument("--seed", type=int, default=0)
+    generate.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
+    generate.add_argument("--guidance", type=float, default=1.0)
+    args = parser.parse_args()
+    try:
+        if args.output.exists():
+            raise ValueError("Output already exists; select a new path")
+        if args.command == "train":
+            definitions = _load_json(args.rules)
+            weights = _load_json(args.weights) if args.weights else None
+            checkpoint, result = train(definitions, weights, steps=args.steps, batch_size=args.batch_size,
+                                       seed=args.seed, device=args.device, width=args.width,
+                                       timesteps=args.timesteps, lr=args.lr, dropout=args.dropout,
+                                       ema_decay=args.ema_decay, max_attempts=args.max_attempts)
+            save_checkpoint(args.output, checkpoint)
+            print(json.dumps(result, indent=2, allow_nan=False))
+        else:
+            checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
+            image = sample(checkpoint, args.rule, seed=args.seed, device=args.device, guidance=args.guidance)
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            with args.output.open("xb") as file:
+                image.save(file, format="PNG")
+            print(f"Wrote {args.output}")
+    except (OSError, ValueError, RuntimeError, KeyError, TypeError) as exc:
+        parser.error(str(exc))
+
+
+if __name__ == "__main__":
+    main()

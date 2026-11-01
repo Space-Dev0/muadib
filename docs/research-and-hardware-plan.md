@@ -1,9 +1,9 @@
 # Research and Hardware Plan
 
 The project implements the research proposal in stages. The current stage is a
-CPU-only prototype for rendering and rule evaluation. It does not yet train a
-model, download an external dataset, or provide CUDA acceleration. It is not
-yet the proposal's validated exposure design.
+CPU-only prototype for rendering and rule evaluation, plus an exploratory pilot
+training instrument. No actual CUDA model training has been run, no external
+dataset is downloaded, and the exposure design is not yet validated.
 
 ## Dataset plan
 
@@ -26,13 +26,28 @@ The planned training backend is PyTorch on NVIDIA CUDA, with CPU support for
 small local checks. A user-authorized, read-only SSH GPU preflight succeeded on
 the reported laptop. It reported Windows 11 AMD64, Python 3.13.6, an NVIDIA
 GeForce RTX 3050 6GB Laptop GPU with 6144 MiB and driver 581.83, Git 2.48.1,
-and pip 25.2. `uv` is not on PATH and PyTorch is not installed. CUDA
-availability through PyTorch, memory fit, and available GPU time remain
-unverified. No training or installation occurred. The correct PyTorch build has
-not been selected or installed, and OpenCL is not part of this implementation.
+and pip 25.2. At preflight time, `uv` was not on PATH and PyTorch was not
+installed. CUDA availability through PyTorch, memory fit, and available GPU time
+remain unverified. The read-only preflight itself installed and trained nothing.
+Since then, `uv` has been installed in an isolated venv on the remote machine
+and the CUDA PyTorch download is in progress. GPU fit remains unverified. The
+repository has not been transferred; transfer awaits explicit authorization. The
+correct PyTorch build has not been verified, and OpenCL is not part of this
+implementation.
 
-GPU support and a locked dependency set will be added and verified when the
-training environment is set up.
+The optional training dependency is locked; CUDA execution and memory fit must
+be verified when the training environment is ready.
+
+## Pilot training
+
+`exposure/pilot_train.py` is an exploratory online conditional diffusion
+instrument; see [pilot training](pilot-training.md) for commands and limits. It
+uses the online renderer, predicate-slot cross-attention, classifier-free
+dropout, AdamW, EMA, and a fixed sampler. A separate CPU-only PyTorch 2.9.1
+environment passed the CPU unit tests and a one-step train/checkpoint/sample CLI
+smoke; these are mechanics only, not learning evidence. No actual CUDA training,
+validated model outputs, reference model, resume, controlled guidance sweep, or
+human audit exists. No mixed precision is implemented.
 
 ## Human review capacity
 
@@ -43,13 +58,19 @@ established, and no reviews have been completed.
 ## Current limitations
 
 - Rendering and rule evaluation run on the CPU only.
-- No model training is implemented.
+- Exploratory pilot training code exists, but no actual CUDA model training has
+  been run.
 - No external dataset is downloaded or bundled.
-- No CUDA acceleration is available yet.
 - The read-only GPU preflight succeeded, but CUDA through PyTorch, memory fit,
   and available GPU time are unverified.
-- No packages were installed during the preflight, and no project training has
-  been run on the reported machine.
+- The remote `uv` environment is being prepared and the CUDA PyTorch download is
+  in progress; GPU fit remains unverified.
+- No packages were installed during the preflight; the separate `uv` setup is in
+  progress.
+- The repository has not been transferred; transfer awaits explicit
+  authorization.
+- No validated model outputs, reference model, resume, controlled guidance
+  sweep, or human audit exists.
 - No image reviews have been completed.
 - Pair and marginal exposure semantics must be locked in the experiment
   specification before analysis.

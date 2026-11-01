@@ -7,6 +7,7 @@ not confirmatory research findings.
 | --- | --- | --- |
 | Renderer and rules | 2D renderer, annotation-based rule evaluation and grammar witnesses | Finalize and validate the benchmark vocabulary and full counterbalancing. |
 | Candidate templates | Provisional 57-template generator covers all singleton colors and shapes in each one-attribute cell; a 100-scene-per-template sampling smoke test completed | Confirm full counterbalancing, held-out rules and sufficient sampling precision. |
+| Pilot training | Exploratory online conditional diffusion instrument; CPU unit tests and a one-step train/checkpoint/sample CLI smoke passed in a separate CPU PyTorch 2.9.1 environment | No actual CUDA training, validated model outputs, reference model, resume, controlled guidance sweep, or human audit; GPU fit unverified. See [pilot training](pilot-training.md). |
 | Checker | Clean-render and controlled perturbation audits; conservative sharpening fallback | High rejection remains at brightness 1.10, blur 0.50, and blur 1.00; validate every relevant rule and audit generated images with human judgments. |
 | Exposure matrix and design | Monte Carlo estimates, LP feasibility and numerical minimum-KL allocation | Quantify matrix uncertainty and verify feasible exposure manipulations and leave-out probes on the final benchmark. |
 | Decorrelation | Twenty exploratory hit-and-run designs from the 57-condition pilot; pooled correlations and VIF computed over 1,140 rule-by-design rows | Define breadth, freeze the analysis table and uncertainty method, and evaluate the registered criteria. Current estimates do not assess the proposal gate. |
@@ -34,8 +35,11 @@ only if two mild `UnsharpMask` settings with radii `0.5` and `0.6` and percent
 validate generated images, pass Stage 0, or ensure robustness.
 
 The proposal's checker, design-decorrelation and MOSAIC gates must be evaluated
-using the agreed final instruments and data. No training or Stage 1 pilot has
-been run, and no GPU-hours estimate has yet been measured.
+using the agreed final instruments and data. No actual CUDA model training or
+Stage 1 pilot has been run; only CPU pilot mechanics have been exercised. The
+remote `uv` environment is being prepared and the CUDA PyTorch download is in
+progress, so GPU fit is unverified, and repository transfer awaits explicit
+authorization. No GPU-hours estimate has yet been measured.
 
 A 300-scene clean-render audit at seeds 30000–30299 covered all 57 candidate
 rules, with zero detector failures and zero observed rule errors. Some rules
