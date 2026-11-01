@@ -261,6 +261,16 @@ very small; this observation does not by itself identify the cause of noisy
 samples. An exact-noise oracle also reconstructed a known image through the
 existing sampler, which checks its wiring without validating learned output.
 
+A separate exploratory sampler comparison clipped the predicted clean image
+to `[-1, 1]` at each reverse step. For the same checkpoint, conditions, and
+seeds, its unclipped runs exactly matched the saved baselines; both clipped
+samples were still visually noisy. At timestep 999, about 92% of predicted
+pixels were outside the clipping range in both examples. This is only two
+paired samples, so it does not settle whether clipping helps in general. The
+default sampler was not changed. The local ignored files
+`outputs/x0clip-12k-experiment.py` and `outputs/x0clip-12k-report.json` retain
+the one-off script and measurements.
+
 See the [research and hardware plan](research-and-hardware-plan.md),
 [Stage 0 status](stage0-status.md), and the
 [human checklist](human-checklist.md).
