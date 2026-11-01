@@ -7,22 +7,31 @@ not confirmatory research findings.
 | --- | --- | --- |
 | Renderer and rules | 2D renderer, annotation-based rule evaluation and grammar witnesses | Finalize and validate the benchmark vocabulary and full counterbalancing. |
 | Candidate templates | Provisional 57-template generator covers all singleton colors and shapes in each one-attribute cell; a 100-scene-per-template sampling smoke test completed | Confirm full counterbalancing, held-out rules and sufficient sampling precision. |
-| Checker | Clean-render and controlled perturbation audits | Improve or explicitly handle high rejection under brightening and blur; validate every relevant rule and audit generated images with human judgments. |
+| Checker | Clean-render and controlled perturbation audits; conservative sharpening fallback | High rejection remains at brightness 1.10, blur 0.50, and blur 1.00; validate every relevant rule and audit generated images with human judgments. |
 | Exposure matrix and design | Monte Carlo estimates, LP feasibility and numerical minimum-KL allocation | Quantify matrix uncertainty and verify feasible exposure manipulations and leave-out probes on the final benchmark. |
 | Decorrelation | Twenty exploratory hit-and-run designs from the 57-condition pilot; pooled correlations and VIF computed over 1,140 rule-by-design rows | Define breadth, freeze the analysis table and uncertainty method, and evaluate the registered criteria. Current estimates do not assess the proposal gate. |
 | Gaussian diagnostic | One-dimensional analytic Bayes noise-loss reference and Monte Carlo check | Connect normalization checks to the eventual model/loss implementation. |
 | MOSAIC contrast | Preliminary paper/code review | Run and document the adapted replication; see [MOSAIC notes](mosaic-replication.md). |
 | Human audit | Blinded preparation, prediction and scoring for rules and independently judged predicate events | Obtain model-generated images and actual independent human judgments; none have been fabricated. |
 
-For the current checker, a 100-scene holdout at seeds 20000–20099 yielded
-coverage 100/100 for clean and 0.90 brightness, 52/100 for brightness 1.10,
-36/100 for blur radius 0.5, and 10/100 for blur radius 1.0. Rejections are
-reported separately; error rates among accepted images cannot establish overall
-checker validity. Reproduce with:
+For the current checker, a 200-scene holdout on separate synthetic seeds
+41000–41199 yielded coverage 200/200 for clean and 0.90 brightness, 114/200 for
+brightness 1.10 and blur radius 0.5, and 31/200 for blur radius 1.0. The
+previous implementation baseline on these seeds was 85/200 for blur radius 0.5.
+No rule errors were observed on accepted examples;
+rejected scenes are excluded, so these counts do not establish overall checker
+validity. These figures replace the earlier 100-scene results from an earlier
+checker version. Reproduce with:
 
 ```sh
-uv run python -m exposure.checker_perturb --samples 100 --seed 20000 --output outputs/checker-perturb-holdout.json
+uv run python -m exposure.checker_perturb --samples 200 --seed 41000 --output outputs/checker-perturb-41000.json
 ```
+
+The checker's sharpening fallback is attempted only when the original palette
+validation passes. It accepts
+only if two mild `UnsharpMask` settings with radii `0.5` and `0.6` and percent
+`100` return identical object labels and exact centers. The fallback does not
+validate generated images, pass Stage 0, or ensure robustness.
 
 The proposal's checker, design-decorrelation and MOSAIC gates must be evaluated
 using the agreed final instruments and data. No training or Stage 1 pilot has

@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
-from exposure.checker import DetectionError, _detect_palette, audit as clean_audit, audit_rules, detect
+from exposure.checker import DetectionError, _detect_palette, _detect_sharpened, audit as clean_audit, audit_rules, detect
 from exposure.checker_perturb import CASES, audit
 from exposure.render import render_scene
 from exposure.rules import satisfies
@@ -29,13 +29,36 @@ class CheckerPerturbationTests(unittest.TestCase):
         image = Image.new("RGB", (64, 64), "white")
         first = render_scene(1).objects
         second = render_scene(2).objects
-        with patch("exposure.checker._detect_palette", side_effect=[DetectionError("initial"), first, second]):
+        with patch("exposure.checker._detect_palette", side_effect=[DetectionError("initial"), first, second]), \
+                patch("exposure.checker._detect_sharpened", side_effect=DetectionError("unsupported")):
             with self.assertRaises(DetectionError):
                 detect(image)
         with patch("exposure.checker._detect_palette", side_effect=[DetectionError("initial"), first,
-                                                                    DetectionError("ambiguous")]):
+                                                                    DetectionError("ambiguous")]), \
+                patch("exposure.checker._detect_sharpened", side_effect=DetectionError("unsupported")):
             with self.assertRaises(DetectionError):
                 detect(image)
+
+    def test_sharpening_requires_agreement_and_preserves_palette_rejection(self):
+        image = Image.new("RGB", (64, 64), "white")
+        with patch("exposure.checker._detect_palette", side_effect=[render_scene(1).objects,
+                                                                    render_scene(2).objects]):
+            with self.assertRaises(DetectionError):
+                _detect_sharpened(image)
+        image = render_scene(42).image.filter(ImageFilter.GaussianBlur(0.5))
+        ImageDraw.Draw(image).rectangle((0, 0, 4, 4), fill=(255, 0, 255))
+        with patch("exposure.checker._detect_sharpened") as fallback:
+            with self.assertRaises(DetectionError):
+                detect(image)
+            fallback.assert_not_called()
+
+    def test_sharpening_recovers_known_mild_blur(self):
+        scene = render_scene(0)
+        image = scene.image.filter(ImageFilter.GaussianBlur(0.5))
+        with patch("exposure.checker._detect_sharpened", side_effect=DetectionError("disabled")):
+            with self.assertRaises(DetectionError):
+                detect(image)
+        self.assertEqual(set(detect(image)), set(scene.objects))
 
     def test_fallback_recovers_some_perturbed_scenes_without_annotation_input(self):
         recovered = {"bright": 0, "blur": 0}

@@ -5,6 +5,16 @@ components, rejects several unsupported or ambiguous cases, classifies simple
 shape geometry, and reconstructs centers for the current renderer. Its checks
 are calibrated to 64×64 clean RGB scenes with three separated objects.
 
+Detection uses the original palette pass first. Conservative fallbacks include a
+narrow dark-background correction, two palette-distance thresholds, and a mild
+sharpening retry. The sharpening fallback is attempted only when the original
+palette validation passes. It accepts only if two `UnsharpMask` settings with
+radii `0.5` and `0.6` and percent `100` return identical object labels and exact centers. This
+fallback does not validate generated images, pass Stage 0, or ensure robustness.
+Fresh coverage numbers for synthetic seeds 41000–41199 are in
+[checker perturbations](checker-perturb.md); rejected scenes are excluded, so
+they do not establish overall validation.
+
 Run the clean-render instrument audit:
 
 ```sh

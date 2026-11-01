@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 from scipy import ndimage
 
 from exposure.measure import load_rules, unique_object
@@ -18,6 +18,10 @@ from exposure.rules import Attribute, Relation, SceneObject, satisfies
 
 class DetectionError(ValueError):
     """The image is outside the checker's supported or confident range."""
+
+
+class _PaletteError(DetectionError):
+    """A pixel is incompatible with the supported renderer palette."""
 
 
 def _detect_palette(image: Image.Image, threshold: float = 100) -> tuple[SceneObject, ...]:
@@ -36,7 +40,7 @@ def _detect_palette(image: Image.Image, threshold: float = 100) -> tuple[SceneOb
     alpha = np.clip(np.sum(relative * direction, axis=3) / np.sum(direction * direction, axis=1), 0, 1)
     blend_distance = np.linalg.norm(relative - alpha[:, :, :, None] * direction, axis=3).min(axis=2)
     if np.any(blend_distance > 40):
-        raise DetectionError("Unrecognized foreground colors")
+        raise _PaletteError("Unrecognized foreground colors")
     mask = distance <= threshold
     labels, count = ndimage.label(mask)
     if count != 3:
@@ -69,6 +73,16 @@ def _detect_palette(image: Image.Image, threshold: float = 100) -> tuple[SceneOb
     return tuple(result)
 
 
+def _detect_sharpened(image: Image.Image) -> tuple[SceneObject, ...]:
+    """Accept mild sharpening only when two settings yield identical objects."""
+    detections = [tuple(sorted(_detect_palette(image.filter(ImageFilter.UnsharpMask(
+        radius=radius, percent=100, threshold=0))), key=lambda obj: (obj.x, obj.y)))
+        for radius in (0.5, 0.6)]
+    if detections[0] != detections[1]:
+        raise DetectionError("Sharpening results disagree")
+    return detections[0]
+
+
 def detect(image: Image.Image) -> tuple[SceneObject, ...]:
     """Infer objects from pixels with conservative fallback checks.
 
@@ -99,10 +113,16 @@ def detect(image: Image.Image) -> tuple[SceneObject, ...]:
             detections = [tuple(sorted(_detect_palette(image, threshold), key=lambda obj: (obj.x, obj.y)))
                           for threshold in (115, 130)]
         except DetectionError:
-            raise original from None
-        if detections[0] != detections[1]:
-            raise original
-        return detections[0]
+            detections = []
+        if detections and detections[0] == detections[1]:
+            return detections[0]
+        # Do not sharpen an image rejected by the original palette check.
+        if not isinstance(original, _PaletteError):
+            try:
+                return _detect_sharpened(image)
+            except DetectionError:
+                pass
+        raise original from None
 
 
 def audit_rules() -> dict:
