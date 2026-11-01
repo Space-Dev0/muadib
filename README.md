@@ -35,6 +35,8 @@ third renders a rule-conditioned scene to `outputs/example.png` and
   under controlled image changes.
 - [Human audit workflow](docs/human-audit.md): prepare blinded reviews and score
   human judgments once generated images are available.
+- [Human checklist for Stage 0](docs/human-checklist.md): human decisions,
+  access, image review, GPU/MOSAIC work, and final gate sign-off.
 - [Gaussian diagnostic](docs/gaussian-diagnostic.md): an analytic noise-loss
   reference for a one-dimensional Gaussian mixture.
 - [Design diagnostics](docs/design-diagnostics.md): exploratory correlations
