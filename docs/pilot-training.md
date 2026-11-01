@@ -189,6 +189,22 @@ at 500; the zero predictor was approximately 1 at each timestep. This small
 one-step check does not validate full generation or establish why samples are
 noisy.
 
+## Single-scene overfit diagnostic
+
+`exposure.static_scene_probe` trains on one fixed render to investigate the
+training and sampling pipeline. It is separate from the online experiment:
+
+```sh
+uv run --extra train python -m exposure.static_scene_probe --rules examples/exposure_rules.json --rule red --output-dir outputs/static-scene-example --steps 4000 --device cuda --deterministic
+```
+
+The output directory must be new. It contains `target.png`, `sample.png`, a
+diagnostic `checkpoint.pt`, and `report.json` with the scene and seeds. The
+checkpoint is intentionally not resumable as an online run. The renderer
+override is process-wide during this command, so run the probe in its own
+process. A single target and sample cannot establish generalization or a
+Stage 0 result.
+
 ## Evidence and omissions
 
 CPU pilot tests and the one-step train/checkpoint/sample mechanical sample
