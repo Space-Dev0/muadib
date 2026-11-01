@@ -89,6 +89,35 @@ def prepare(manifest: object, root: Path, *, per_stratum: int, seed: int) -> dic
             "note": "Blinded review manifest; no human judgments are supplied."}
 
 
+def predicate_manifest(manifest: object, root: Path) -> dict:
+    """Expand reviewed rules into separate, independently rebound predicate questions.
+
+    Source IDs link the questions to the original complexity-stratified sample;
+    neither rule judgments nor checker predictions are copied or inferred.
+    """
+    root = _root(root)
+    questions = []
+    for sample in sorted(_samples(manifest), key=lambda item: item["sample_id"]):
+        _, image_path = _image(root, sample["image_path"])
+        for index, predicate in enumerate(parse_rule(sample["predicates"])):
+            if isinstance(predicate, Attribute):
+                name = f"attribute:{predicate.field}:{predicate.value}"
+                atom = {"type": "attribute", "variable": "a", "field": predicate.field,
+                        "value": predicate.value}
+                k_attr, k_rel = 1, 0
+            else:
+                name = f"relation:{predicate.kind}"
+                atom = {"type": "relation", "subject": "a", "kind": predicate.kind, "object": "b"}
+                k_attr, k_rel = 0, 1
+            questions.append({"sample_id": f"predicate-{len(questions) + 1:06d}",
+                              "image_path": image_path, "rule_name": name, "predicates": [atom],
+                              "k_attr": k_attr, "k_rel": k_rel,
+                              "source_sample_id": sample["sample_id"], "predicate_index": index})
+    return {"schema_version": 1, "samples": questions, "note": (
+        "Each question independently rebinds its predicate. Collect separate human judgments; "
+        "a whole-rule judgment cannot be used as a predicate judgment.")}
+
+
 def predict(manifest: object, root: Path) -> dict[str, bool | None]:
     """Produce checker predictions without generating human judgments.
 
@@ -214,6 +243,10 @@ def main() -> None:
     create.add_argument("--per-stratum", type=int, required=True)
     create.add_argument("--seed", type=int, required=True)
     create.add_argument("--output", type=Path, required=True)
+    expand = commands.add_parser("predicates", help="prepare independent predicate questions")
+    expand.add_argument("--manifest", type=Path, required=True)
+    expand.add_argument("--dataset-root", type=Path, required=True)
+    expand.add_argument("--output", type=Path, required=True)
     infer = commands.add_parser("predict")
     infer.add_argument("--manifest", type=Path, required=True)
     infer.add_argument("--dataset-root", type=Path, required=True)
@@ -229,6 +262,10 @@ def main() -> None:
             manifest = _json(args.manifest)
             _protect_output(args.output, [args.manifest, *_image_inputs(manifest, args.dataset_root)])
             result = prepare(manifest, args.dataset_root, per_stratum=args.per_stratum, seed=args.seed)
+        elif args.command == "predicates":
+            manifest = _json(args.manifest)
+            _protect_output(args.output, [args.manifest, *_image_inputs(manifest, args.dataset_root)])
+            result = predicate_manifest(manifest, args.dataset_root)
         elif args.command == "predict":
             manifest = _json(args.manifest)
             _protect_output(args.output, [args.manifest, *_image_inputs(manifest, args.dataset_root)])

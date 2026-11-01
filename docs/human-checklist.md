@@ -51,14 +51,17 @@ and continue exploratory implementation while the final choices are pending.
    budget are agreed. At least 300 generated images must be human-audited in a
    complexity-stratified sample. Blocks the human audit and checker gate. See
    [human audit workflow](human-audit.md).
-6. [ ] **Secure independent human reviewer(s) and a neutral delivery method.**
-   Reviewers must judge images without seeing checker predictions or gold
-   labels. **Human-only.** Blocks the checker gate.
-7. [ ] **Confirm GPU access and available budget.** On your friend's machine,
-   run `nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv`
-   and share the output, operating system, and approximate GPU time available.
-   With access we can choose the CUDA build, lock dependencies, and measure a
-   pilot. Blocks the pilot and MOSAIC replication. See
+6. [ ] **Confirm the reviewer pool and a neutral delivery method.** Four team
+   members are reported as potential reviewers available later. Confirm their
+   independence, participation, and blinding; reviewers must judge images
+   without seeing checker predictions or gold labels. Actual reviews remain
+   outstanding. **Human-only.** Blocks the checker gate.
+7. [ ] **Confirm GPU access, compatibility, and available budget.** The reported
+   target is a Windows laptop with an NVIDIA GeForce RTX 3050 6GB Laptop GPU,
+   6144 MiB, and driver 581.83. Confirm access and approximate GPU time
+   available; CUDA/PyTorch compatibility remains unverified. With access we can choose the CUDA
+   build, lock dependencies, and measure a pilot. Blocks the pilot and MOSAIC
+   replication. See
    [research and hardware plan](research-and-hardware-plan.md).
 8. [ ] **Review the proposed MOSAIC adaptation and arrange any required access.**
    We can study the paper and implementation and propose the contrast, metrics,
@@ -75,8 +78,9 @@ decisions.
 - [ ] Run the A-matrix at the agreed sample size, propagate the agreed
   uncertainty treatment, sample designs, and produce the registered
   decorrelation analysis.
-- [ ] Extend human-audit scoring from overall/per-rule/per-complexity results to
-  the proposal's per-predicate and per-rule false-accept/false-reject report.
+- [x] Prepare separate predicate questions and score independent judgments by
+  predicate event using the existing audit workflow. Actual judgments and
+  generated-image results remain outstanding.
 - [ ] Improve checker rejection handling under brightening and blur, rerun
   clean and perturbation audits, and evaluate the checker against the supplied
   generated images.
@@ -92,15 +96,17 @@ decisions.
 ## Human image review
 
 - [ ] Independent humans judge whether each generated image satisfies its
-  requested rule. **Human-only.**
+  requested rule. Four team members are reported as potential reviewers
+  available later; independence, participation, and actual judgments remain to
+  be confirmed. **Human-only.**
 - [ ] Codex can prepare the blinded manifest, run checker predictions, validate
   the review CSV, score the judgments, and tabulate false accepts and false
   rejects.
 - [ ] Report results per predicate and per rule, with complexity strata and
-  rejection counts. The current scorer supports overall, per-rule, and
-  per-complexity reporting, but not a separate per-predicate report. A judgment
-  on a whole rule does not determine which individual predicate was satisfied;
-  the review design must collect the needed predicate-level judgments too.
+  rejection counts. The workflow now creates separate predicate questions and
+  groups their scores by predicate event. A whole-rule judgment cannot supply
+  the separate predicate judgments. Predicate-report strata describe singleton
+  questions; use the whole-rule report for original complexity strata.
 
 The audit depends on the pilot model and the generated image pool. Clean-render
 counts alone do not establish the `≤ 2%` target on real renders. See
@@ -114,9 +120,10 @@ counts alone do not establish the `≤ 2%` target on real renders. See
   **200-250 GPU-hours**. This is an initial planning figure, not a measured
   result. Replace it with pilot measurements and set a hard cap after the pilot
   (Section 12, p. 9). **Human decision.**
-- [ ] The current repository is CPU-only, has no CUDA acceleration, and the
-  preliminary environment check did not expose `nvidia-smi`. Actual capability
-  must be checked on the training machine.
+- [ ] The reported target is a Windows laptop with an NVIDIA GeForce RTX 3050
+  6GB Laptop GPU, 6144 MiB and driver 581.83. Access, CUDA/PyTorch
+  compatibility, and available GPU time are unverified; the repository remains
+  CPU-only with no CUDA acceleration.
 - [ ] Run the adapted replication and compare only the direction with MOSAIC
   unless a full reproduction is achieved. Codex can prepare and run the
   experiment; the human decides whether the direction matches and whether the
@@ -130,8 +137,8 @@ counts alone do not establish the `≤ 2%` target on real renders. See
 | Checker | Clean-render and controlled-perturbation audits; rejection counts reported separately | Generated-image human audit, per-predicate/per-rule error report, evidence for `≤ 2%` on real renders |
 | Decorrelation | 20 exploratory designs and 1,140 rule-by-design rows from the 57-condition pilot; pooled correlation `-0.446`; VIF `11.61` for log lift and `13.72` for relation count | Registered gate analysis with breadth, uncertainty, and the final matrix. The current values do not establish the proposal criterion |
 | MOSAIC | Preliminary paper/code review only | Adapted contrast specification, GPU run, results, and direction comparison |
-| GPU | CPU-only; no measured GPU-hours | GPU/driver/CUDA check, PyTorch build, dependency lock, pilot budget |
-| Human audit | Blinded prepare/predict/score workflow | At least 300 real generated images and actual independent judgments |
+| GPU | Reported Windows laptop with RTX 3050 6GB Laptop GPU (6144 MiB, driver 581.83); repository CPU-only; no measured GPU-hours | Verified access, CUDA/PyTorch compatibility, PyTorch build, dependency lock, pilot budget |
+| Human audit | Blinded rule and predicate prepare/predict/score workflow; four team members reported as potential reviewers available later | Confirmed independence/blinding, at least 300 real generated images, actual judgments |
 
 See [Stage 0 status](stage0-status.md) for the full current report and commands.
 

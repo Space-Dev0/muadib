@@ -9,9 +9,9 @@ from unittest.mock import patch
 
 from PIL import Image, UnidentifiedImageError
 
-from exposure.human_audit import _write_json, predict, prepare, read_reviews, score
+from exposure.human_audit import _write_json, predicate_manifest, predict, prepare, read_reviews, score
 from exposure.render import parse_rule, render_scene
-from exposure.rules import satisfies
+from exposure.rules import SceneObject, satisfies
 
 
 def sample(identifier, relation=False):
@@ -23,6 +23,60 @@ def sample(identifier, relation=False):
 
 
 class HumanAuditTests(unittest.TestCase):
+    def test_predicate_questions_are_independent_and_grouped_by_event(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            render_scene(42).image.save(root / "a.png")
+            render_scene(43).image.save(root / "b.png")
+            first, second = sample("a", True), sample("b")
+            second["predicates"][0]["variable"] = "z"
+            expanded = predicate_manifest({"samples": [second, first]}, root)
+            self.assertEqual(expanded, predicate_manifest({"samples": [first, second]}, root))
+            questions = expanded["samples"]
+            self.assertEqual([q["source_sample_id"] for q in questions], ["a", "a", "b"])
+            self.assertEqual([q["predicate_index"] for q in questions], [0, 1, 0])
+            self.assertEqual([q["rule_name"] for q in questions],
+                             ["attribute:color:red", "relation:above", "attribute:color:red"])
+            self.assertEqual(questions[0]["predicates"], questions[2]["predicates"])
+            predictions = predict(expanded, root)
+            # Independent human judgments are supplied for each question, not inferred from a rule.
+            judgments = {q["sample_id"]: i != 1 for i, q in enumerate(questions)}
+            result = score(expanded, judgments, predictions)
+            self.assertEqual(result["reviewed"], 3)
+            self.assertEqual(set(result["by_rule"]), {"attribute:color:red", "relation:above"})
+            self.assertEqual(sum(result["by_rule"]["attribute:color:red"][key]
+                                 for key in ("tp", "tn", "fp", "fn", "rejected_human_yes",
+                                             "rejected_human_no")), 2)
+
+    def test_predicate_cli_rejects_input_and_image_overwrites(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            image, manifest, output = root / "a.png", root / "manifest.json", root / "predicates.json"
+            render_scene(42).image.save(image)
+            manifest.write_text(json.dumps({"samples": [sample("a", True)]}))
+            cmd = [sys.executable, "-m", "exposure.human_audit", "predicates",
+                   "--manifest", str(manifest), "--dataset-root", str(root)]
+            subprocess.run(cmd + ["--output", str(output)], check=True, capture_output=True, text=True)
+            self.assertEqual(len(json.loads(output.read_text())["samples"]), 2)
+            before = (manifest.read_bytes(), image.read_bytes())
+            for target in (manifest, image):
+                result = subprocess.run(cmd + ["--output", str(target)], capture_output=True, text=True)
+                self.assertNotEqual(result.returncode, 0)
+            self.assertEqual((manifest.read_bytes(), image.read_bytes()), before)
+
+    def test_singleton_truth_does_not_imply_whole_rule_truth(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "a.png").write_bytes(b"placeholder")
+            entry = sample("a")
+            entry["predicates"].append({"type": "attribute", "variable": "a",
+                                        "field": "shape", "value": "square"})
+            entry["k_attr"] = 2
+            questions = predicate_manifest({"samples": [entry]}, root)["samples"]
+            scene = (SceneObject("red", "circle", 10, 10), SceneObject("blue", "square", 30, 30))
+            self.assertTrue(all(satisfies(scene, parse_rule(q["predicates"])) for q in questions))
+            self.assertFalse(satisfies(scene, parse_rule(entry["predicates"])))
+
     def test_sampling_is_blinded_reproducible_and_stratified(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

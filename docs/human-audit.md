@@ -101,3 +101,43 @@ neither rates nor counts make claims about unreviewed images.
 Each command writes its result to a temporary file in the output directory and
 then replaces the requested output. A failed validation or write leaves any
 existing output file intact.
+
+## Separate predicate questions
+
+Whole-rule judgments cannot establish which individual predicates were true.
+After preparing the complexity-stratified rule manifest, generate separate
+questions for each predicate in every selected rule:
+
+```sh
+uv run python -m exposure.human_audit predicates \
+  --manifest outputs/audit-blinded.json --dataset-root outputs/generated \
+  --output outputs/audit-predicates.json
+uv run python -m exposure.human_audit predict \
+  --manifest outputs/audit-predicates.json --dataset-root outputs/generated \
+  --output outputs/predicate-predictions.json
+uv run python -m exposure.human_audit score \
+  --manifest outputs/audit-predicates.json --reviews outputs/predicate-reviews.csv \
+  --predictions outputs/predicate-predictions.json --output outputs/predicate-results.json
+```
+
+Collect an independent `yes` or `no` judgment for each question in
+`predicate-reviews.csv`, with the same `sample_id,judgment` columns used for
+whole rules. The checker predictions must remain hidden from reviewers. Each
+predicate is evaluated on its own with existential object binding, just as in
+the exposure calculations; its objects need not be those that satisfy another
+predicate in the full rule. A full rule can therefore be false even when every
+separately evaluated predicate is true. Do not infer these judgments from the
+whole-rule answers.
+
+The report's `by_rule` keys identify predicate events such as
+`attribute:color:red` and `relation:above`. The manifest retains
+`source_sample_id` and a zero-based `predicate_index` to trace each question to
+the original selected rule. Use neutral source IDs and filenames. Multiple
+questions can refer to the same image, so question counts are not counts of
+independent images. The predicate report's strata describe the singleton
+questions, not the original rule complexity; use the whole-rule report for
+the original strata. Each review CSV contains one judgment per question; the
+scorer does not assign reviewers, track reviewer IDs, resolve disagreement, or
+calculate agreement or a research gate. Review the same questions in separate
+files if multiple reviewers are needed, and agree on a reconciliation protocol
+before treating any combined judgments as final.

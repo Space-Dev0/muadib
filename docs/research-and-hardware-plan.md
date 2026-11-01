@@ -23,12 +23,20 @@ synthetic study. See the
 ## Hardware plan
 
 The planned training backend is PyTorch on NVIDIA CUDA, with CPU support for
-small local checks. The correct PyTorch build depends on the friend's GPU,
-driver, operating system, and Python version; it has not yet been selected or
-installed. OpenCL is not part of this implementation.
+small local checks. The reported target is a Windows laptop with an NVIDIA
+GeForce RTX 3050 6GB Laptop GPU, 6144 MiB and driver 581.83. Access to that
+machine, CUDA/PyTorch compatibility, and available GPU time have not been
+verified. The correct build has not been selected or installed, and OpenCL is
+not part of this implementation.
 
-GPU support and a locked dependency set will be added and verified when the
-training stage is built.
+GPU support and a locked dependency set will be added and verified when access
+and the training stage are available.
+
+## Human review capacity
+
+Four team members have been reported as potential image reviewers available
+later. Their independence, blinding, and actual judgments are not yet
+established, and no reviews have been completed.
 
 ## Current limitations
 
@@ -36,5 +44,7 @@ training stage is built.
 - No model training is implemented.
 - No external dataset is downloaded or bundled.
 - No CUDA acceleration is available yet.
+- Access to the reported GPU and its software compatibility are unverified.
+- No image reviews have been completed.
 - Pair and marginal exposure semantics must be locked in the experiment
   specification before analysis.

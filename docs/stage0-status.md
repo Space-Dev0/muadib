@@ -12,7 +12,7 @@ not confirmatory research findings.
 | Decorrelation | Twenty exploratory hit-and-run designs from the 57-condition pilot; pooled correlations and VIF computed over 1,140 rule-by-design rows | Define breadth, freeze the analysis table and uncertainty method, and evaluate the registered criteria. Current estimates do not assess the proposal gate. |
 | Gaussian diagnostic | One-dimensional analytic Bayes noise-loss reference and Monte Carlo check | Connect normalization checks to the eventual model/loss implementation. |
 | MOSAIC contrast | Preliminary paper/code review | Run and document the adapted replication; see [MOSAIC notes](mosaic-replication.md). |
-| Human audit | Blinded preparation, prediction and scoring workflow | Obtain model-generated images and actual independent human judgments; none have been fabricated. |
+| Human audit | Blinded preparation, prediction and scoring for rules and independently judged predicate events | Obtain model-generated images and actual independent human judgments; none have been fabricated. |
 
 For the current checker, a 100-scene holdout at seeds 20000–20099 yielded
 coverage 100/100 for clean and 0.90 brightness, 52/100 for brightness 1.10,
