@@ -48,11 +48,13 @@ and continue exploratory implementation while the final choices are pending.
    gate. See [design diagnostics](design-diagnostics.md).
 5. [x] **SSH access confirmed for the pilot machine.** A user-authorized,
    read-only GPU preflight succeeded. The public repository is cloned on the
-   laptop, locked sync and 127 Windows tests passed, and a short CUDA pilot ran.
-   Its sample was noise, so the audit image pool still needs to be generated.
-   At least 300 generated images must be human-audited in a
-   complexity-stratified sample. Blocks the human audit
-   and checker gate. See [pilot training](pilot-training.md) and
+   laptop, locked sync and 127 Windows tests passed, and exploratory CUDA runs
+   ran (including a 4,000-step deterministic pilot). The samples remained mostly
+   noise, so they are not suitable for human audit or evidence of research quality,
+   and the audit image pool still needs to be generated. At least 300 generated
+   images must be human-audited in a complexity-stratified sample. Blocks the
+   human audit and checker gate. Stage 0 remains unpassed. See
+   [pilot training](pilot-training.md) and
    [human audit workflow](human-audit.md).
 6. [ ] **Confirm the reviewer pool and a neutral delivery method.** Four team
    members are reported as potential reviewers available later. Confirm their

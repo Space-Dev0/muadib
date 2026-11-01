@@ -202,8 +202,16 @@ and 2,000 training steps (4,000 scenes). Training took 167.536 seconds
 including rendering, with 43,783,680 bytes peak allocated and 65,011,712 bytes
 reserved. The sampled image was still visually noise. The checkpoint and sample
 are in the laptop's ignored `outputs/gpu-pilot-2000-_9x17fxs/` directory. This
-short run does not establish model quality or provide an audit image set. Both the
-100- and 2,000-step samples remained noise, and Stage 0 remains unpassed.
+short run does not establish model quality or provide an audit image set.
+
+A 4,000-step deterministic project pilot was measured across two 2,000-update
+segments with checkpoint resume, using batch size 2, width 16, 1,000 diffusion
+timesteps, seed 45, and code revision `4287d88`. Cumulative recorded training
+time was 409.956 seconds, with peak allocated memory of 96,212,480 bytes and
+reserved memory of 111,149,056 bytes. The single sampled red image was still
+mostly noise, so it is not suitable for human audit or evidence of research
+quality; Stage 0 remains unpassed. The checkpoint and the one inspected sample
+are in ignored `outputs/deterministic-pilot-5549zx7k` on the GPU laptop.
 
 See the [research and hardware plan](research-and-hardware-plan.md),
 [Stage 0 status](stage0-status.md), and the
