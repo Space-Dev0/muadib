@@ -135,6 +135,13 @@ laptop's ignored `outputs/gpu-pilot-i6qbsa_j/` directory. The sample was visuall
 noise; it is not suitable for human review or evidence of learning. Longer-run
 memory, quality, and the research compute budget remain unvalidated.
 
+A second exploratory run used the same four rules and model settings, seed 44,
+and 2,000 training steps (4,000 scenes). Training took 167.536 seconds
+including rendering, with 43,783,680 bytes peak allocated and 65,011,712 bytes
+reserved. The sampled image was still visually noise. The checkpoint and sample
+are in the laptop's ignored `outputs/gpu-pilot-2000-_9x17fxs/` directory. This
+short run does not establish model quality or provide an audit image set.
+
 See the [research and hardware plan](research-and-hardware-plan.md),
 [Stage 0 status](stage0-status.md), and the
 [human checklist](human-checklist.md).

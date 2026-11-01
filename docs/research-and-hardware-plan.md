@@ -72,8 +72,8 @@ established, and no reviews have been completed.
 ## Current limitations
 
 - Rendering and rule evaluation run on the CPU only.
-- A 100-step CUDA project run completed, but its sample was noise and is not
-  suitable for review or evaluation.
+- CUDA project runs of 100 and 2,000 steps completed, but their samples were
+  noise and are not suitable for review or evaluation.
 - No external dataset is downloaded or bundled.
 - The isolated laptop environment is installed and `torch.cuda.is_available()`
   is true; a generic CUDA smoke completed. Project pilot fit and available GPU

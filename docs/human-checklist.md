@@ -156,7 +156,7 @@ counts alone do not establish the `≤ 2%` target on real renders. See
 | Area | Current evidence | What is still missing |
 | --- | --- | --- |
 | Templates | Provisional 57-template set; every `K_attr = 1` cell covers all four colours and three shapes; 100-scene-per-template sampling smoke test | Final vocabulary and template decision, full counterbalancing, held-out leave-out set, proposal-scale A-matrix |
-| Pilot training | 100-step exploratory CUDA run and sample completed; sample was noise | Useful generated images, reference model, resume, controlled guidance sweep and human audit |
+| Pilot training | 100- and 2,000-step exploratory CUDA runs and samples completed; both samples were noise | Useful generated images, reference model, resume, controlled guidance sweep and human audit |
 | Checker | Clean-render and controlled-perturbation audits; rejection counts reported separately | Generated-image human audit, per-predicate/per-rule error report, evidence for `≤ 2%` on real renders |
 | Decorrelation | 20 exploratory designs and 1,140 rule-by-design rows from the 57-condition pilot; pooled correlation `-0.446`; VIF `11.61` for log lift and `13.72` for relation count | Registered gate analysis with breadth, uncertainty, and the final matrix. The current values do not establish the proposal criterion |
 | MOSAIC | Preliminary paper/code review only | Adapted contrast specification, GPU run, results, and direction comparison |
