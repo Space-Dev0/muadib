@@ -18,7 +18,7 @@ from typing import Any
 import torch
 
 from exposure.denoise_probe import reconstruct_x0
-from exposure.pilot_train import PilotUNet, encode_rules, load_rules, schedule
+from exposure.pilot_train import PilotUNet, encode_rules, load_rules, require_standard_predictor, schedule
 from exposure.reconstruction_probe import load_target
 
 
@@ -40,8 +40,7 @@ def _unique_ints(name: str, values: object, *, minimum: int, maximum: int | None
 
 
 def _checkpoint_parts(checkpoint: object) -> tuple[dict, int, int]:
-    if not isinstance(checkpoint, dict):
-        raise TypeError("checkpoint must be a dictionary")
+    require_standard_predictor(checkpoint)
     for key in ("config", "rules", "model", "ema"):
         if key not in checkpoint:
             raise ValueError(f"Checkpoint lacks required key: {key!r}")

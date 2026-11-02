@@ -346,6 +346,23 @@ quality estimate and are not ready for the human checker audit.
 
 ## Evidence and omissions
 
+The standard pilot tools now reject diagnostic checkpoints marked as requiring
+a custom predictor. This guard changes the source fingerprint in
+`exposure/pilot_train.py`: existing version 3 online checkpoints cannot resume
+at this revision. To resume them reproducibly, use the exact original code
+revision and compatible recorded runtime; ordinary sampling of standard
+checkpoints remains available. Do not remove the fingerprint check.
+
+The isolated `exposure.time_embedding_probe` compares the pilot's learned
+timestep lookup against a fixed sinusoidal representation on one fixed scene,
+with matched non-time initialization and random streams. The two time
+representations have different parameter counts. The sinusoidal checkpoint is
+marked as requiring its custom architecture; standard pilot tools reject it.
+The hypothesis is motivated by sparse exposure to individual learned indices
+and by the sinusoidal timestep embedding in the reference
+[Improved DDPM implementation](https://github.com/openai/improved-diffusion/blob/main/improved_diffusion/nn.py).
+This is an experiment, not evidence that timestep embeddings caused failure.
+
 ### Matched identity-residual fixed-scene experiment
 
 At revision `ac70a5d`, two models were trained from identical zero-output-head

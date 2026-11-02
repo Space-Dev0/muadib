@@ -54,8 +54,7 @@ def loss_weights(timesteps: torch.Tensor, *, high_t_min: int, high_t_weight: flo
 
 
 def _checkpoint_parts(checkpoint: object) -> tuple[dict, int, int]:
-    if not isinstance(checkpoint, dict):
-        raise TypeError("checkpoint must be a dictionary")
+    pilot_train.require_standard_predictor(checkpoint)
     for key in ("config", "rules", "model", "ema"):
         if key not in checkpoint:
             raise ValueError(f"Checkpoint lacks required key: {key!r}")

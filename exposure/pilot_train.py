@@ -162,6 +162,15 @@ def schedule(timesteps: int, device: torch.device) -> tuple[torch.Tensor, torch.
     return beta, torch.cumprod(1.0 - beta, dim=0)
 
 
+def require_standard_predictor(checkpoint: object) -> None:
+    """Reject explicitly marked checkpoints requiring another predictor."""
+    if not isinstance(checkpoint, dict):
+        raise TypeError("checkpoint must be a dictionary")
+    diagnostic = checkpoint.get("diagnostic")
+    if isinstance(diagnostic, dict) and diagnostic.get("requires_custom_sampler") is True:
+        raise ValueError("Checkpoint requires a custom sampler/predictor; standard pilot tools cannot use it")
+
+
 def _weights(names: list[str], raw: object | None) -> list[float]:
     if raw is None:
         return [1.0 / len(names)] * len(names)
@@ -394,6 +403,7 @@ def save_checkpoint(path: Path, checkpoint: dict) -> None:
 
 @torch.no_grad()
 def sample(checkpoint: dict, rule: str, *, seed: int, device: str, guidance: float) -> Image.Image:
+    require_standard_predictor(checkpoint)
     if seed < 0 or not math.isfinite(guidance) or guidance < 0:
         raise ValueError("seed and guidance must be finite and nonnegative")
     if device not in {"cpu", "cuda"}:

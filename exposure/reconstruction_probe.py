@@ -19,7 +19,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from exposure.pilot_train import PilotUNet, encode_rules, load_rules, schedule
+from exposure.pilot_train import PilotUNet, encode_rules, load_rules, require_standard_predictor, schedule
 
 
 def load_target(target: Path | str | Image.Image | torch.Tensor) -> tuple[torch.Tensor, Path | None]:
@@ -109,8 +109,7 @@ def diagnose(
             len(set(timesteps)) != len(timesteps)):
         raise ValueError("timesteps must be a non-empty list of unique integers")
 
-    if not isinstance(checkpoint, dict):
-        raise TypeError("checkpoint must be a dictionary")
+    require_standard_predictor(checkpoint)
     for key in ("config", "rules", "model", "ema"):
         if key not in checkpoint:
             raise ValueError(f"Checkpoint lacks required key: {key!r}")
