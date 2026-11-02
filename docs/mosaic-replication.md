@@ -35,6 +35,38 @@ Before running or claiming this gate:
 4. Run and record seeds, configurations, code versions and results. Compare the
    direction with MOSAIC, including uncertainty and failed runs.
 
-The current environment did not expose `nvidia-smi` during the preliminary
-check. Actual capabilities should be checked on the training machine; CPU-only
+The RTX 3050 laptop has since run exploratory CUDA training. CPU-only
 instrument checks do not count as the requested replication.
+
+## Preparing a run-level contrast
+
+`exposure.mosaic_contrast` provides a **provisional descriptive analysis** for
+an adapted 2×2 design. It does not train models, generate scenes, validate a
+checker or determine whether the MOSAIC gate passed. Before training, specify
+the simple and complex scene conditions, how the class-frequency imbalance is
+constructed, a common held-out evaluation distribution, seed pairing,
+dataset size, training budget, guidance, accuracy metric and an uncertainty
+method. The experiment must measure the intended complexity and skew rather
+than confounding them with other changes. Record failed runs rather than
+silently dropping them.
+
+The input is a JSON object with a `runs` list. Each row represents a separately
+trained model and contains a unique string `run_id`, nonnegative integer `seed`,
+`complexity` (`low` or `high`), `imbalance` (`balanced` or `imbalanced`), and
+integer `successes` and `total` for its evaluation. Each seed must have one
+distinct model in each of the four cells. Equal seeds designate planned blocks;
+they do not by themselves prove that the models or errors are independent.
+
+```sh
+uv run python -m exposure.mosaic_contrast --input outputs/mosaic-runs.json --output outputs/mosaic-contrast.json
+```
+
+Within each seed, the script computes per-model success proportions and averages
+the low-minus-high complexity drop across both imbalance conditions. It also
+averages the balanced-minus-imbalanced drop across both complexity conditions.
+The difference between these drops is positive when the former is larger. Each
+seed and cell receives equal weight, even when image totals differ; the report
+retains the input counts. Images from one model are not independent training
+replicates. This summary has no uncertainty interval or automatic go/no-go;
+the full protocol, uncertainty and direction comparison remain to be specified
+and evaluated on real runs. No such run data exist yet.
