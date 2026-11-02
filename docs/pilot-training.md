@@ -408,6 +408,18 @@ are exploratory and not ready for the human checker audit. Checkpoints,
 reports and samples are in ignored laptop paths beginning
 `outputs/velocity-online-v1-`.
 
+The same run continued to 12,000 updates at revision `79c331f`. Cumulative
+training time was 1,207.0 seconds, with the same 96,114,176-byte allocated and
+111,149,056-byte reserved memory peaks. Requested counts were 5,962 red,
+5,997 square, 6,014 red-left-of-square and 6,027 blue-above-circle, with
+80,565 rendering attempts. The red sample (seed 5) and relational sample
+(seed 6) appeared somewhat cleaner but did not clearly satisfy their requested
+conditions: the first had no obvious red object and the second did not show a
+clear blue-above-circle relation. These two visual observations are not a
+population evaluation or a Stage 0 result. The resumable checkpoint and
+artifacts are in ignored laptop paths beginning
+`outputs/velocity-online-v1-12000-79c331f`.
+
 The standard pilot tools now reject diagnostic checkpoints marked as requiring
 a custom predictor. This guard changes the source fingerprint in
 `exposure/pilot_train.py`: existing version 3 online checkpoints cannot resume
