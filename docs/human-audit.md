@@ -141,3 +141,26 @@ scorer does not assign reviewers, track reviewer IDs, resolve disagreement, or
 calculate agreement or a research gate. Review the same questions in separate
 files if multiple reviewers are needed, and agree on a reconciliation protocol
 before treating any combined judgments as final.
+
+## Compare independent reviewers
+
+After at least two reviewers have independently completed the same manifest,
+save each person's `sample_id,judgment` CSV under a distinct neutral filename.
+The four team members can submit four files; the filenames become reviewer
+IDs in the report. Compare them without creating consensus labels:
+
+```sh
+uv run python -m exposure.audit_agreement --manifest outputs/audit-blinded.json \
+  --review outputs/reviewer-a.csv --review outputs/reviewer-b.csv \
+  --review outputs/reviewer-c.csv --review outputs/reviewer-d.csv \
+  --output outputs/reviewer-agreement.json
+```
+
+Every reviewer must provide exactly one binary judgment per manifest ID.
+The report gives pairwise yes/yes, yes/no, no/yes and no/no counts, the raw
+pairwise agreement fraction, and individual unresolved disagreements. It
+works with either whole-rule or predicate-question manifests. Separate
+predicate questions on one image are not independent images. Agreement is not
+checker accuracy, and the tool does not verify reviewer independence, resolve
+disagreements, calculate uncertainty, or determine Stage 0 passage. No
+reviewer labels are generated or implied.
