@@ -49,11 +49,10 @@ and continue exploratory implementation while the final choices are pending.
 5. [x] **SSH access confirmed for the pilot machine.** A user-authorized,
    read-only GPU preflight succeeded. The public repository is cloned on the
    laptop, locked sync and 127 Windows tests passed, and exploratory CUDA runs
-   ran (including an 8,000-step deterministic pilot continued in two additional
-   2,000-step segments at code revision `4287d88`, reaching 802.497 cumulative
-   seconds). Four example condition samples (seeds 5, 6, 7, 8) visually showed
-   noise or near-blank images with colored fragments, none showing the intended
-   three-object scene. These are only four inspected samples, not a formal
+   ran (including an online deterministic pilot reaching 12,000 updates and a
+   4,000-update fixed-scene diagnostic at code revision `35500f7`). Inspected
+   samples visually showed noise or dark noise, none showing the intended
+   three-object scene. These are diagnostic samples, not a formal
    quality score, and are not ready for human audit; the audit image pool still
    needs to be generated. At least 300 generated images must be human-audited
    in a complexity-stratified sample. Blocks the human audit and checker gate.
@@ -152,6 +151,15 @@ counts alone do not establish the `≤ 2%` target on real renders. See
   on CUDA; its sample was noise. The public repository is cloned into `source`,
   with the isolated `.venv` in its parent; locked sync and 127 tests passed.
   A small integrated deterministic CUDA replay and repeated sample matched exactly.
+  A deterministic 4,000-step fixed-scene diagnostic on the RTX 3050 (code revision
+  `35500f7`, batch 2, width 16, 1,000 timesteps, train seed 46, target scene seed
+  77, sample seed 5) finished in 365.534 seconds, with CUDA peak allocated memory of
+  96,207,872 bytes and peak reserved memory of 111,149,056 bytes. The fixed target
+  image clearly contained three objects, while the sampled image was mostly dark
+  noise (image MSE on `[0, 1]` was 0.8017; artifacts in ignored
+  `outputs/static-scene-769aef5ec6` on the laptop). This is a single diagnostic
+  sample and does not demonstrate a model bug, training failure in general, or
+  Stage 0 passage.
 - [ ] Run the adapted replication and compare only the direction with MOSAIC
   unless a full reproduction is achieved. Codex can prepare and run the
   experiment; the human decides whether the direction matches and whether the
@@ -162,11 +170,11 @@ counts alone do not establish the `≤ 2%` target on real renders. See
 | Area | Current evidence | What is still missing |
 | --- | --- | --- |
 | Templates | Provisional 57-template set; every `K_attr = 1` cell covers all four colours and three shapes; 100-scene-per-template sampling smoke test | Final vocabulary and template decision, full counterbalancing, held-out leave-out set, proposal-scale A-matrix |
-| Pilot training | A deterministic CUDA run reached 12,000 steps; two inspected samples were noise; a small deterministic replay matched | Useful generated images, reference model, controlled guidance sweep and human audit; samples not ready for human audit |
+| Pilot training | A deterministic CUDA run reached 12,000 steps; fixed-scene 4,000-step diagnostic completed; inspected samples were noise or dark noise; small deterministic replay matched | Useful generated images, reference model, controlled guidance sweep and human audit; samples not ready for human audit |
 | Checker | Clean-render and controlled-perturbation audits; rejection counts reported separately | Generated-image human audit, per-predicate/per-rule error report, evidence for `≤ 2%` on real renders |
 | Decorrelation | 20 exploratory designs and 1,140 rule-by-design rows from the 57-condition pilot; pooled correlation `-0.446`; VIF `11.61` for log lift and `13.72` for relation count | Registered gate analysis with breadth, uncertainty, and the final matrix. The current values do not establish the proposal criterion |
 | MOSAIC | Preliminary paper/code review only | Adapted contrast specification, GPU run, results, and direction comparison |
-| GPU | Windows RTX 3050 6GB; locked CUDA environment and 127 tests passed; 100-step project run used about 42 MiB allocated and 62 MiB reserved | Longer-run memory and research compute budget |
+| GPU | Windows RTX 3050 6GB; locked CUDA environment and 127 tests passed; 4,000-step fixed-scene diagnostic used 96,207,872 bytes allocated and 111,149,056 bytes reserved | Longer-run memory and research compute budget |
 | Human audit | Blinded rule and predicate prepare/predict/score workflow; four team members reported as potential reviewers available later | Confirmed independence/blinding, at least 300 real generated images, actual judgments |
 
 See [Stage 0 status](stage0-status.md) for the full current report and commands.

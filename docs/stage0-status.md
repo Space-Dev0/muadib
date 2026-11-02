@@ -7,7 +7,7 @@ not confirmatory research findings.
 | --- | --- | --- |
 | Renderer and rules | 2D renderer, annotation-based rule evaluation and grammar witnesses | Finalize and validate the benchmark vocabulary and full counterbalancing. |
 | Candidate templates | Provisional 57-template generator covers all singleton colors and shapes in each one-attribute cell; a 100-scene-per-template sampling smoke test completed | Confirm full counterbalancing, held-out rules and sufficient sampling precision. |
-| Pilot training | Locked sync and 127 Windows tests passed. A deterministic pilot reached 12,000 steps with checkpoints, and a small split-run replay matched. | Two inspected 12,000-step samples were noise; no validated model outputs, reference model, controlled guidance sweep, or human audit. See [pilot training](pilot-training.md). |
+| Pilot training | Locked sync and 127 Windows tests passed. A deterministic pilot reached 12,000 steps with checkpoints, and a 4,000-step fixed-scene diagnostic ran on RTX 3050. | Inspected online samples were noise; single fixed-scene sample was mostly dark noise (MSE 0.8017); no validated model outputs, reference model, controlled guidance sweep, or human audit. See [pilot training](pilot-training.md). |
 | Checker | Clean-render and controlled perturbation audits; conservative sharpening fallback | High rejection remains at brightness 1.10, blur 0.50, and blur 1.00; validate every relevant rule and audit generated images with human judgments. |
 | Exposure matrix and design | Monte Carlo estimates, LP feasibility and numerical minimum-KL allocation | Quantify matrix uncertainty and verify feasible exposure manipulations and leave-out probes on the final benchmark. |
 | Decorrelation | Twenty exploratory hit-and-run designs from the 57-condition pilot; pooled correlations and VIF computed over 1,140 rule-by-design rows | Define breadth, freeze the analysis table and uncertainty method, and evaluate the registered criteria. Current estimates do not assess the proposal gate. |
@@ -75,6 +75,20 @@ and one relational sample remained noise; two samples are not a quality score.
 One-step denoising errors decreased between 4,000 and 12,000 updates on a
 small matched probe, while an exact-noise oracle passed the sampler wiring
 check. Neither result validates generated images.
+
+A deterministic 4,000-update fixed-scene diagnostic on the RTX 3050 (target scene
+seed 77, train seed 46, sample seed 5, batch 2, width 16, 1,000 timesteps,
+code revision `35500f7`) finished in 365.534 seconds, using 96,207,872 bytes peak
+allocated and 111,149,056 bytes peak reserved CUDA memory. The fixed target
+image contained three objects, while the sampled image appeared mostly dark noise
+(image MSE on `[0, 1]` was 0.8017; artifacts in ignored
+`outputs/static-scene-769aef5ec6` on the laptop). This is one diagnostic sample,
+not a general model bug, training failure, or Stage 0 passage.
+
+A subsequent fixed-target reconstruction probe performed well at several
+lower noise levels but degraded sharply at the highest tested noise level.
+These limited measurements and their caveats are in [pilot training](pilot-training.md#truncated-reconstruction-diagnostic);
+they do not establish a cause or pass Stage 0.
 
 A 300-scene clean-render audit at seeds 30000–30299 covered all 57 candidate
 rules, with zero detector failures and zero observed rule errors. Some rules

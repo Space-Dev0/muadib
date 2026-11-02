@@ -205,6 +205,62 @@ override is process-wide during this command, so run the probe in its own
 process. A single target and sample cannot establish generalization or a
 Stage 0 result.
 
+A deterministic diagnostic run on the RTX 3050 executed 4,000 updates with
+batch size 2, width 16, 1,000 diffusion timesteps, train seed 46, target scene
+seed 77, sample seed 5, and code revision `35500f7`. Training finished in
+365.534 seconds, with peak allocated CUDA memory of 96,207,872 bytes and peak
+reserved memory of 111,149,056 bytes. The fixed target image clearly contained
+three objects, while the one sampled image looked mostly dark noise (image MSE
+on `[0, 1]` was 0.8017). Artifacts are in ignored
+`outputs/static-scene-769aef5ec6` on the laptop. This is one diagnostic sample
+on a single fixed scene; it does not establish a model bug, training failure in
+general, or Stage 0 passage.
+
+## Truncated reconstruction diagnostic
+
+`exposure.reconstruction_probe` runs an exploratory truncated-reconstruction
+diagnostic on CPU comparing raw weights and EMA weights on an explicit 64×64
+target image. It loads either an online pilot checkpoint or a static-scene
+diagnostic checkpoint:
+
+```sh
+uv run --extra train python -m exposure.reconstruction_probe --checkpoint outputs/static-scene-example/checkpoint.pt --target outputs/static-scene-example/target.png --rule red --timesteps 20 100 500 --seeds 0 1 --output outputs/reconstruction-probe-example.json
+```
+
+The output path must be new; the CLI refuses to overwrite existing files,
+the checkpoint, or the target image. Omitting `--output` prints the JSON report
+to stdout. For each selected start timestep, the diagnostic forward-noises the
+target using the checkpoint schedule's actual $\bar{\alpha}$ and a seeded
+generator, then reverses from that timestep to zero using the existing DDPM
+$\epsilon$-mean and posterior variance equations.
+
+Key caveats and operational details:
+
+- **Schedule preservation**: The checkpoint's full 1,000-step schedule is kept
+  unchanged; the schedule is never shortened or rescaled to the truncated range.
+- **Matched noise**: Raw and EMA evaluations use identical matched starting
+  noise and identical matched transition noise at each reverse step.
+- **Reporting**: The diagnostic reports reconstruction MSE and baseline input
+  MSE per seed for each requested timestep, as well as summary averages across
+  seeds. It outputs numerical measurements only and never fabricates human
+  labels or applies arbitrary pass/fail thresholds.
+- **Instrument check only**: This separate reverse loop is an instrument check
+  and is not proof of sampler correctness, population quality, or Stage 0
+  passage.
+- **Source fingerprint untouched**: `exposure/pilot_train.py` is not modified,
+  preserving source hashes so existing GPU checkpoints remain resumable.
+
+For the 4,000-update fixed-scene checkpoint below, EMA reconstruction MSE on
+the `[-1, 1]` scale at timesteps 20, 100 and 200 was 0.0022, 0.0060 and
+0.0105, versus noisy-input MSE 0.0062, 0.1069 and 0.3750, averaged over ten
+seeds. At timesteps 500, 750 and 999, EMA reconstruction MSE was 0.1185,
+0.3760 and 9.4313, versus noisy-input MSE 1.4104, 1.8292 and 1.9249,
+averaged over three seeds. The highest-noise reconstruction worsened in this
+setup; this single target and separate reverse loop cannot isolate a cause or
+establish general model quality. Local reports are in ignored files
+`outputs/reconstruction-static-4000.json` and
+`outputs/reconstruction-static-4000-high.json`.
+
 ## Evidence and omissions
 
 CPU pilot tests and the one-step train/checkpoint/sample mechanical sample
