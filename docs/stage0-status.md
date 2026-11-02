@@ -3,6 +3,12 @@
 **Not passed.** The following measurements are instrument-development results,
 not confirmatory research findings.
 
+A fixed-design holdout using a second 100-scene-per-condition measurement
+matrix gave pooled correlation -0.4640 and log-lift VIF 11.07; the maximum
+singleton deviation from the uniform reference was 0.01767. This exploratory
+analysis omits breadth and does not assess the final gate. See
+[design holdout](design-holdout.md).
+
 | Component | Current evidence | Remaining work |
 | --- | --- | --- |
 | Renderer and rules | 2D renderer, annotation-based rule evaluation and grammar witnesses | Finalize and validate the benchmark vocabulary and full counterbalancing. |

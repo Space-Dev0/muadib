@@ -346,6 +346,33 @@ quality estimate and are not ready for the human checker audit.
 
 ## Evidence and omissions
 
+### Matched identity-residual fixed-scene experiment
+
+At revision `ac70a5d`, two models were trained from identical zero-output-head
+initialization on the same target with the same random streams: standard noise
+prediction and `epsilon = noisy_input + residual`. Each ran 4,000 updates on
+the RTX 3050, batch size 2, seeds 46, with the full 1,000-step schedule. EMA
+one-step noise MSE across four evaluation seeds was 0.026877 versus 0.001895
+at timestep 999 (standard versus identity-residual), but 0.197213 versus
+0.452320 at timestep 20. The timestep-999 copy-input baseline was about
+0.000038. Training took 372.1 and 366.6 seconds, respectively.
+
+For sample seeds 5 and 6, identity-residual image MSE on `[0, 1]` was 0.2423
+and 0.2564, versus 0.3033 and 0.4056 for standard. A constant target-mean
+image has MSE 0.0387; the pure identity-epsilon sampler had 0.2724 and 0.2789.
+Inspection of one sample from each trained arm showed noise. MSE is dominated
+by the light background and does not measure whether objects or rules are
+correct. These are two samples from one scene and one training seed, not
+population evidence or Stage 0 passage. Laptop artifacts are in ignored
+`outputs/identity-eps-ac70a5d/`.
+
+```sh
+uv run --extra train python -m exposure.identity_eps_finetune --rules examples/exposure_rules.json --target outputs/static-scene-769aef5ec6/target.png --output-dir outputs/identity-eps-new --rule red --steps 4000 --batch-size 2 --seed 46 --init-seed 46 --width 16 --timesteps 1000 --device cuda --deterministic --eval-timesteps 20 100 500 900 999 --eval-seeds 0 1 2 3 --sample-seeds 5 6
+```
+
+Identity-residual checkpoints use the diagnostic's own sampler; they cannot be
+treated as standard noise-prediction checkpoints.
+
 CPU pilot tests and the one-step train/checkpoint/sample mechanical sample
 passed in a separate CPU PyTorch 2.9.1 environment. These are mechanics only,
 not evidence of learning.
