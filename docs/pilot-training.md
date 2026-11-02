@@ -346,6 +346,31 @@ quality estimate and are not ready for the human checker audit.
 
 ## Evidence and omissions
 
+### Matched velocity-prediction fixed-scene experiment
+
+At revision `06a95ff`, the RTX 3050 trained matched epsilon- and velocity-
+prediction models for 4,000 updates each on one fixed scene, batch size 2,
+with identical initialization, random streams and 1,000-step schedule. At
+timestep 999, EMA noise MSE across four evaluation seeds was 0.026877 for
+epsilon and 0.000005 for velocity; at timestep 20 it was 0.197213 and
+0.415274, respectively. Objective losses are not directly comparable.
+
+For sample seeds 5 and 6, image MSE on `[0, 1]` was 0.30331/0.40558 for
+epsilon and 0.04987/0.05709 for velocity; a constant target-mean image has MSE
+0.03874. The velocity images show colored shapes but do not faithfully reproduce
+the three-object target. This is one training scene, one training seed and two
+samples, not evidence of generalization, valid human audit images or Stage 0
+passage. Training took 365.6 and 354.7 seconds, with 96,165,888 and 99,489,280
+bytes peak allocated, respectively. Laptop artifacts are in ignored
+`outputs/velocity-probe-06a95ff/`.
+
+```sh
+uv run --extra train python -m exposure.velocity_probe --rules examples/exposure_rules.json --target outputs/static-scene-769aef5ec6/target.png --output outputs/velocity-probe-new --rule red --steps 4000 --batch-size 2 --seed 46 --init-seed 46 --width 16 --timesteps 1000 --device cuda --deterministic --eval-times 20 100 500 900 999 --eval-seeds 0 1 2 3 --sample-seeds 5 6
+```
+
+The velocity diagnostic checkpoint requires its custom prediction conversion
+and is explicitly rejected by standard pilot sampling and diagnostics.
+
 The standard pilot tools now reject diagnostic checkpoints marked as requiring
 a custom predictor. This guard changes the source fingerprint in
 `exposure/pilot_train.py`: existing version 3 online checkpoints cannot resume
