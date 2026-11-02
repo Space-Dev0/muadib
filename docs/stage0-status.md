@@ -7,7 +7,7 @@ not confirmatory research findings.
 | --- | --- | --- |
 | Renderer and rules | 2D renderer, annotation-based rule evaluation and grammar witnesses | Finalize and validate the benchmark vocabulary and full counterbalancing. |
 | Candidate templates | Provisional 57-template generator covers all singleton colors and shapes in each one-attribute cell; a 100-scene-per-template sampling smoke test completed | Confirm full counterbalancing, held-out rules and sufficient sampling precision. |
-| Pilot training | Locked sync and 127 Windows tests passed. A deterministic pilot reached 12,000 steps with checkpoints, and a 4,000-step fixed-scene diagnostic ran on RTX 3050. | Inspected online samples were noise; single fixed-scene sample was mostly dark noise (MSE 0.8017); no validated model outputs, reference model, controlled guidance sweep, or human audit. See [pilot training](pilot-training.md). |
+| Pilot training | Locked sync and 127 Windows tests passed. A deterministic pilot reached 12,000 steps with checkpoints, and a 4,000-step fixed-scene diagnostic ran on RTX 3050 with truncated-reconstruction, one-step high-t baseline, and paired high-t fine-tuning follow-ups. | Inspected online samples were noise; single fixed-scene sample was mostly dark noise (MSE 0.8017); no validated model outputs, reference model, controlled guidance sweep, or human audit. See [pilot training](pilot-training.md). |
 | Checker | Clean-render and controlled perturbation audits; conservative sharpening fallback | High rejection remains at brightness 1.10, blur 0.50, and blur 1.00; validate every relevant rule and audit generated images with human judgments. |
 | Exposure matrix and design | Monte Carlo estimates, LP feasibility and numerical minimum-KL allocation | Quantify matrix uncertainty and verify feasible exposure manipulations and leave-out probes on the final benchmark. |
 | Decorrelation | Twenty exploratory hit-and-run designs from the 57-condition pilot; pooled correlations and VIF computed over 1,140 rule-by-design rows | Define breadth, freeze the analysis table and uncertainty method, and evaluate the registered criteria. Current estimates do not assess the proposal gate. |
@@ -97,6 +97,22 @@ are in
 [pilot training](pilot-training.md#one-step-high-t-baseline-diagnostic) and
 [pilot training](pilot-training.md#truncated-reconstruction-diagnostic); they do
 not establish a cause or pass Stage 0.
+
+A paired CUDA fine-tuning diagnostic at code revision `4c8c798` trained a
+matched control arm and a high-timestep-weighted arm for 500 updates each from
+that checkpoint, with training seed 46, batch size 2, and the full 1,000-step
+schedule. Both arms shared identical timesteps and realized a high-timestep
+fraction of 0.103; the weighted arm applied multiplier 5 at timesteps 900 and
+above, normalized by expected weight 1.4. One-step evaluation over CPU seeds 0–7
+gave t=999 noise MSE of 0.017361 raw and 0.022943 EMA for control, and 0.016514
+raw and 0.022615 EMA for weighted, versus 0.019759 raw and 0.027238 EMA at
+start. At t=100, weighted raw noise MSE was 0.051213 versus 0.044935 for
+control. Training took 51.57 seconds for control and 50.41 seconds for weighted,
+with 96,152,064 bytes peak allocated for both. This is one fixed scene, one
+checkpoint, and one training seed; it reports one-step errors only and does not
+establish full-sampling behavior, generalization, human audit accuracy, or Stage
+0. See
+[the paired diagnostic](pilot-training.md#paired-high-t-fine-tuning-diagnostic).
 
 A 300-scene clean-render audit at seeds 30000–30299 covered all 57 candidate
 rules, with zero detector failures and zero observed rule errors. Some rules

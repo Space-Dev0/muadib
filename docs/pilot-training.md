@@ -301,6 +301,49 @@ fraction of reconstructed pixels outside `[-1, 1]`; the outside fraction uses a
 `1e-4` tolerance for floating-point error. The JSON is in ignored
 `outputs/high-t-baseline-static-4000.json`.
 
+## Paired high-t fine-tuning diagnostic
+
+`exposure.high_t_finetune` runs two matched fixed-scene arms for 500 additional
+updates each, from the same static-scene checkpoint and target: an unweighted
+control and a high-timestep-weighted arm. Both use batch size 2, training seed
+46, the full 1,000-step schedule, and identical sampled timesteps; the evaluated
+seeds were 0–7. The weighted arm uses multiplier 5 at timesteps 900 and above,
+normalized by the expected weight 1.4. Both arms realized a high-timestep
+fraction of 0.103. Training used the RTX 3050 at code revision `4c8c798`;
+one-step errors were evaluated on CPU.
+
+```sh
+uv run --extra train python -m exposure.high_t_finetune --checkpoint outputs/static-scene-769aef5ec6/checkpoint.pt --target outputs/static-scene-769aef5ec6/target.png --output-dir outputs/high-t-paired-4c8c798 --rule red --steps 500 --batch-size 2 --seed 46 --device cuda --deterministic --high-t-min 900 --high-t-weight 5 --eval-timesteps 20 100 500 900 990 999 --eval-seeds 0 1 2 3 4 5 6 7
+```
+
+The output directory must be new. On the laptop, use
+`..\.venv\Scripts\python.exe -m exposure.high_t_finetune` with the same
+arguments. The command writes `baseline.pt`, `weighted.pt`, and `report.json`.
+
+Mean one-step noise MSE:
+
+| Arm | t=999 raw | t=999 EMA | t=100 raw |
+| --- | --- | --- | --- |
+| Start | 0.019759 | 0.027238 | — |
+| Control (unweighted) | 0.017361 | 0.022943 | 0.044935 |
+| Weighted (5× high-t) | 0.016514 | 0.022615 | 0.051213 |
+| Copy noisy input at t=999 | 0.000038 | — | — |
+
+At t=999, weighted training reduced raw and EMA noise MSE relative to control;
+at t=100, weighted raw noise MSE was higher than control. Training took 51.57
+seconds for control and 50.41 seconds for weighted, with peak allocated CUDA
+memory of 96,152,064 bytes for both arms. The copy-noisy-input baseline remains
+a trivial reference, not a model result.
+
+This is one fixed scene, one checkpoint, and one training seed. It reports
+one-step errors only and does not establish full-sampling behavior,
+generalization, human audit accuracy, or any Stage 0 result. Remote artifacts
+are in the ignored `outputs/high-t-paired-4c8c798` directory.
+
+One matched full sample from each arm, using seed 5 and EMA weights, appeared
+mostly dark noise on visual inspection. These two samples are not a population
+quality estimate and are not ready for the human checker audit.
+
 ## Evidence and omissions
 
 CPU pilot tests and the one-step train/checkpoint/sample mechanical sample
