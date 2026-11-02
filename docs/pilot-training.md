@@ -371,6 +371,26 @@ uv run --extra train python -m exposure.velocity_probe --rules examples/exposure
 The velocity diagnostic checkpoint requires its custom prediction conversion
 and is explicitly rejected by standard pilot sampling and diagnostics.
 
+At revision `edf3dc3`, an online velocity pilot drew fresh conditioned scenes
+for 4,000 updates with batch size 2, seed 48, four example conditions and the
+full 1,000-step schedule. The RTX 3050 run took 401.8 seconds, with 96,114,176
+bytes peak allocated and 111,149,056 bytes reserved. Requested condition
+counts were 1,994 red, 1,975 square, 1,990 red-left-of-square and 2,041
+blue-above-circle. The report also records realized rule counts and 26,987
+rendering attempts. A red sample (seed 5) and blue-above-circle sample (seed 6)
+contained colored blobs but no clearly identifiable shapes on inspection.
+These are two exploratory samples and do not measure population quality or
+pass Stage 0. Artifacts are in ignored laptop paths beginning
+`outputs/velocity-online-4000-edf3dc3`.
+
+New online velocity runs use schema 1 checkpoints and can continue with
+`python -m exposure.velocity_online resume --checkpoint OLD.pt --steps N --output NEW.pt`
+under the same recorded code, dependency versions, device layout and
+determinism settings. Schema 0 checkpoints, including the 4,000-update run
+above, remain sampleable but lack optimizer and random state and cannot be
+resumed. CPU tests verify exact uninterrupted versus resumed replay; CUDA replay
+requires a separate check on the target machine.
+
 The standard pilot tools now reject diagnostic checkpoints marked as requiring
 a custom predictor. This guard changes the source fingerprint in
 `exposure/pilot_train.py`: existing version 3 online checkpoints cannot resume

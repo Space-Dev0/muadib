@@ -1,4 +1,7 @@
+import copy
 import importlib.util
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -32,7 +35,7 @@ class OnlineVelocityTests(unittest.TestCase):
         for key in first["model"]:
             self.assertTrue(self.torch.equal(first["model"][key], second["model"][key]))
         self.assertTrue(first["diagnostic"]["requires_custom_sampler"])
-        self.assertFalse(first["diagnostic"]["resumable"])
+        self.assertTrue(first["diagnostic"]["resumable"])
         with self.assertRaises(ValueError):
             self.pilot.sample(first, "red", seed=0, device="cpu", guidance=1.0)
         image1 = self.online.sample(first, "red", seed=2, device="cpu")
@@ -55,6 +58,55 @@ class OnlineVelocityTests(unittest.TestCase):
             self.pilot.save_checkpoint(path, checkpoint)
             loaded = self.torch.load(path, map_location="cpu", weights_only=True)
             self.assertEqual(self.online.sample(loaded, "blue", seed=4, device="cpu").size, (64, 64))
+
+    def test_resume_matches_uninterrupted_training_and_preserves_input(self):
+        first, _ = self.online.train(self.rules, **self.options)
+        prior_model = {k: v.clone() for k, v in first["model"].items()}
+        resumed, report = self.online.train(self.rules, **self.options, resume=first)
+        uninterrupted, full_report = self.online.train(self.rules, **{**self.options, "steps": 4})
+        self.assertEqual(report["condition_counts"], full_report["condition_counts"])
+        self.assertEqual(report["realized_rule_counts_by_condition"], full_report["realized_rule_counts_by_condition"])
+        self.assertEqual(report["sampling_attempts"], full_report["sampling_attempts"])
+        self.assertEqual(resumed["rng"]["python"], uninterrupted["rng"]["python"])
+        self.assertTrue(self.torch.equal(resumed["rng"]["torch_cpu"], uninterrupted["rng"]["torch_cpu"]))
+        for part in ("model", "ema"):
+            for key in resumed[part]:
+                self.assertTrue(self.torch.equal(resumed[part][key], uninterrupted[part][key]), key)
+        for key in prior_model:
+            self.assertTrue(self.torch.equal(first["model"][key], prior_model[key]), key)
+        for key, state in resumed["optimizer"]["state"].items():
+            for name, value in state.items():
+                other = uninterrupted["optimizer"]["state"][key][name]
+                self.assertTrue(self.torch.equal(value, other) if self.torch.is_tensor(value) else value == other)
+
+    def test_resume_rejects_older_schema_and_mismatches(self):
+        checkpoint, _ = self.online.train(self.rules, **self.options)
+        previous = copy.deepcopy(checkpoint)
+        previous["schema_version"] = 0
+        previous["diagnostic"]["resumable"] = False
+        self.assertEqual(self.online.sample(previous, "red", seed=1, device="cpu").size, (64, 64))
+        with self.assertRaisesRegex(ValueError, "schema 0"):
+            self.online.train(self.rules, **self.options, resume=previous)
+        incompatible = copy.deepcopy(checkpoint)
+        incompatible["rng"]["runtime"]["code_sha256"]["velocity_online"] = "changed"
+        with self.assertRaisesRegex(ValueError, "Incompatible"):
+            self.online.train(self.rules, **self.options, resume=incompatible)
+        damaged = copy.deepcopy(checkpoint)
+        damaged["report"]["condition_counts"]["red"] += 1
+        with self.assertRaisesRegex(ValueError, "exposure"):
+            self.online.train(self.rules, **self.options, resume=damaged)
+
+    def test_resume_cli_refuses_to_overwrite_input(self):
+        checkpoint, _ = self.online.train(self.rules, **self.options)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "weights.pt"
+            self.pilot.save_checkpoint(path, checkpoint)
+            before = path.read_bytes()
+            result = subprocess.run([sys.executable, "-m", "exposure.velocity_online", "resume",
+                                     "--checkpoint", str(path), "--steps", "1", "--output", str(path)],
+                                    capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(path.read_bytes(), before)
 
 
 if __name__ == "__main__":

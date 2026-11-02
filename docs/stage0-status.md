@@ -7,6 +7,8 @@ A matched fixed-scene velocity-prediction experiment produced visible colored
 shapes, unlike the matched epsilon samples, but did not reliably reproduce the
 three-object target. This small diagnostic does not validate generated images
 or pass the stage; see [pilot training](pilot-training.md#matched-velocity-prediction-fixed-scene-experiment).
+An additional 4,000-update online velocity pilot on varied scenes produced two
+exploratory samples with colored blobs but no clearly identifiable shapes.
 
 A fixed-design holdout using a second 100-scene-per-condition measurement
 matrix gave pooled correlation -0.4640 and log-lift VIF 11.07; the maximum
