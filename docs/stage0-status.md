@@ -14,6 +14,9 @@ inspected samples also showed colored blobs without clear shapes or reliable
 relations, so the human audit remains blocked on suitable generated images.
 At 12,000 updates the same two sampled conditions appeared cleaner but still
 did not clearly satisfy their requested conditions.
+A small matched guidance sweep at scales 1, 2 and 4 altered color and sometimes
+suppressed objects; the 12 inspected images remained blurry and did not
+consistently show the requested condition.
 
 A fixed-design holdout using a second 100-scene-per-condition measurement
 matrix gave pooled correlation -0.4640 and log-lift VIF 11.07; the maximum

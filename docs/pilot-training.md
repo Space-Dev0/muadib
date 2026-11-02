@@ -420,6 +420,20 @@ population evaluation or a Stage 0 result. The resumable checkpoint and
 artifacts are in ignored laptop paths beginning
 `outputs/velocity-online-v1-12000-79c331f`.
 
+At revision `f97c8f4`, a classifier-free guidance sweep used that checkpoint,
+conditions `red` and `blue_above_circle`, seeds 5 and 6, and scales 1, 2 and 4.
+Initial and transition noise were matched across scales for each condition and
+seed. The red/seed-5 scale-1 sample matched the earlier saved image pixel for
+pixel. Higher scales visibly changed colors and sometimes suppressed objects;
+the 12 inspected images still had blurry shapes and did not consistently show
+the requested condition. This is a small exploratory comparison, not a human
+audit, selected guidance setting, or Stage 0 pass. Laptop images and the report
+are in ignored `outputs/velocity-guidance-f97c8f4/`.
+
+```sh
+uv run --extra train python -m exposure.velocity_guidance --checkpoint outputs/velocity-online-v1-12000-79c331f.pt --output outputs/velocity-guidance-new --rules red blue_above_circle --seeds 5 6 --scales 1 2 4 --device cuda
+```
+
 The standard pilot tools now reject diagnostic checkpoints marked as requiring
 a custom predictor. This guard changes the source fingerprint in
 `exposure/pilot_train.py`: existing version 3 online checkpoints cannot resume
