@@ -346,6 +346,29 @@ quality estimate and are not ready for the human checker audit.
 
 ## Evidence and omissions
 
+### Conditioning-use diagnostic
+
+`exposure.velocity_condition_probe` evaluates the EMA velocity model on fresh
+annotated renders using the same image, noise and timestep under the requested
+rule, a rule verified false for that scene, and null conditioning. Positive
+false-minus-correct loss means the requested rule predicted velocity better
+for that comparison. Cases with no available false rule are excluded and
+reported. This teacher-forced diagnostic does not evaluate generated-image
+accuracy or establish a causal explanation.
+
+On the 12,000-update checkpoint, 16 scene seeds per requested rule and five
+timesteps produced 310 paired rows with two scenes excluded. Pooled mean
+false-minus-correct velocity MSE was 0.000526, 0.000178, 0.000479, 0.000504
+and 0.000464 at timesteps 20, 100, 500, 900 and 999 respectively. The null
+comparison was mixed at the earliest timestep. These small descriptive
+differences have no uncertainty intervals; rules, scenes and timesteps are not
+independent replicates. Different seeds alone do not guarantee disjoint scenes.
+The local ignored report is `outputs/velocity-condition-12000-cpu.json`.
+
+```sh
+uv run --extra train python -m exposure.velocity_condition_probe --checkpoint outputs/velocity-online-v1-12000-79c331f.pt --output outputs/velocity-condition-new.json --scene-seeds 76000 76001 76002 76003 76004 76005 76006 76007 76008 76009 76010 76011 76012 76013 76014 76015 --noise-seed 91234 --timesteps 20 100 500 900 999 --device cpu
+```
+
 ### Matched velocity-prediction fixed-scene experiment
 
 At revision `06a95ff`, the RTX 3050 trained matched epsilon- and velocity-
