@@ -49,10 +49,10 @@ and continue exploratory implementation while the final choices are pending.
 5. [x] **SSH access confirmed for the pilot machine.** A user-authorized,
    read-only GPU preflight succeeded. The public repository is cloned on the
    laptop, locked sync and 127 Windows tests passed, and exploratory CUDA runs
-   ran (including an online deterministic pilot reaching 12,000 updates and a
-   4,000-update fixed-scene diagnostic at code revision `35500f7`). Inspected
-   samples visually showed noise or dark noise, none showing the intended
-   three-object scene. These are diagnostic samples, not a formal
+   completed (including an online deterministic pilot reaching 12,000 updates
+   and a 4,000-update fixed-scene diagnostic at code revision `35500f7`).
+   Inspected samples visually showed noise or dark noise, none showing the
+   intended three-object scene. These are diagnostic samples, not a formal
    quality score, and are not ready for human audit; the audit image pool still
    needs to be generated. At least 300 generated images must be human-audited
    in a complexity-stratified sample. Blocks the human audit and checker gate.
@@ -170,7 +170,7 @@ counts alone do not establish the `≤ 2%` target on real renders. See
 | Area | Current evidence | What is still missing |
 | --- | --- | --- |
 | Templates | Provisional 57-template set; every `K_attr = 1` cell covers all four colours and three shapes; 100-scene-per-template sampling smoke test | Final vocabulary and template decision, full counterbalancing, held-out leave-out set, proposal-scale A-matrix |
-| Pilot training | A deterministic CUDA run reached 12,000 steps; fixed-scene 4,000-step diagnostic completed; inspected samples were noise or dark noise; small deterministic replay matched | Useful generated images, reference model, controlled guidance sweep and human audit; samples not ready for human audit |
+| Pilot training | A deterministic CUDA run reached 12,000 steps; fixed-scene 4,000-step and truncated-reconstruction diagnostics completed, with low-noise reconstruction better than the noisy input but high-noise reconstruction degraded; inspected samples were noise or dark noise; small deterministic replay matched | Useful generated images, reference model, controlled guidance sweep and human audit; samples not ready for human audit |
 | Checker | Clean-render and controlled-perturbation audits; rejection counts reported separately | Generated-image human audit, per-predicate/per-rule error report, evidence for `≤ 2%` on real renders |
 | Decorrelation | 20 exploratory designs and 1,140 rule-by-design rows from the 57-condition pilot; pooled correlation `-0.446`; VIF `11.61` for log lift and `13.72` for relation count | Registered gate analysis with breadth, uncertainty, and the final matrix. The current values do not establish the proposal criterion |
 | MOSAIC | Preliminary paper/code review only | Adapted contrast specification, GPU run, results, and direction comparison |

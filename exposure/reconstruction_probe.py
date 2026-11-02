@@ -23,7 +23,7 @@ from exposure.pilot_train import PilotUNet, encode_rules, load_rules, schedule
 
 
 def load_target(target: Path | str | Image.Image | torch.Tensor) -> tuple[torch.Tensor, Path | None]:
-    """Load and normalize a 64x64 target image to [-1, 1] tensor on CPU."""
+    """Load a 64x64 image, or a tensor already normalized to [-1, 1], on CPU."""
     if isinstance(target, (str, Path)):
         path = Path(target)
         if not path.is_file():

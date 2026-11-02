@@ -250,8 +250,8 @@ Key caveats and operational details:
 - **Source fingerprint untouched**: `exposure/pilot_train.py` is not modified,
   preserving source hashes so existing GPU checkpoints remain resumable.
 
-For the 4,000-update fixed-scene checkpoint below, EMA reconstruction MSE on
-the `[-1, 1]` scale at timesteps 20, 100 and 200 was 0.0022, 0.0060 and
+For the 4,000-update fixed-scene checkpoint described above, EMA reconstruction
+MSE on the `[-1, 1]` scale at timesteps 20, 100 and 200 was 0.0022, 0.0060 and
 0.0105, versus noisy-input MSE 0.0062, 0.1069 and 0.3750, averaged over ten
 seeds. At timesteps 500, 750 and 999, EMA reconstruction MSE was 0.1185,
 0.3760 and 9.4313, versus noisy-input MSE 1.4104, 1.8292 and 1.9249,
@@ -260,6 +260,46 @@ setup; this single target and separate reverse loop cannot isolate a cause or
 establish general model quality. Local reports are in ignored files
 `outputs/reconstruction-static-4000.json` and
 `outputs/reconstruction-static-4000-high.json`.
+
+## One-step high-t baseline diagnostic
+
+`exposure.high_t_baseline` is a one-step CPU diagnostic for one fixed target. It
+compares raw and EMA noise predictions with trivial copy-noisy-input,
+zero-noise, and exact-oracle predictors. For each requested timestep it
+forward-noises the target with the checkpoint schedule's actual
+$\bar{\alpha}$ and matched seeded noise, then scores noise MSE and reconstructed
+clean-image MSE.
+
+Run the recorded diagnostic on the 4,000-update fixed-scene checkpoint:
+
+```sh
+uv run --extra train python -m exposure.high_t_baseline --checkpoint outputs/static-scene-769aef5ec6/checkpoint.pt --target outputs/static-scene-769aef5ec6/target.png --rule red --seeds 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 --timesteps 900 950 990 999 --output outputs/high-t-baseline-static-4000.json
+```
+
+The output path must be new. On the laptop, use
+`..\.venv\Scripts\python.exe -m exposure.high_t_baseline` with the same
+arguments.
+
+Mean one-step noise MSE over seeds 0–15:
+
+| Predictor | t=900 | t=950 | t=990 | t=999 |
+| --- | --- | --- | --- | --- |
+| Raw | 0.0205755 | 0.0211872 | 0.0199738 | 0.0198872 |
+| EMA | 0.0279802 | 0.0283686 | 0.0278234 | 0.0273750 |
+| Copy noisy input | 0.0002520 | 0.0000989 | 0.0000451 | 0.0000376 |
+
+The reported zero-predictor noise MSE was about 0.995819 and the exact oracle
+was 0. The copy predictor returns the noisy input as its noise estimate, so its
+low error at these high timesteps is expected and is not a model result. Raw
+noise MSE was lower than EMA at all four timesteps in this check; one target and
+one checkpoint cannot establish a general raw/EMA difference.
+
+This is one training target and one checkpoint. It is not a full reverse
+sampling run, does not validate generated images, and is not a generalization or
+Stage 0 result. The report also records unclipped and clipped `x0` MSE and the
+fraction of reconstructed pixels outside `[-1, 1]`; the outside fraction uses a
+`1e-4` tolerance for floating-point error. The JSON is in ignored
+`outputs/high-t-baseline-static-4000.json`.
 
 ## Evidence and omissions
 

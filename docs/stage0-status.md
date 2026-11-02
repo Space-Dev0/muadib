@@ -85,10 +85,18 @@ image contained three objects, while the sampled image appeared mostly dark nois
 `outputs/static-scene-769aef5ec6` on the laptop). This is one diagnostic sample,
 not a general model bug, training failure, or Stage 0 passage.
 
-A subsequent fixed-target reconstruction probe performed well at several
-lower noise levels but degraded sharply at the highest tested noise level.
-These limited measurements and their caveats are in [pilot training](pilot-training.md#truncated-reconstruction-diagnostic);
-they do not establish a cause or pass Stage 0.
+A subsequent truncated-reconstruction diagnostic on the same fixed target
+performed well at several lower noise levels but degraded sharply at the highest
+tested noise level. A one-step high-t baseline on that checkpoint (CPU, 16 seeds,
+timesteps 900, 950, 990, and 999) measured mean noise MSEs of about
+0.0199–0.0212 for raw and 0.0274–0.0284 for EMA weights; the copy-noisy-input
+baseline was 0.00004–0.00025, the zero predictor about 0.995819, and the exact
+oracle zero. These measurements come from one target and checkpoint, not a full
+reverse-sampling or generalization result. Both diagnostics and their caveats
+are in
+[pilot training](pilot-training.md#one-step-high-t-baseline-diagnostic) and
+[pilot training](pilot-training.md#truncated-reconstruction-diagnostic); they do
+not establish a cause or pass Stage 0.
 
 A 300-scene clean-render audit at seeds 30000–30299 covered all 57 candidate
 rules, with zero detector failures and zero observed rule errors. Some rules
