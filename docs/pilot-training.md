@@ -389,7 +389,24 @@ under the same recorded code, dependency versions, device layout and
 determinism settings. Schema 0 checkpoints, including the 4,000-update run
 above, remain sampleable but lack optimizer and random state and cannot be
 resumed. CPU tests verify exact uninterrupted versus resumed replay; CUDA replay
-requires a separate check on the target machine.
+was also checked on the target laptop as described below.
+
+At revision `79c331f`, a deterministic CUDA replay of four uninterrupted
+updates versus two plus two resumed updates matched model, EMA, optimizer,
+Python and Torch random states, requested counts, realized rule counts and
+rendering attempts exactly. This small check does not guarantee replay across
+different hardware or runtimes.
+
+A fresh schema 1 online pilot was trained in two 4,000-update segments to 8,000
+updates, batch size 2 and seed 48. The RTX 3050 recorded 805.6 cumulative
+seconds, 96,114,176 bytes peak allocated and 111,149,056 bytes reserved.
+Requested counts were 3,970 red, 3,990 square, 3,946 red-left-of-square and
+4,094 blue-above-circle, with 53,578 rendering attempts. One red sample (seed
+5) and one relational sample (seed 6) showed distinct colored blobs but not
+clearly identifiable shapes or a reliable requested relation. These two images
+are exploratory and not ready for the human checker audit. Checkpoints,
+reports and samples are in ignored laptop paths beginning
+`outputs/velocity-online-v1-`.
 
 The standard pilot tools now reject diagnostic checkpoints marked as requiring
 a custom predictor. This guard changes the source fingerprint in

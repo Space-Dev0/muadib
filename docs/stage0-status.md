@@ -9,6 +9,9 @@ three-object target. This small diagnostic does not validate generated images
 or pass the stage; see [pilot training](pilot-training.md#matched-velocity-prediction-fixed-scene-experiment).
 An additional 4,000-update online velocity pilot on varied scenes produced two
 exploratory samples with colored blobs but no clearly identifiable shapes.
+A fresh checkpointed online velocity run reached 8,000 updates; its two
+inspected samples also showed colored blobs without clear shapes or reliable
+relations, so the human audit remains blocked on suitable generated images.
 
 A fixed-design holdout using a second 100-scene-per-condition measurement
 matrix gave pooled correlation -0.4640 and log-lift VIF 11.07; the maximum
