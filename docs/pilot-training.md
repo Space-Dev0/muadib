@@ -363,6 +363,28 @@ and by the sinusoidal timestep embedding in the reference
 [Improved DDPM implementation](https://github.com/openai/improved-diffusion/blob/main/improved_diffusion/nn.py).
 This is an experiment, not evidence that timestep embeddings caused failure.
 
+At revision `b20489f`, the RTX 3050 ran the comparison for 4,000 updates per
+arm on the same fixed scene and paired random streams, batch size 2, training
+and initialization seeds 46, with 1,000 diffusion timesteps. At timesteps 20,
+100, 500 and 999, EMA noise MSE across four fixed evaluation seeds was
+0.1778/0.0735/0.0305/0.0271 for learned embeddings and
+0.1567/0.0489/0.0283/0.0257 for sinusoidal embeddings. Two full samples per arm
+(seeds 5 and 6) had `[0, 1]` pixel MSE 0.7670/0.8212 and 0.8721/0.8915,
+respectively; a constant target-mean image has MSE 0.0387. One sample from
+each arm looked like dark noise. This single-scene result does not demonstrate
+that sinusoidal embeddings solve sampling or establish a general performance
+comparison. The laptop's ignored `outputs/time-embedding-b20489f/` retains the
+report, checkpoints and images. The recorded arm times (364.7 and 767.2
+seconds) were affected by a laptop/network interruption and should not be used
+as a hardware speed comparison.
+
+The same four-seed one-step report shows EMA reconstructed-image MSE on the
+`[-1, 1]` scale at t=20 of 0.00112 (learned) and 0.00099 (sinusoidal), versus
+0.00629 for a zero-noise predictor. At t=999, the respective noise MSEs were
+0.02706 and 0.02565 versus about 0.000038 for copying the noisy input. These
+one-step measurements locate a high-noise weakness for this target but do not
+isolate the cause of failure in a full reverse trajectory.
+
 ### Matched identity-residual fixed-scene experiment
 
 At revision `ac70a5d`, two models were trained from identical zero-output-head
