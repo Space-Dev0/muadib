@@ -365,6 +365,16 @@ differences have no uncertainty intervals; rules, scenes and timesteps are not
 independent replicates. Different seeds alone do not guarantee disjoint scenes.
 The local ignored report is `outputs/velocity-condition-12000-cpu.json`.
 
+The same scene seeds, noise seed and timesteps evaluated the 20,000-update
+checkpoint on CPU. It also retained 310 paired rows and excluded two scenes.
+Pooled mean false-minus-correct velocity MSE at timesteps 20, 100, 500, 900
+and 999 was 0.000583, 0.000117, 0.000844, 0.000468 and 0.000484. The
+corresponding 12,000-update values were 0.000526, 0.000178, 0.000479,
+0.000504 and 0.000464. These are descriptive comparisons on the same small
+set, with no uncertainty intervals; they do not establish that generated
+conditions have improved. The local ignored report is
+`outputs/velocity-condition-20000-cpu.json`.
+
 ```sh
 uv run --extra train python -m exposure.velocity_condition_probe --checkpoint outputs/velocity-online-v1-12000-79c331f.pt --output outputs/velocity-condition-new.json --scene-seeds 76000 76001 76002 76003 76004 76005 76006 76007 76008 76009 76010 76011 76012 76013 76014 76015 --noise-seed 91234 --timesteps 20 100 500 900 999 --device cpu
 ```
