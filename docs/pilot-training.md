@@ -443,6 +443,14 @@ population evaluation or a Stage 0 result. The resumable checkpoint and
 artifacts are in ignored laptop paths beginning
 `outputs/velocity-online-v1-12000-79c331f`.
 
+The checkpointed run subsequently reached 16,000 updates in 1,605.2 cumulative
+seconds. Requested counts were 7,994 red, 8,032 square, 7,983 red-left-of-square
+and 7,991 blue-above-circle, with 107,150 rendering attempts. The two matched
+red and relational samples remained blurry and did not clearly satisfy their
+requested conditions. These two images are not a population evaluation or a
+Stage 0 result. Artifacts are in ignored laptop paths beginning
+`outputs/velocity-online-v1-16000-79c331f`.
+
 At revision `f97c8f4`, a classifier-free guidance sweep used that checkpoint,
 conditions `red` and `blue_above_circle`, seeds 5 and 6, and scales 1, 2 and 4.
 Initial and transition noise were matched across scales for each condition and
