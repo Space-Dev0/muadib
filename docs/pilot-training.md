@@ -469,6 +469,14 @@ did not clearly show the requested relation. This is a visual inspection of two
 images, not a quality estimate or Stage 0 result. The checkpoint and artifacts
 are in ignored laptop paths beginning `outputs/velocity-online-v1-20000-79c331f`.
 
+At 24,000 updates, the same run recorded 2,493.7 cumulative seconds and
+161,440 rendering attempts. Requested counts were 11,980 red, 12,061 square,
+11,952 red-left-of-square and 12,007 blue-above-circle. The matched seed-5 red
+sample showed a clearer red object; the seed-6 relational sample still did not
+clearly satisfy blue-above-circle. This is an informal inspection of two
+images, not an accuracy estimate. Checkpoint and samples are in ignored laptop
+paths beginning `outputs/velocity-online-v1-24000-79c331f`.
+
 At revision `f97c8f4`, a classifier-free guidance sweep used that checkpoint,
 conditions `red` and `blue_above_circle`, seeds 5 and 6, and scales 1, 2 and 4.
 Initial and transition noise were matched across scales for each condition and
