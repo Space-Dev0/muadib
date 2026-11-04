@@ -346,6 +346,27 @@ quality estimate and are not ready for the human checker audit.
 
 ## Evidence and omissions
 
+### Exploratory optimizer comparison
+
+At revision `61ae41a`, fresh AdamW and momentum-SGD models trained for 1,000
+updates each on one fixed target with matched initialization, timesteps and
+noise, batch size 2. AdamW used learning rate 0.0001; SGD used 0.01 and
+momentum 0.9. Both used weight decay 0.01, decoupled for AdamW and coupled
+for SGD. Their seed-5 and seed-6 sample MSE on `[0,1]` was 0.16130/0.16723
+for AdamW and 0.08056/0.08362 for SGD, versus 0.03874 for the constant
+target-mean image. One sample per arm appeared noisy. These learning rates
+were not tuned, the objectives' optimization details differ, and this one
+scene and training seed cannot establish a general optimizer winner. Laptop
+artifacts are in ignored `outputs/optimizer-probe-61ae41a/`.
+
+The checkpointed online AdamW pilot also reached 32,000 updates, with
+3,395.2 cumulative seconds and 215,296 rendering attempts. Requested counts
+were 16,017 red, 16,109 square, 15,907 red-left-of-square and 15,967
+blue-above-circle. In two matched samples the red condition showed a red
+shape; the relational sample did not clearly satisfy the requested relation.
+These are visual observations, not an accuracy estimate. Artifacts are in
+ignored laptop paths beginning `outputs/velocity-online-v1-32000-79c331f`.
+
 ### Conditioning-use diagnostic
 
 `exposure.velocity_condition_probe` evaluates the EMA velocity model on fresh
