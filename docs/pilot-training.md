@@ -354,6 +354,12 @@ sample showed only one clearly visible blue shape. This inspection of two
 samples is not an accuracy estimate. The checkpoint and samples remain in
 ignored laptop paths beginning `outputs/velocity-online-v1-100000`.
 
+The current checker rejected both exploratory samples: the red sample for
+unsupported object size or occlusion, and the relational sample because it
+found one component instead of three. These two rejections illustrate checker
+coverage limitations on this checkpoint; they do not establish its error rate
+or substitute for the independent human audit.
+
 ### Exploratory optimizer comparison
 
 At revision `61ae41a`, fresh AdamW and momentum-SGD models trained for 1,000

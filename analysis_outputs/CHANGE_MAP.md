@@ -22,7 +22,7 @@ Do not alter these files during modeling experiments; changes here risk breaking
 - [`exposure/rules.py`](file:///home/mango/Repos/muadib/exposure/rules.py): Defines core rule satisfiability semantics, existential quantification, and object bindings. Modifying this invalidates all ground-truth labels and historical comparisons. The 2026-11-05 change adds `validate_rule` only; `satisfies` semantics are unchanged.
 - [`exposure/grammar_audit.py`](file:///home/mango/Repos/muadib/exposure/grammar_audit.py): Audits canonical grammar layouts and witnesses.
 - [`tests/test_rules.py`](file:///home/mango/Repos/muadib/tests/test_rules.py), [`tests/test_conditioned.py`](file:///home/mango/Repos/muadib/tests/test_conditioned.py): Unit tests establishing formal semantics.
-- [`exposure/audit_agreement.py`](file:///home/mango/Repos/muadib/exposure/audit_agreement.py): Multi-rater Cohen and Fleiss kappa agreement calculations.
+- [`exposure/audit_agreement.py`](file:///home/mango/Repos/muadib/exposure/audit_agreement.py): Pairwise raw agreement and unresolved disagreements.
 
 ---
 

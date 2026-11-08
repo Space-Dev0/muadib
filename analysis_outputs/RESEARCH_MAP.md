@@ -27,7 +27,7 @@
 - [`exposure/checker.py`](file:///home/mango/Repos/muadib/exposure/checker.py): Image-based rule checker CLI.
 - [`exposure/checker_perturb.py`](file:///home/mango/Repos/muadib/exposure/checker_perturb.py): Checker perturbation robustness test.
 - [`exposure/human_audit.py`](file:///home/mango/Repos/muadib/exposure/human_audit.py): Double-blinded human audit preparation and scoring.
-- [`exposure/audit_agreement.py`](file:///home/mango/Repos/muadib/exposure/audit_agreement.py): Multi-annotator agreement and Cohen/Fleiss kappa.
+- [`exposure/audit_agreement.py`](file:///home/mango/Repos/muadib/exposure/audit_agreement.py): Pairwise raw agreement and unresolved disagreements.
 
 ### Model Definitions
 - [`exposure/pilot_train.py`](file:///home/mango/Repos/muadib/exposure/pilot_train.py): `PilotUNet`, `Residual`, `SelfAttentionBlock`, `encode_rules`.

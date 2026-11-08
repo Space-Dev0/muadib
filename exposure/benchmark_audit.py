@@ -116,7 +116,7 @@ def audit(rules: object, *, samples: int = 0, seed: int = 0) -> dict:
             other_counts = group["by_kind"][other]
             other_total = sum(other_counts.values())
             share = (other_counts[binding] / other_total) if other_total else 0.0
-            if other_total == 0 or share < 0.5:
+            if other_total == 0 or share < 1.0:
                 confounded.append({
                     "k_attr": cell[0],
                     "k_rel": cell[1],

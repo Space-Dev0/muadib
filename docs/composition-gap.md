@@ -16,7 +16,8 @@ Gamma_log   = log RSR    - sum(log(c_p))
 
 Both are exactly zero when `RSR = product(c_p)` in the interior of the
 probability domain. They are different transforms of the same deviation:
-`Gamma_logit` is bounded and symmetric, while `Gamma_log` is additive over
+`Gamma_logit` is unbounded near probability boundaries and changes sign when
+its two probability arguments are swapped, while `Gamma_log` is additive over
 predicates. The original review's `logit(product(c_p)) - sum(logit(c_p))` is a
 different expression and is not implemented here.
 
@@ -28,7 +29,7 @@ returns `None` for an undefined gap and records a `gamma_status`:
 | Status | Meaning |
 | --- | --- |
 | `both_defined` | Both gaps are finite. |
-| `log_only` | A marginal is exactly `1`, so `Gamma_logit` is undefined. |
+| `log_only` | `RSR` or the product is exactly `1`, so `Gamma_logit` is undefined while the log gap remains defined. |
 | `undefined` | `RSR` or a marginal is `0`, so neither gap is finite. |
 
 An empirical zero is not proof that a rule is impossible, and an empirical one

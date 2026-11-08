@@ -41,6 +41,16 @@ class BenchmarkAuditTests(unittest.TestCase):
         self.assertEqual(left, {"subject_only": 3})
         self.assertEqual(above, {"both": 3})
 
+    def test_partial_binding_confound_is_reported(self):
+        def rule(kind, second):
+            return [{"type": "attribute", "variable": "a", "field": "color", "value": "red"},
+                    {"type": "attribute", "variable": second, "field": "shape", "value": "circle"},
+                    {"type": "relation", "subject": "a", "kind": kind, "object": "b"}]
+        rules = {"left": rule("left_of", "a"), "above_same": rule("above", "a"),
+                 "above_both": rule("above", "b")}
+        found = audit(rules)["endpoint_binding"]["confounded_cells"]
+        self.assertTrue(any(x["kind"] == "left_of" for x in found))
+
     def test_pair_coverage_reports_same_object_gap(self):
         coverage = self.result["pair_coverage"]
         self.assertEqual(coverage["same_object_pair_count"], 3)

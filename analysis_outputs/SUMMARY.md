@@ -43,7 +43,7 @@ The codebase is organized into four main layers:
 ### D. Validation & Auditing
 - [`exposure/checker.py`](file:///home/mango/Repos/muadib/exposure/checker.py): Heuristic pixel-based checker parsing 64×64 scenes back to `SceneObject`s.
 - [`exposure/checker_perturb.py`](file:///home/mango/Repos/muadib/exposure/checker_perturb.py): Evaluates checker accuracy under brightness and blur perturbations.
-- [`exposure/human_audit.py`](file:///home/mango/Repos/muadib/exposure/human_audit.py) & [`exposure/audit_agreement.py`](file:///home/mango/Repos/muadib/exposure/audit_agreement.py): Blinded human evaluation schema and Cohen/Fleiss kappa agreement scorers.
+- [`exposure/human_audit.py`](file:///home/mango/Repos/muadib/exposure/human_audit.py) & [`exposure/audit_agreement.py`](file:///home/mango/Repos/muadib/exposure/audit_agreement.py): Blinded human evaluation schema and descriptive pairwise agreement.
 
 ---
 

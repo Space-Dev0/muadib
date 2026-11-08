@@ -166,8 +166,10 @@ def _detection_metrics(cell: dict) -> dict:
 
 
 def audit(samples: int, seed: int = 0, *, rules: dict | None = None) -> dict:
-    if samples < 1:
-        raise ValueError("samples must be positive")
+    if type(samples) is not int or samples < 1:
+        raise ValueError("samples must be a positive integer")
+    if type(seed) is not int:
+        raise ValueError("seed must be an integer")
     if rules is None:
         rules = audit_rules()
     if not rules:

@@ -38,9 +38,9 @@ uv run python -m exposure.measure --rules examples/exposure_rules.json --samples
 
 ### Image-Based Checker Verification
 ```sh
-uv run python -m exposure.checker --rules examples/exposure_rules.json --image outputs/example.png --json
+uv run python -m exposure.checker --rules examples/exposure_rules.json --samples 300 --seed 0 --output outputs/checker-audit.json
 ```
-- Validates pixel-based rule detector outputs on synthetic scene renders.
+- Audits pixel-based rule detector outputs on clean synthetic scene renders.
 
 ---
 
@@ -60,6 +60,6 @@ Before Stage 1 confirmatory runs may begin, the following Stage 0 requirements m
 
 1. **Model Learnability (proposed):** Reference model reaches median reference RSR in $[0.3, 0.7]$ across test rules, and passes an overfit-1/10/100-scene pre-gate. *(Currently not met; 12k samples were noise, 32k produced two inspected samples).*
 2. **Checker Calibration:** The proposal's Stage 0 target is checker error $\le 2\%$; validate per-predicate and per-rule errors on independently reviewed generated images. The separate FPR $\le 0.05$ and FNR $\le 0.10$ thresholds are proposals, not established gates. *(Currently evaluated only on clean/perturbed synthetic renders; perturbation rejection is 84.5–90% at blur radius 1.0 and accepted-image errors are zero, so the observed failure is attrition).*
-3. **Design Decorrelation:** Final benchmark demonstrates $|r(\log \text{lift}, \log \text{marginal})| \le 0.30$ and $\text{VIF} < 2.0$ on an identified within-rule quantity. *(Current pilot pooled $r=-0.446$, VIF $11.61$; $\beta_m$ is exactly collinear with the rule intercept, so the pooled gate is not identified).*
+3. **Design Decorrelation:** The proposal specifies $|r(\log \text{lift}, \log \text{marginal})| \le 0.30$ and $\text{VIF} < 2.0$. Using an identified within-rule quantity is a proposed revision, not an established gate. *(Current pilot pooled $r=-0.446$, VIF $11.61$; $\beta_m$ is collinear with the rule intercept under fixed singleton marginals.)*
 4. **Benchmark Validity:** Relation singletons below 0.9, relation kind counterbalanced against endpoint binding, all 12 same-object color–shape pairs covered, and a held-out template split. *(Current `benchmark_audit` reports `confirmatory_ready: false`).*
 5. **Human Review Agreement (proposed):** Assess whether Fleiss' $\kappa \ge 0.70$ is appropriate; this threshold is not an established proposal gate.

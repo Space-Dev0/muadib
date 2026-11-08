@@ -14,6 +14,11 @@ from exposure.rules import Attribute, Relation, SceneObject, satisfies
 
 
 class CheckerTests(unittest.TestCase):
+    def test_audit_rejects_non_integer_arguments(self):
+        for samples, seed in ((True, 0), (2.0, 0), (1, False), (1, 0.5)):
+            with self.subTest(samples=samples, seed=seed), self.assertRaises(ValueError):
+                audit(samples, seed)
+
     def test_coverage_adjusted_rates_do_not_count_abstentions_as_correct(self):
         from exposure.checker import _detection_metrics
 
