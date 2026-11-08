@@ -10,6 +10,7 @@ import math
 from itertools import combinations
 from pathlib import Path
 
+from exposure.composition import composition_gaps
 from exposure.measure import load_rules, unique_object
 
 
@@ -107,17 +108,23 @@ def summarize(report: dict, weights: dict) -> dict:
         pairs = []
         for i, j in combinations(range(len(predicates)), 2):
             pair_joint = math.fsum(weights[c] * by_name[c][1][name][(i, j)] for c in names)
+            pair_marginals = [marginal[i], marginal[j]]
             pairs.append({"predicate_indices": [i, j], "exposure": pair_joint,
-                          "log_lift": _log_lift(pair_joint, [marginal[i], marginal[j]]),
-                          "lift_status": _lift_status(pair_joint, [marginal[i], marginal[j]])})
+                          "log_lift": _log_lift(pair_joint, pair_marginals),
+                          "lift_status": _lift_status(pair_joint, pair_marginals),
+                          **composition_gaps(pair_joint, pair_marginals)})
         results[name] = {"rule_exposure": joint, "predicate_marginals": marginal,
                          "log_lift": _log_lift(joint, marginal),
-                         "lift_status": _lift_status(joint, marginal), "pairs": pairs}
+                         "lift_status": _lift_status(joint, marginal),
+                         **composition_gaps(joint, marginal), "pairs": pairs}
     return {"schema_version": 1, "source_seed": report.get("seed"),
             "samples_per_condition": report.get("samples_per_condition"),
             "weights": {name: weights[name] for name in names}, "rules": report["rules"],
             "results": results,
-            "note": "Monte Carlo plug-in estimates; lift_status distinguishes empirical zeros. No uncertainty propagated."}
+            "note": "Monte Carlo exposure plug-in estimates; lift_status distinguishes empirical zeros. "
+                    "The gamma fields apply the logit and log gap formulas to scene exposure "
+                    "probabilities, not generated-image RSR or human success judgments. "
+                    "No uncertainty propagated."}
 
 
 def main() -> None:

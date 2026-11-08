@@ -94,6 +94,22 @@ joint and positive marginals the empirical log lift is negative infinity;
 `null` keeps the JSON finite. An empirical zero is not proof that the rule or
 pair is impossible.
 
+Each rule and pair also reports two composition gaps derived from the same
+marginals:
+
+```text
+gamma_logit = logit(n(S)) - logit(product_i n_i)
+gamma_log   = log(n(S)) - sum_i log(n_i)
+```
+
+Both are zero under `n(S) = product_i n_i`. These are **exposure** diagnostics,
+not generated-image rule-satisfaction rates or the proposal's outcome gap.
+`gamma_logit` is `null` when the joint or product is `0` or `1`;
+`gamma_log` is `null` when the joint or any marginal is `0`. The
+`gamma_status` field records `both_defined`, `log_only`, or `undefined`.
+`marginal_product` is reported alongside them. See
+[composition gap](composition-gap.md).
+
 ## Subset semantics
 
 The mixture step consumes the `predicate_subsets` produced by

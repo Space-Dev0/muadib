@@ -1,0 +1,285 @@
+{
+  "schema_version": "1.0",
+  "repo": "/home/mango/Repos/muadib",
+  "status": "analyzed",
+  "task_family": "conditional_diffusion_exposure",
+  "entrypoints": {
+    "train": [
+      "exposure/pilot_train.py",
+      "exposure/velocity_online.py",
+      "exposure/high_t_finetune.py",
+      "exposure/identity_eps_finetune.py"
+    ],
+    "infer": [
+      "exposure/pilot_train.py",
+      "exposure/velocity_guidance.py",
+      "exposure/render.py"
+    ],
+    "eval": [
+      "exposure/measure.py",
+      "exposure/mixture.py",
+      "exposure/composition.py",
+      "exposure/design.py",
+      "exposure/design_bounds.py",
+      "exposure/design_chains.py",
+      "exposure/validate_mixture.py",
+      "exposure/benchmark_audit.py",
+      "exposure/checker.py",
+      "exposure/checker_perturb.py",
+      "exposure/human_audit.py",
+      "exposure/audit_agreement.py",
+      "tests/test_pilot_train.py",
+      "tests/test_velocity_online.py",
+      "tests/test_rules.py",
+      "tests/test_render.py",
+      "tests/test_measure.py",
+      "tests/test_design.py"
+    ],
+    "model": [
+      "exposure/pilot_train.py",
+      "exposure/velocity_probe.py",
+      "exposure/time_embedding_probe.py",
+      "exposure/identity_eps_finetune.py"
+    ],
+    "config": [
+      "examples/exposure_rules.json",
+      "examples/exposure_constraints.json",
+      "examples/uniform_weights.json",
+      "examples/fixed_marginals_low.json",
+      "examples/fixed_marginals_high.json",
+      "examples/red_left_of_square.json"
+    ]
+  },
+  "task_relevant_files": [
+    "exposure/rules.py",
+    "exposure/render.py",
+    "exposure/measure.py",
+    "exposure/mixture.py",
+    "exposure/composition.py",
+    "exposure/design.py",
+    "exposure/design_bounds.py",
+    "exposure/design_chains.py",
+    "exposure/benchmark_audit.py",
+    "exposure/pilot_train.py",
+    "exposure/velocity_online.py",
+    "exposure/checker.py",
+    "exposure/checker_perturb.py",
+    "exposure/human_audit.py",
+    "docs/architecture.md",
+    "docs/stage0-status.md",
+    "docs/review-2026-11-04.md",
+    "docs/verification-2026-11-04.md",
+    "docs/pilot-training.md",
+    "docs/exposure-design.md",
+    "docs/experiment-spec.md"
+  ],
+  "research_map": {
+    "task_family": "conditional_diffusion_exposure",
+    "readme_present": true,
+    "train_entrypoints": [
+      "exposure/pilot_train.py",
+      "exposure/velocity_online.py",
+      "exposure/high_t_finetune.py",
+      "exposure/identity_eps_finetune.py"
+    ],
+    "inference_entrypoints": [
+      "exposure/pilot_train.py",
+      "exposure/velocity_guidance.py",
+      "exposure/render.py"
+    ],
+    "evaluation_entrypoints": [
+      "exposure/measure.py",
+      "exposure/mixture.py",
+      "exposure/design.py",
+      "exposure/checker.py",
+      "exposure/human_audit.py"
+    ],
+    "model_entrypoints": [
+      "exposure/pilot_train.py",
+      "exposure/velocity_probe.py",
+      "exposure/time_embedding_probe.py"
+    ],
+    "config_entrypoints": [
+      "examples/exposure_rules.json",
+      "examples/exposure_constraints.json",
+      "examples/uniform_weights.json"
+    ],
+    "task_relevant_files": [
+      "exposure/rules.py",
+      "exposure/render.py",
+      "exposure/measure.py",
+      "exposure/mixture.py",
+      "exposure/design.py",
+      "exposure/pilot_train.py",
+      "exposure/velocity_online.py",
+      "exposure/checker.py"
+    ],
+    "output_hints": [
+      "outputs/exposure.json",
+      "outputs/design-min-kl.json",
+      "outputs/checker-perturb-41000.json",
+      "outputs/pilot-run-20261101-01/pilot.pt"
+    ],
+    "checkpoint_chain_hints": [
+      "outputs/pilot-run-20261101-01/pilot.pt",
+      "outputs/pilot-smoke-20261101-01/pilot.pt"
+    ],
+    "repo_root": "/home/mango/Repos/muadib"
+  },
+  "change_map": {
+    "allowed_change_zones": [
+      "exposure/pilot_train.py",
+      "exposure/velocity_online.py",
+      "exposure/velocity_guidance.py",
+      "exposure/design_sample.py",
+      "exposure/denoise_probe.py",
+      "exposure/reconstruction_probe.py",
+      "exposure/high_t_finetune.py",
+      "exposure/optimizer_probe.py"
+    ],
+    "protected_eval_zones": [
+      "exposure/rules.py",
+      "exposure/grammar_audit.py",
+      "exposure/audit_agreement.py",
+      "tests/test_rules.py",
+      "tests/test_conditioned.py",
+      "tests/test_checker.py"
+    ],
+    "data_interface_zones": [
+      "exposure/render.py",
+      "exposure/measure.py",
+      "exposure/design.py",
+      "examples/exposure_rules.json",
+      "examples/exposure_constraints.json",
+      "examples/uniform_weights.json"
+    ],
+    "single_variable_high_risk_zones": [
+      "exposure/rules.py",
+      "exposure/render.py",
+      "exposure/checker.py",
+      "examples/exposure_rules.json",
+      "examples/exposure_constraints.json"
+    ]
+  },
+  "eval_contract": {
+    "task_family": "conditional_diffusion_exposure",
+    "dataset": "synthetic_three_object_scenes (64x64 RGB)",
+    "benchmark": "Which Exposure Matters (Rev. 4)",
+    "evaluation_command": "uv run python -m unittest discover -s tests -v",
+    "evaluation_path": "tests",
+    "primary_metric": "Rule Satisfaction Rate (RSR) & composition gap",
+    "metric_goal": "maximize",
+    "expected_artifacts": [
+      "outputs/exposure.json",
+      "outputs/design-min-kl.json",
+      "outputs/checker-perturb-41000.json",
+      "outputs/pilot-run-20261101-01/pilot.pt"
+    ],
+    "notes": [
+      "Stage 0 instrument development; gates are explicitly not passed",
+      "Composition gap: both logit and log scales are zero under the multiplicative null; log scale is primary. The original review's logit(product) - sum(logit) expression is a different quantity and is retracted",
+      "Relational singleton analytic exposure is 0.999271 under 3-object grid existential semantics; only 3/12 color-shape pairs are co-bound to the same object",
+      "Stage 0 has no enforced learnability criterion; no model has passed a learnability pre-gate"
+    ]
+  },
+  "symbol_hints": [
+    "exposure/rules.py:SceneObject",
+    "exposure/rules.py:Attribute",
+    "exposure/rules.py:Relation",
+    "exposure/rules.py:satisfies",
+    "exposure/render.py:RenderedScene",
+    "exposure/render.py:render_scene",
+    "exposure/render.py:render_conditioned",
+    "exposure/render.py:sample_conditioned",
+    "exposure/measure.py:load_rules",
+    "exposure/measure.py:wilson_interval",
+    "exposure/measure.py:estimate",
+    "exposure/mixture.py:summarize",
+    "exposure/design.py:solve",
+    "exposure/pilot_train.py:encode_rules",
+    "exposure/pilot_train.py:Residual",
+    "exposure/pilot_train.py:SelfAttentionBlock",
+    "exposure/pilot_train.py:PilotUNet",
+    "exposure/pilot_train.py:train",
+    "exposure/pilot_train.py:sample",
+    "exposure/velocity_online.py:train",
+    "exposure/checker.py:detect"
+  ],
+  "constructor_candidates": [
+    "exposure/pilot_train.py:PilotUNet",
+    "exposure/pilot_train.py:Residual",
+    "exposure/pilot_train.py:SelfAttentionBlock",
+    "exposure/velocity_probe.py:VelocityAsNoise",
+    "exposure/time_embedding_probe.py:SinusoidalEmbedding"
+  ],
+  "forward_candidates": [
+    "exposure/pilot_train.py:PilotUNet.forward",
+    "exposure/pilot_train.py:Residual.forward",
+    "exposure/pilot_train.py:SelfAttentionBlock.forward",
+    "exposure/velocity_probe.py:VelocityAsNoise.forward",
+    "exposure/time_embedding_probe.py:SinusoidalEmbedding.forward"
+  ],
+  "config_binding_hints": [
+    "exposure/render.py:parse_rule",
+    "exposure/measure.py:load_rules",
+    "exposure/design.py:solve",
+    "examples/exposure_rules.json",
+    "examples/exposure_constraints.json",
+    "examples/uniform_weights.json"
+  ],
+  "module_files": [
+    "exposure/rules.py",
+    "exposure/render.py",
+    "exposure/measure.py",
+    "exposure/mixture.py",
+    "exposure/design.py",
+    "exposure/pilot_train.py",
+    "exposure/velocity_online.py",
+    "exposure/checker.py"
+  ],
+  "metric_files": [
+    "exposure/measure.py",
+    "exposure/mixture.py",
+    "exposure/checker.py",
+    "exposure/checker_perturb.py",
+    "exposure/human_audit.py",
+    "exposure/audit_agreement.py"
+  ],
+  "suspicious_patterns": [
+    "exposure/design.py: verify optimizer parameter coverage if custom freezing is expected.",
+    "exposure/pilot_train.py: review whether dropout-sensitive evaluation behavior is intentional.",
+    "exposure/pilot_train.py: verify optimizer parameter coverage if custom freezing is expected.",
+    "exposure/high_t_finetune.py: review whether dropout-sensitive evaluation behavior is intentional.",
+    "exposure/identity_eps_finetune.py: review whether dropout-sensitive evaluation behavior is intentional.",
+    "exposure/identity_eps_finetune.py: verify optimizer parameter coverage if custom freezing is expected.",
+    "exposure/time_embedding_probe.py: review whether dropout-sensitive evaluation behavior is intentional.",
+    "exposure/time_embedding_probe.py: verify optimizer parameter coverage if custom freezing is expected.",
+    "exposure/velocity_probe.py: review whether dropout-sensitive evaluation behavior is intentional.",
+    "exposure/velocity_probe.py: verify optimizer parameter coverage if custom freezing is expected.",
+    "exposure/velocity_online.py: review whether dropout-sensitive evaluation behavior is intentional.",
+    "exposure/velocity_online.py: verify optimizer parameter coverage if custom freezing is expected.",
+    "exposure/velocity_guidance.py: review whether dropout-sensitive evaluation behavior is intentional.",
+    "exposure/optimizer_probe.py: review whether dropout-sensitive evaluation behavior is intentional.",
+    "exposure/optimizer_probe.py: verify optimizer parameter coverage if custom freezing is expected.",
+    "Methodological heuristic (corrected): the proposal's logit composition gap is zero under the multiplicative null; the original review's arithmetic claim was retracted (see docs/verification-2026-11-04.md).",
+    "Methodological finding: relational singleton exposure is analytically 0.999271 under 3-object grid existential semantics, so the relational contrast is saturated.",
+    "Methodological finding: relation kind is confounded with endpoint binding (left_of subject-only 3/3, above both-bound 3/3 in k_attr=2,k_rel=1), and only 3/12 color-shape pairs are co-bound.",
+    "Implementation risk: Pixel checker in exposure/checker.py relies on fixed size (12x11/12) and count (3). Perturbation errors are attrition (84.5-90% rejection at blur 1.0), not misclassification."
+  ],
+  "conservative_suggestions": [
+    "Pre-register the log-scale composition gap as primary and report the logit scale as sensitivity; verify both are zero under the multiplicative null.",
+    "Inspect spatial positional encoding and attention receptive fields in exposure/pilot_train.py before scaling model capacity.",
+    "Audit pixel checker false-rejection characteristics against actual model-generated samples before using it as the automated RSR instrument.",
+    "Replace the hand-designed template grammar with a factorial, counterbalanced set and add a held-out split; benchmark_audit currently reports confirmatory_ready false.",
+    "Add a learnability pre-gate to Stage 0 and report a learnability failure rather than proceeding.",
+    "Treat suspicious patterns as heuristics until confirmed by empirical command-level evidence."
+  ],
+  "outputs": {
+    "summary": "analysis_outputs/SUMMARY.md",
+    "risks": "analysis_outputs/RISKS.md",
+    "research_map": "analysis_outputs/RESEARCH_MAP.md",
+    "change_map": "analysis_outputs/CHANGE_MAP.md",
+    "eval_contract": "analysis_outputs/EVAL_CONTRACT.md",
+    "status": "analysis_outputs/status.json"
+  }
+}

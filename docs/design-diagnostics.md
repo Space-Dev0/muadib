@@ -45,3 +45,21 @@ share rules and designs, exposure columns are estimated from finite
 Monte Carlo samples, uncertainty is not propagated, and breadth is omitted.
 Pooled correlations and VIF do not themselves establish causal effects or
 confirm that the proposed decorrelation criteria are met.
+
+Two level issues are now verified:
+
+- **Pooled correlations are between-rule.** Within a rule the design fixes
+  singleton marginals exactly, so `log m̄` has zero within-rule variation
+  (observed range `2.2e−16`). The pooled `r` reflects rule-level differences in
+  mean lift, not a within-rule failure. `exposure.design_strata` reports both
+  levels.
+- **`β_m` is not identified.** Because `log m̄` is constant within rule, `β_m`
+  is exactly collinear with the rule intercept. Drop it or vary marginals within
+  rule before claiming a decorrelation gate.
+
+By the proposal's literal criterion (`|r| ≤ 0.3`, `VIF < 2`), the current pilot
+fails: pooled `r = −0.446`, VIF `11.61` for log lift and `13.72` for relation
+count. The gate must be redefined on an identified within-rule quantity, or
+Stage 0 is not passed. Exact LP bounds and multi-chain diagnostics are
+available in [design bounds](design-bounds.md) and
+[design chains](design-chains.md).

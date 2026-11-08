@@ -26,3 +26,8 @@ other constraints. They do not establish lift decorrelation, VIF criteria, or a
 Stage 0 pass. Matrix sampling uncertainty is not propagated. SVD bases for
 degenerate subspaces are not unique and can rotate across numerical platforms;
 the subspace is the meaningful object, not a particular basis vector.
+
+For exact exposure and lift bounds over this subspace, including the
+positive-lift corner, use `exposure.design_bounds`; see
+[design bounds](design-bounds.md). For multi-chain mixing diagnostics, use
+`exposure.design_chains`; see [design chains](design-chains.md).

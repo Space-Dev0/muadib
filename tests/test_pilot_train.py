@@ -79,9 +79,14 @@ class PilotTrainingTests(unittest.TestCase):
             pilot._weights(["red"], {"red": float("nan")})
         impossible = {"impossible": [{"type": "attribute", "variable": "a", "field": "color", "value": "red"},
                                      {"type": "attribute", "variable": "a", "field": "color", "value": "blue"}]}
-        with self.assertRaisesRegex(ValueError, "Condition 'impossible'"):
+        with self.assertRaisesRegex(ValueError, "Invalid rule 'impossible'.*Contradictory"):
             pilot.train(impossible, None, steps=1, batch_size=1, seed=0, device="cpu", width=4,
                         timesteps=2, lr=1e-4, dropout=0.1, ema_decay=0.9, max_attempts=2)
+        from unittest.mock import patch
+        with patch.object(pilot, "render_conditioned", side_effect=ValueError("exhausted")):
+            with self.assertRaisesRegex(ValueError, "Condition 'red'"):
+                pilot.train({"red": self.definitions["red"]}, None, steps=1, batch_size=1, seed=0, device="cpu", width=4,
+                            timesteps=2, lr=1e-4, dropout=0.1, ema_decay=0.9, max_attempts=2)
 
     def test_sampler_recovers_known_image_with_exact_noise_oracle(self):
         torch, pilot = self.torch, self.pilot

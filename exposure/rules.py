@@ -4,6 +4,7 @@ Coordinates follow image convention: x increases rightward and y downward.
 Relations compare object centers. Ties do not satisfy either relation.
 """
 
+from collections import defaultdict
 from dataclasses import dataclass
 from itertools import permutations
 from typing import Literal, TypeAlias
@@ -42,6 +43,63 @@ class Relation:
 
 
 Predicate: TypeAlias = Attribute | Relation
+
+
+def _has_cycle(edges: list[tuple[str, str]]) -> bool:
+    """Return whether a strict directed graph contains a cycle."""
+    graph: dict[str, set[str]] = defaultdict(set)
+    nodes: set[str] = set()
+    for source, target in edges:
+        graph[source].add(target)
+        nodes.update((source, target))
+    state: dict[str, int] = {}
+
+    def visit(node: str) -> bool:
+        state[node] = 1
+        for target in graph[node]:
+            if state.get(target) == 1:
+                return True
+            if state.get(target, 0) == 0 and visit(target):
+                return True
+        state[node] = 2
+        return False
+
+    return any(state.get(node, 0) == 0 and visit(node) for node in sorted(nodes))
+
+
+def validate_rule(predicates: tuple[Predicate, ...]) -> tuple[Predicate, ...]:
+    """Reject rules that are redundant or structurally impossible.
+
+    Duplicate identical predicates double the apparent complexity without
+    changing semantics.  Two different values for the same attribute on the
+    same variable are unsatisfiable.  A cycle in either strict order relation
+    is also unsatisfiable.  Rejecting these at parse time prevents them from
+    entering measurement, design, or model-fitting code as if they were valid.
+    """
+    if not predicates:
+        raise ValueError("A rule must contain at least one predicate")
+    seen: set[Predicate] = set()
+    attributes: dict[tuple[str, str], str] = {}
+    edges: dict[str, list[tuple[str, str]]] = {"left_of": [], "above": []}
+    for predicate in predicates:
+        if predicate in seen:
+            raise ValueError(f"Duplicate predicate: {predicate!r}")
+        seen.add(predicate)
+        if isinstance(predicate, Attribute):
+            key = (predicate.variable, predicate.field)
+            if key in attributes and attributes[key] != predicate.value:
+                raise ValueError(
+                    f"Contradictory {predicate.field} values for variable "
+                    f"{predicate.variable!r}: {attributes[key]!r} and {predicate.value!r}")
+            attributes[key] = predicate.value
+        elif isinstance(predicate, Relation):
+            edges[predicate.kind].append((predicate.subject, predicate.object))
+        else:
+            raise TypeError(f"Unsupported predicate: {predicate!r}")
+    for kind, pairs in edges.items():
+        if _has_cycle(pairs):
+            raise ValueError(f"Cyclic {kind} constraints make the rule unsatisfiable")
+    return tuple(predicates)
 
 
 def satisfies(scene: tuple[SceneObject, ...], predicates: tuple[Predicate, ...]) -> bool:

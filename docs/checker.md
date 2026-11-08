@@ -22,7 +22,15 @@ uv run python -m exposure.checker --samples 300 --seed 0 --output outputs/checke
 ```
 
 The audit compares detector-based rule evaluations with exact renderer
-annotations. Per rule, `positive` and `negative` are the numbers of accepted
+annotations. The report includes `rejection_rate`, `coverage`, and per-rule
+`conditional_sensitivity`, `conditional_specificity`,
+`unconditional_sensitivity`, `unconditional_specificity`,
+`positive_coverage`, and `negative_coverage`. Conditional rates use accepted
+images only. Unconditional sensitivity and specificity divide correct accepted
+classifications by all true positives and negatives respectively, including
+detector failures in the denominator. These coverage-adjusted rates do not
+assign a predicted class to failures.
+Per rule, `positive` and `negative` are the numbers of accepted
 scenes with and without the rule; `false_rejects` and `false_accepts` count
 errors within those denominators. `detector_failures` are reported separately
 and excluded from rule denominators, so low errors among accepted scenes must

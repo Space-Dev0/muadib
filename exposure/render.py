@@ -12,7 +12,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from exposure.rules import Attribute, Predicate, Relation, SceneObject, satisfies
+from exposure.rules import Attribute, Predicate, Relation, SceneObject, satisfies, validate_rule
 
 
 COLORS = {
@@ -107,7 +107,7 @@ def parse_rule(data: object) -> tuple[Predicate, ...]:
             predicates.append(Relation(item["subject"], item["kind"], item["object"]))
         else:
             raise ValueError("Invalid predicate type or fields")
-    return tuple(predicates)
+    return validate_rule(tuple(predicates))
 
 
 def main() -> None:
@@ -123,7 +123,8 @@ def main() -> None:
     attempts = None
     if args.rule:
         try:
-            rule_data = json.loads(args.rule.read_text(encoding="utf-8"))
+            from exposure.measure import unique_object
+            rule_data = json.loads(args.rule.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
             result, attempts = render_conditioned(args.seed, parse_rule(rule_data), args.max_attempts)
         except (OSError, ValueError) as exc:
             parser.error(str(exc))

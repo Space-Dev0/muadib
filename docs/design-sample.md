@@ -27,3 +27,10 @@ constraints. Samples are correlated, and burn-in and thinning do not prove
 mixing, independence, uniformity, or convergence. The estimated matrix has
 Monte Carlo uncertainty; sampled directions do not certify decorrelation,
 VIF criteria, or a Stage 0 pass.
+
+A narrow sample is not evidence of a narrow feasible set. Use
+`exposure.design_bounds` (exact LP exposure/lift bounds and the positive-lift
+corner) and `exposure.design_chains` (multi-chain split-R-hat and autocorrelation
+ESS) before drawing that conclusion. On the 57-rule pilot, the realized median
+within-rule range is `0.0955` while the exact LP width is `1.172`; see
+[design bounds](design-bounds.md) and [design chains](design-chains.md).

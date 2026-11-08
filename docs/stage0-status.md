@@ -1,7 +1,32 @@
 # Stage 0 status
 
+The current rule and renderer source changes alter the source fingerprints
+recorded in earlier online pilot checkpoints. Exact resume of those checkpoints
+requires their original code revision and compatible runtime; do not bypass the
+fingerprint check. Sampling compatibility should be verified separately.
+
 **Not passed.** The following measurements are instrument-development results,
 not confirmatory research findings.
+
+## Blocking status (verified 2026-11-05)
+
+Stage 0 currently has **no learnability criterion**, so it could be "passed" by
+instrument checks while no usable generator exists. The verified state is:
+
+| Gate | Current state | Evidence |
+| --- | --- | --- |
+| Learnability | **Not tested** | 12,000-update samples were noise; 32,000 updates produced two inspected samples (one red shape, no clear relation); no overfit-1/10/100-scene gate exists. |
+| Relational validity | **Fails** | Analytic relation singleton exposure `0.999271`; `left_of` is subject-only `3/3` and `above` both-bound `3/3` in `K_attr=2, K_rel=1`. `benchmark_audit` sets `confirmatory_ready: false`. |
+| Decorrelation | **Fails as written** | Pooled `r = −0.446`, VIF `11.61` vs proposal `|r| ≤ 0.3`, `VIF < 2`; `β_m` is exactly collinear with the rule intercept. |
+| Design dose | **Narrow sample, wider polytope** | Realized median within-rule range `0.0955`; exact LP width `1.172`; `23/57` rules admit positive lift but no sampled chain reaches the corner. |
+| Checker on generated images | **Not validated** | Perturbation rejection `84.5–90%` at blur radius `1.0`; accepted images have zero observed rule errors, so failure is attrition. No generated-image or human audit. |
+| MOSAIC replication | **Not run** | Only analysis plumbing exists. |
+
+A learnability pre-gate should require: overfit one fixed scene (visual match
+and low MSE), overfit 10 scenes (RSR ≥ 0.9), overfit 100 scenes (RSR ≥ 0.7),
+then the full template mixture (median reference RSR ≥ 0.3 with a
+capacity/budget sweep). If it fails, the failure is the result; do not proceed
+to exposure experiments.
 
 A matched fixed-scene velocity-prediction experiment produced visible colored
 shapes, unlike the matched epsilon samples, but did not reliably reproduce the
@@ -27,11 +52,11 @@ analysis omits breadth and does not assess the final gate. See
 | Component | Current evidence | Remaining work |
 | --- | --- | --- |
 | Renderer and rules | 2D renderer, annotation-based rule evaluation and grammar witnesses | Finalize and validate the benchmark vocabulary and full counterbalancing. |
-| Candidate templates | Provisional 57-template generator covers all singleton colors and shapes in each one-attribute cell; a 100-scene-per-template sampling smoke test completed | Confirm full counterbalancing, held-out rules and sufficient sampling precision. |
+| Candidate templates | Provisional 57-template generator covers all singleton colors and shapes in each one-attribute cell; a 100-scene-per-template sampling smoke test completed, but only `3/12` color–shape pairs are co-bound and relation kind is confounded with endpoint binding | Redesign as a factorial, counterbalanced set with a held-out split; `benchmark_audit` currently reports `confirmatory_ready: false`. |
 | Pilot training | Locked sync and 127 Windows tests passed. A deterministic pilot reached 12,000 steps with checkpoints, and a 4,000-step fixed-scene diagnostic ran on RTX 3050 with truncated-reconstruction, one-step high-t baseline, and paired high-t fine-tuning follow-ups. | Inspected online samples were noise; single fixed-scene sample was mostly dark noise (MSE 0.8017); no validated model outputs, reference model, controlled guidance sweep, or human audit. See [pilot training](pilot-training.md). |
-| Checker | Clean-render and controlled perturbation audits; conservative sharpening fallback | High rejection remains at brightness 1.10, blur 0.50, and blur 1.00; validate every relevant rule and audit generated images with human judgments. |
+| Checker | Clean-render and controlled perturbation audits; conservative sharpening fallback; per-rule rejection, coverage and conditional/unconditional sensitivity/specificity now reported | Rejection is `84.5–90%` at blur radius `1.0`; accepted images show zero observed rule errors, so the failure is attrition. Validate on generated images and audit with human judgments. |
 | Exposure matrix and design | Monte Carlo estimates, LP feasibility and numerical minimum-KL allocation | Quantify matrix uncertainty and verify feasible exposure manipulations and leave-out probes on the final benchmark. |
-| Decorrelation | Twenty exploratory hit-and-run designs from the 57-condition pilot; pooled correlations and VIF computed over 1,140 rule-by-design rows | Define breadth, freeze the analysis table and uncertainty method, and evaluate the registered criteria. Current estimates do not assess the proposal gate. |
+| Decorrelation | Twenty exploratory hit-and-run designs from the 57-condition pilot; pooled correlations and VIF computed over 1,140 rule-by-design rows; exact LP lift bounds and multi-chain diagnostics now available | Pooled `r = −0.446`, VIF `11.61` fails the proposal gate as written; `β_m` is exactly collinear with the rule intercept. Define the gate on an identified within-rule quantity and target `β_λ`/`β_λR`. |
 | Gaussian diagnostic | One-dimensional analytic Bayes noise-loss reference and Monte Carlo check | Connect normalization checks to the eventual model/loss implementation. |
 | MOSAIC contrast | Preliminary paper/code review | Run and document the adapted replication; see [MOSAIC notes](mosaic-replication.md). |
 | Human audit | Blinded preparation, prediction and scoring for rules and independently judged predicate events | Obtain model-generated images and actual independent human judgments; none have been fabricated. |
@@ -143,10 +168,13 @@ estimated singleton-preserving equality rank of 10 and nullity of 47. Twenty
 designs were sampled with seed 43 and a 0.001 minimum weight. All 1,140
 rule-by-design rows had finite marginal and lift estimates. The pooled
 log-mean-marginal/log-lift correlation was -0.446; VIF was 11.61 for log lift
-and 13.72 for relation count. These rows share rules and designs, and the
-exposures and equality subspace come from the same small Monte Carlo matrix.
-The statistics are exploratory, not confirmatory and do not establish the
-proposal's decorrelation criteria. Reproduce with:
+and 13.72 for relation count. Exact LP bounds over the same estimated matrix
+span lift `[-4.888, +0.337]` with median width `1.172`, and `23/57` rules admit
+positive lift; a 5-chain × 200-design run still found `0/57,000` positive lifts.
+These rows share rules and designs, and the exposures and equality subspace come
+from the same small Monte Carlo matrix. The statistics are exploratory, not
+confirmatory, and do not establish the proposal's decorrelation criteria;
+`β_m` is exactly collinear with the rule intercept. Reproduce with:
 
 ```sh
 uv run python -m exposure.design_sample \

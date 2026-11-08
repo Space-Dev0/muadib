@@ -122,6 +122,26 @@ of repeated identical predicates. It does **not** detect arbitrary logical
 equivalence, implication, or redundancy between different predicates; it is not
 a theorem prover.
 
+## Benchmark validity
+
+Structural validation is necessary but not sufficient. The loader now also
+rejects duplicate identical predicates, contradictory attribute values on the
+same variable, and cyclic strict relations through
+`exposure.rules.validate_rule` (applied by `render.parse_rule`).
+
+`exposure.benchmark_audit` checks three properties that this provisional set
+fails:
+
+- relation singleton exposure is `0.999271`, so a relation cannot separate
+  relational competence from arbitrary placement;
+- relation kind is confounded with endpoint binding: in `K_attr=2, K_rel=1`,
+  `left_of` is subject-only `3/3` and `above` both-bound `3/3`;
+- only `3/12` color–shape pairs are co-bound to the same object, and there is no
+  held-out template split.
+
+The audit sets `confirmatory_ready: false` and is not a Stage 0 gate by itself.
+See [benchmark audit](benchmark-audit.md).
+
 ## Manifest fields
 
 The manifest includes:
@@ -155,6 +175,9 @@ prototype renderer. It is not sampling-support evidence for the population.
 
 - The set is hand-designed and provisional. It is not exhaustive and does not
   provide full counterbalancing of colors, shapes, variables, or layouts.
+- Relation kind is confounded with endpoint binding within complexity cells, and
+  only `3/12` color–shape pairs are co-bound to the same object; see
+  [benchmark audit](benchmark-audit.md).
 - Adding the triangle singleton candidates fixes missing vocabulary coverage in
   the `K_attr = 1` cells. It does not establish full counterbalancing, balanced
   frequencies, sampling support, or a Stage 0 gate pass.

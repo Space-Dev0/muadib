@@ -227,6 +227,11 @@ original `rules`.
 - Both objectives operate on the estimated matrix. Matrix estimation
   uncertainty is not propagated, so neither feasibility nor the min-kl
   allocation is a claim about the true population.
+- Min-KL is not the research objective; it does not maximize information about
+  `β_λ` or `β_λR`. Use `exposure.design_bounds` for exact exposure/lift bounds
+  over the singleton-preserving polytope and `exposure.design_chains` for
+  multi-chain mixing diagnostics; see [design bounds](design-bounds.md) and
+  [design chains](design-chains.md).
 - A positive `--min-weight` forces every conditioning template to receive
   weight. It can make the estimated LP infeasible even when a zero-floor
   solution exists; that is not proof of population infeasibility.

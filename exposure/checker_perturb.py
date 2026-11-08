@@ -9,7 +9,7 @@ from pathlib import Path
 
 from PIL import ImageEnhance, ImageFilter
 
-from exposure.checker import DetectionError, audit_rules, detect
+from exposure.checker import DetectionError, _detection_metrics, audit_rules, detect
 from exposure.render import render_scene
 from exposure.rules import satisfies
 
@@ -70,12 +70,18 @@ def audit(samples: int, seed: int = 0) -> dict:
                 predicted = satisfies(detected, predicates)
                 cell["false_accepts"] += int(predicted and not truth)
                 cell["false_rejects"] += int(truth and not predicted)
+        for cell in cells.values():
+            cell.update(_detection_metrics(cell))
         results[case_name] = {"perturbation": {"kind": case[0], "level": case[1]},
                               "total": samples, "evaluated": evaluated,
-                              "rejected": rejected, "rules": cells}
+                              "rejected": rejected,
+                              "rejection_rate": rejected / samples,
+                              "coverage": evaluated / samples, "rules": cells}
     return {"schema_version": 1, "seed_start": seed, "scenes_per_case": samples,
             "cases": results,
-            "note": "Paired clean synthetic renders only; no Stage 0 gate or human/model-output audit."}
+            "note": ("Paired clean synthetic renders only. Conditional rates use accepted "
+                     "images only; unconditional rates count detector failures as missed "
+                     "positives. No Stage 0 gate or human/model-output audit.")}
 
 
 def main() -> None:

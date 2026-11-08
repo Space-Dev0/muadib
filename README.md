@@ -45,6 +45,14 @@ third renders a rule-conditioned scene to `outputs/example.png` and
   directions for an estimated exposure matrix.
 - [Design sampler](docs/design-sample.md): exploratory hit-and-run sampling
   that preserves estimated singleton exposures.
+- [Design bounds](docs/design-bounds.md): exact LP exposure and lift bounds,
+  including the positive-lift corner.
+- [Design chains](docs/design-chains.md): multi-chain split-R-hat and
+  autocorrelation ESS diagnostics.
+- [Benchmark audit](docs/benchmark-audit.md): adversarial relational-validity
+  checks and `confirmatory_ready` status.
+- [Composition gap](docs/composition-gap.md): the two composition-gap scales,
+  boundary status, and the multiplicative-null check.
 - [Mixture validation](docs/mixture-validation.md): compare matrix predictions
   against fresh sampled scenes.
 - [Mixture analysis](docs/mixture-analysis.md): weighted exposures, rule and

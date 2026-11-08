@@ -18,7 +18,8 @@ def rel(subject, kind, obj):
 
 class TemplateBalanceTests(unittest.TestCase):
     def test_template_level_counts_zeroes_and_variable_histogram(self):
-        repeated = [attr("a", "color", "red"), attr("a", "color", "red"), rel("a", "left_of", "b")]
+        repeated = [attr("a", "color", "red"), attr("a", "shape", "triangle"),
+                    rel("a", "left_of", "b")]
         other = [attr("a", "color", "blue"), attr("b", "shape", "circle"), rel("b", "above", "c")]
         report = audit({"repeated": repeated, "other": other})
         self.assertEqual(report["total_templates"], 2)

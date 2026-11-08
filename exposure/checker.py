@@ -136,6 +136,35 @@ def audit_rules() -> dict:
     return rules
 
 
+def _ratio(numerator: int, denominator: int) -> float | None:
+    return numerator / denominator if denominator else None
+
+
+def _detection_metrics(cell: dict) -> dict:
+    """Return conditional and full-distribution rates for one rule.
+
+    Conditional rates use accepted images only. The unconditional rates count
+    correct accepted classifications over all examples of the corresponding
+    true class; abstentions are not counted as correct. These are coverage-
+    adjusted correct-classification rates, not error rates with abstentions
+    assigned a predicted class.
+    """
+    positives = cell["positive"] + cell["detector_failure_positive"]
+    negatives = cell["negative"] + cell["detector_failure_negative"]
+    return {
+        "conditional_sensitivity": _ratio(cell["positive"] - cell["false_rejects"],
+                                           cell["positive"]),
+        "conditional_specificity": _ratio(cell["negative"] - cell["false_accepts"],
+                                          cell["negative"]),
+        "unconditional_sensitivity": _ratio(cell["positive"] - cell["false_rejects"],
+                                            positives),
+        "unconditional_specificity": _ratio(cell["negative"] - cell["false_accepts"],
+                                            negatives),
+        "positive_coverage": _ratio(cell["positive"], positives),
+        "negative_coverage": _ratio(cell["negative"], negatives),
+    }
+
+
 def audit(samples: int, seed: int = 0, *, rules: dict | None = None) -> dict:
     if samples < 1:
         raise ValueError("samples must be positive")
@@ -164,9 +193,18 @@ def audit(samples: int, seed: int = 0, *, rules: dict | None = None) -> dict:
             cell["positive" if truth else "negative"] += 1
             cell["false_accepts"] += bool(predicted and not truth)
             cell["false_rejects"] += bool(truth and not predicted)
+    for cell in results.values():
+        cell.update(_detection_metrics(cell))
+    accepted = samples - failed
     return {"seed_start": seed, "scenes": samples, "detector_failures": failed,
-            "evaluated_scenes": samples - failed, "rules": results,
-            "note": "Clean renderer only; failures excluded from rule denominators. No Stage 0 gate or human audit."}
+            "evaluated_scenes": accepted,
+            "accepted_scenes": accepted,
+            "rejection_rate": failed / samples,
+            "coverage": accepted / samples,
+            "rules": results,
+            "note": ("Clean renderer only. Conditional rates use accepted images only; "
+                     "unconditional rates count detector failures as missed positives. "
+                     "No Stage 0 gate or human audit.")}
 
 
 def main() -> None:

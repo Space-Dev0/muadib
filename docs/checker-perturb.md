@@ -24,15 +24,30 @@ On 200 separate synthetic seeds (41000–41199), the current checker coverage wa
 The previous implementation baseline on these seeds was 85/200 for blur radius
 0.50. No rule errors were observed on accepted examples.
 Rejected scenes are excluded, so these coverage counts do not establish overall
-checker validity.
+checker validity. At blur radius 1.00 the counts are rejection `169/200`
+(`84.5%`) and coverage `31/200`; on a separate 100-scene holdout, rejection is
+`90/100` (`90%`). Among accepted images there are zero false accepts and zero
+false rejects, so the failure mode is **attrition**, not misclassification.
 
-For each case, the output records `total`, `evaluated`, and `rejected` scenes.
-For each rule, ground-truth positive and negative totals include rejected
-images. `positive` and `negative` are accepted-scene denominators for
-`false_rejects` and `false_accepts`, respectively. The `detector_failure_positive`
-and `detector_failure_negative` fields split rejected images by their true rule
-status. Rejections are not counted as false negatives or false positives; error
-rates on accepted images must therefore be interpreted with coverage.
+For each case, the output records `total`, `evaluated`, `rejected`,
+`rejection_rate`, and `coverage`. For each rule, ground-truth positive and
+negative totals include rejected images. `positive` and `negative` are
+accepted-scene denominators for `false_rejects` and `false_accepts`,
+respectively. The `detector_failure_positive` and
+`detector_failure_negative` fields split rejected images by their true rule
+status. Each rule also reports:
+
+- `conditional_sensitivity` / `conditional_specificity`: accepted images only;
+- `unconditional_sensitivity`: failures on positives count as missed
+  positives;
+- `unconditional_specificity`: correctly classified negatives divided by all
+  ground-truth negatives; failures are included in the denominator but are not
+  counted as false positives;
+- `positive_coverage` / `negative_coverage`: accepted fractions by truth.
+
+Rejections are not counted as false negatives or false positives; error rates
+on accepted images must therefore be interpreted with coverage. Conditioning on
+accepted images changes the estimand to a selected subpopulation.
 
 The same scene seeds are used across cases, so results are paired and correlated.
 This is a small instrument diagnostic, not a Stage 0 pass, human audit, or
