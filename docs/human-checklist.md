@@ -1,5 +1,14 @@
 # Human checklist for Stage 0
 
+The 100,000-update preview uses only the four rules in
+`examples/exposure_rules.json`: two single-attribute rules and two rules with
+two attributes and one relation. It does not cover the complexity range of
+the provisional 57-template benchmark. Before a formal audit, agree the final
+rule vocabulary and stratification, generate an independently selected image
+pool covering those strata, and decide how the four reviewers independently
+label and reconcile disagreements. The 16-image preview is not the 300-image
+audit.
+
 **Status: not passed.** Only the three proposal go/no-go criteria below determine
 whether Stage 0 passes. Everything else is enabling work. This checklist is
 derived from `Which Exposure Matters Research Proposal (Rev. 4).pdf`,

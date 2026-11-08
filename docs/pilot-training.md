@@ -360,6 +360,15 @@ found one component instead of three. These two rejections illustrate checker
 coverage limitations on this checkpoint; they do not establish its error rate
 or substitute for the independent human audit.
 
+An additional exploratory preview generated four images per pilot condition
+(`red`, `square`, `red_left_of_square`, `blue_above_circle`) at seeds
+101–104 and guidance 1, using the original checkpoint-compatible code. Visual
+inspection found recognizable shapes in many images, but some showed fewer
+than three visible objects and relational satisfaction was not consistently
+clear. This 16-image convenience preview is not a blinded audit, an accuracy
+estimate or evidence of Stage 0 passage. Images and manifest are in ignored
+laptop directory `outputs/velocity-preview-100000-20261108/`.
+
 ### Exploratory optimizer comparison
 
 At revision `61ae41a`, fresh AdamW and momentum-SGD models trained for 1,000
