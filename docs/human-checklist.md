@@ -19,6 +19,15 @@ shapes, four cases with only two detected components, and two unsupported
 sizes or occlusion. Relaxing thresholds requires independently labeled
 generated images and measurement of false accepts and rejects.
 
+The reviewer-only pack is `outputs/preview-review-pack-100000.zip` on the
+local machine. Give each reviewer their own copy, ask them to open
+`review.html`, and return separately named copies of both CSVs after filling
+the `judgment` column with `yes` or `no`. The pack excludes checker predictions.
+Keep the prediction files and rejection summary private until reviews are
+complete. Reviewers should work independently. This convenience sample has
+16 rule questions and 32 separate predicate questions; it cannot establish
+the proposal's checker-error gate or replace the formal stratified audit.
+
 **Status: not passed.** Only the three proposal go/no-go criteria below determine
 whether Stage 0 passes. Everything else is enabling work. This checklist is
 derived from `Which Exposure Matters Research Proposal (Rev. 4).pdf`,

@@ -8,6 +8,20 @@ fingerprint check. Sampling compatibility should be verified separately.
 **Not passed.** The following measurements are instrument-development results,
 not confirmatory research findings.
 
+## Latest checkpoint and calibration (2026-11-08)
+
+The online velocity pilot reached 100,000 updates on the GPU laptop. A local
+16-image preview covers four conditions and two complexity strata; all 16
+images were rejected by the current checker. This is a small convenience preview,
+not a model-quality estimate or the proposal's 300-image checker audit. A
+reviewer-only calibration pack is available in the ignored local path
+`outputs/preview-review-pack-100000.zip`; it contains no checker predictions.
+Each reviewer can independently answer the 16 rule questions and 32 separate
+predicate questions. Actual human judgments remain outstanding. The laptop was
+unreachable over SSH when this pack was prepared, so no newer checkpoint was
+verified. See [human checklist](human-checklist.md) and
+[pilot training](pilot-training.md#evidence-and-omissions).
+
 ## Blocking status (verified 2026-11-05)
 
 Stage 0 currently has **no learnability criterion**, so it could be "passed" by
