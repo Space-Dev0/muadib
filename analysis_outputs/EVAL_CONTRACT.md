@@ -9,7 +9,7 @@
     - Both scales are zero under the multiplicative null $RSR_r = \prod_p c_p$:
       $\Gamma_r^{\text{logit}} = \text{logit}(\text{RSR}_r) - \text{logit}(\prod_{p \in P_r} c_p)$
       and $\Gamma_r^{\log} = \log \text{RSR}_r - \sum_{p \in P_r} \log c_p$.
-    - Pre-registered primary: $\Gamma_r^{\log}$ (additive over predicates). $\Gamma_r^{\text{logit}}$ is a sensitivity. The expression $\text{logit}(\prod c_p) - \sum \text{logit}(c_p)$ is a different quantity and must not be reported as $\Gamma$.
+    - Proposed alternative, not pre-registered: $\Gamma_r^{\log}$ (additive over predicates), with $\Gamma_r^{\text{logit}}$ as a sensitivity. The proposal states the logit-scale gap. The expression $\text{logit}(\prod c_p) - \sum \text{logit}(c_p)$ is a different quantity and must not be reported as $\Gamma$.
   - **Sample Complexity ($N_{50}$):** Number of training exposures required to achieve $\text{RSR} = 0.50$.
   - **Wilson 95% Confidence Intervals:** Pointwise binomial confidence bounds for Monte Carlo measurements.
 
@@ -59,7 +59,7 @@ uv run python -m exposure.checker --rules examples/exposure_rules.json --image o
 Before Stage 1 confirmatory runs may begin, the following Stage 0 requirements must be met. Items 1–4 are **proposed** criteria; the repository's current Stage 0 documentation does not enforce a model criterion.
 
 1. **Model Learnability (proposed):** Reference model reaches median reference RSR in $[0.3, 0.7]$ across test rules, and passes an overfit-1/10/100-scene pre-gate. *(Currently not met; 12k samples were noise, 32k produced two inspected samples).*
-2. **Checker Calibration:** Pixel checker achieves false-positive rate $\le 0.05$ and false-negative rate $\le 0.10$ on model-generated images, audited by blinded human review. *(Currently evaluated only on clean/perturbed synthetic renders; perturbation rejection is 84.5–90% at blur radius 1.0 and accepted-image errors are zero, so the observed failure is attrition).*
+2. **Checker Calibration:** The proposal's Stage 0 target is checker error $\le 2\%$; validate per-predicate and per-rule errors on independently reviewed generated images. The separate FPR $\le 0.05$ and FNR $\le 0.10$ thresholds are proposals, not established gates. *(Currently evaluated only on clean/perturbed synthetic renders; perturbation rejection is 84.5–90% at blur radius 1.0 and accepted-image errors are zero, so the observed failure is attrition).*
 3. **Design Decorrelation:** Final benchmark demonstrates $|r(\log \text{lift}, \log \text{marginal})| \le 0.30$ and $\text{VIF} < 2.0$ on an identified within-rule quantity. *(Current pilot pooled $r=-0.446$, VIF $11.61$; $\beta_m$ is exactly collinear with the rule intercept, so the pooled gate is not identified).*
 4. **Benchmark Validity:** Relation singletons below 0.9, relation kind counterbalanced against endpoint binding, all 12 same-object color–shape pairs covered, and a held-out template split. *(Current `benchmark_audit` reports `confirmatory_ready: false`).*
-5. **Human Review Agreement:** Human-checker agreement achieves Fleiss' $\kappa \ge 0.70$.
+5. **Human Review Agreement (proposed):** Assess whether Fleiss' $\kappa \ge 0.70$ is appropriate; this threshold is not an established proposal gate.

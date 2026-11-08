@@ -346,6 +346,14 @@ quality estimate and are not ready for the human checker audit.
 
 ## Evidence and omissions
 
+The original online velocity run reached 100,000 updates (23637.6 cumulative
+seconds, 672003 rendering attempts). Requested counts were 50001 red, 50442
+square, 49717 red-left-of-square and 49840 blue-above-circle. A seed-5 red
+sample showed three recognizable shapes including red; a seed-6 relational
+sample showed only one clearly visible blue shape. This inspection of two
+samples is not an accuracy estimate. The checkpoint and samples remain in
+ignored laptop paths beginning `outputs/velocity-online-v1-100000`.
+
 ### Exploratory optimizer comparison
 
 At revision `61ae41a`, fresh AdamW and momentum-SGD models trained for 1,000
