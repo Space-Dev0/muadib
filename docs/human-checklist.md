@@ -14,6 +14,10 @@ are available locally under ignored `outputs/preview-audit-100000/`. The
 separate hidden `predictions.json` contains 16 detector rejections. This is not
 a formal audit or error-rate estimate; reviewers must supply independent real
 judgments, and checker rejections must remain in the results.
+The original rejection reasons were six palette deviations, four ambiguous
+shapes, four cases with only two detected components, and two unsupported
+sizes or occlusion. Relaxing thresholds requires independently labeled
+generated images and measurement of false accepts and rejects.
 
 **Status: not passed.** Only the three proposal go/no-go criteria below determine
 whether Stage 0 passes. Everything else is enabling work. This checklist is
