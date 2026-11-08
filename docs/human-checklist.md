@@ -9,6 +9,12 @@ pool covering those strata, and decide how the four reviewers independently
 label and reconcile disagreements. The 16-image preview is not the 300-image
 audit.
 
+For a small calibration exercise, the 16 preview images and blinded manifest
+are available locally under ignored `outputs/preview-audit-100000/`. The
+separate hidden `predictions.json` contains 16 detector rejections. This is not
+a formal audit or error-rate estimate; reviewers must supply independent real
+judgments, and checker rejections must remain in the results.
+
 **Status: not passed.** Only the three proposal go/no-go criteria below determine
 whether Stage 0 passes. Everything else is enabling work. This checklist is
 derived from `Which Exposure Matters Research Proposal (Rev. 4).pdf`,
