@@ -23,14 +23,14 @@ verified. See [human checklist](human-checklist.md) and
 [pilot training](pilot-training.md#evidence-and-omissions).
 
 On 2026-11-09 the GPU laptop was reachable again and contained the completed
-110,000-update checkpoint. A sign-in tray task started a continuation from
-110,000 to 120,000 updates. Eight matched preview images at 110,000 updates
-(four red and four square conditions, seeds 101–104) were copied locally;
-the prototype checker rejected all eight: five for palette deviations, two
-for ambiguous shapes, and one for two detected components. These are
-detector rejections, not measured human error rates. A full 16-image matched
-preview was still being generated at the time of this note. The human audit,
-decorrelation gate, and MOSAIC replication remain outstanding.
+110,000-update checkpoint. A sign-in tray task continued training through
+120,000 updates and began the segment toward 130,000. A matched preview of 16 images (four conditions,
+seeds 101–104) was copied locally to `outputs/preview-110000-20261109/`.
+The prototype checker rejected all 16: eight for palette deviations, three
+for ambiguous shapes, four for two detected components and one for unsupported
+size or occlusion. These are detector rejections, not measured human error
+rates or evidence that training has improved or worsened the model. The human
+audit, decorrelation gate, and MOSAIC replication remain outstanding.
 
 ## Blocking status (verified 2026-11-05)
 
