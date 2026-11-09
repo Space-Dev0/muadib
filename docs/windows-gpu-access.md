@@ -1,5 +1,26 @@
 # Windows GPU access for a research preflight
 
+## Checkpointed training tray
+
+The per-user scheduled task `Muadib GPU Training Tray` starts the controller at
+Windows sign-in. Look in the notification area's hidden icons for the
+application icon; right-click it to pause, resume, retry after an error, or
+exit. Pause and exit stop training and persist the paused state across sign-in.
+Resume removes that state. The loop saves a checkpoint after each 10,000
+updates; interrupting a segment loses updates since its last checkpoint. It
+does not replace an existing checkpoint and stops on validation or training
+errors. Logs are `%USERPROFILE%\muadib\training-tray-errors.log` and
+`training-tray.log`.
+
+The task runs in the signed-in user's interactive session. Sleep normally
+suspends and later resumes processes, but wake/reboot recovery and clicking
+the tray controls have not yet been tested on the laptop. A reboot starts the
+task after sign-in, not before sign-in; the task does not wake the laptop.
+The paused state survives reboot. Do not update the old training source
+checkout: existing checkpoints require its matching source code. The versioned
+installer in `scripts/install-training-tray.ps1` registers the task after the
+controller and trainer are copied into `%USERPROFILE%\muadib`.
+
 This note covers safe, practical SSH access and the current repository layout on
 the reported Windows RTX 3050 laptop. It is not a training guide and does not
 establish project model fit.

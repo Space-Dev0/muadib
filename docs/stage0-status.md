@@ -22,6 +22,16 @@ unreachable over SSH when this pack was prepared, so no newer checkpoint was
 verified. See [human checklist](human-checklist.md) and
 [pilot training](pilot-training.md#evidence-and-omissions).
 
+On 2026-11-09 the GPU laptop was reachable again and contained the completed
+110,000-update checkpoint. A sign-in tray task started a continuation from
+110,000 to 120,000 updates. Eight matched preview images at 110,000 updates
+(four red and four square conditions, seeds 101–104) were copied locally;
+the prototype checker rejected all eight: five for palette deviations, two
+for ambiguous shapes, and one for two detected components. These are
+detector rejections, not measured human error rates. A full 16-image matched
+preview was still being generated at the time of this note. The human audit,
+decorrelation gate, and MOSAIC replication remain outstanding.
+
 ## Blocking status (verified 2026-11-05)
 
 Stage 0 currently has **no learnability criterion**, so it could be "passed" by
