@@ -32,6 +32,18 @@ size or occlusion. These are detector rejections, not measured human error
 rates or evidence that training has improved or worsened the model. The human
 audit, decorrelation gate, and MOSAIC replication remain outstanding.
 
+On 2026-11-10 the laptop had a completed 310,000-update checkpoint and was
+training toward 320,000. A matched preview used the same four conditions and
+seeds 101–104. The checker accepted 5/16 images and rejected 11: seven for
+unsupported size or occlusion, three for four detected components, and one
+for an ambiguous shape. Its 110,000-update counterpart accepted 0/16. This
+small comparison measures checker coverage, not conditional accuracy, and
+does not establish a population-level improvement. Images and predictions
+are in ignored `outputs/preview-310000-20261110/`; the reviewer-only pack is
+`outputs/preview-review-pack-310000.zip`. No human judgments were supplied or
+inferred. Four rules and two complexity strata cannot substitute for the
+formal audit.
+
 ## Blocking status (verified 2026-11-05)
 
 Stage 0 currently has **no learnability criterion**, so it could be "passed" by
