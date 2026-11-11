@@ -10,12 +10,33 @@ from PIL import Image
 import numpy as np
 
 from exposure.checker import (DetectionError, audit, audit_rules, detect, detect_narrow_experimental,
-                              evaluate_narrow_attributes_experimental, _check_uncertain_centers)
+                              evaluate_narrow_attributes_experimental, _check_uncertain_centers,
+                              _evaluate_uncertain)
 from exposure.render import COLORS, SHAPES, _draw, render_scene
 from exposure.rules import Attribute, Relation, SceneObject, satisfies
 
 
 class CheckerTests(unittest.TestCase):
+    def test_uncertain_rule_evaluation_preserves_binding_and_abstains(self):
+        scene = (SceneObject("red", "triangle", 10, 10),
+                 SceneObject("blue", "square", 11, 20),
+                 SceneObject("green", "square", 30, 30))
+        red_left_blue = (Attribute("a", "color", "red"), Attribute("b", "color", "blue"),
+                         Relation("a", "left_of", "b"))
+        self.assertIsNone(_evaluate_uncertain(scene, [True, False, False], red_left_blue))
+        self.assertTrue(_evaluate_uncertain(scene, [False, False, False], red_left_blue))
+        red_left_green = (Attribute("a", "color", "red"), Attribute("b", "color", "green"),
+                          Relation("a", "left_of", "b"))
+        self.assertTrue(_evaluate_uncertain(scene, [True, False, False], red_left_green))
+        blue_left_red = (Attribute("a", "color", "blue"), Attribute("b", "color", "red"),
+                         Relation("a", "left_of", "b"))
+        self.assertFalse(_evaluate_uncertain(scene, [True, False, False], blue_left_red))
+        any_square = (Attribute("b", "shape", "square"), Relation("a", "left_of", "b"),
+                      Attribute("a", "color", "red"))
+        self.assertTrue(_evaluate_uncertain(scene, [True, False, False], any_square))
+        with self.assertRaises(ValueError):
+            _evaluate_uncertain(scene, [True], red_left_blue)
+
     def test_narrow_center_uncertainty_abstains_at_boundaries(self):
         a = SceneObject("red", "triangle", 10.5, 10)
         for b in (SceneObject("blue", "square", 11.5, 30),

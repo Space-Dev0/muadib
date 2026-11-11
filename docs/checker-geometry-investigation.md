@@ -65,6 +65,19 @@ human answer for each. Object shape/color uncertainty remains; this observation
 is not independent validation. Neither experimental function is used by the
 standard audit.
 
+An additional experimental API, `evaluate_narrow_rule_experimental`, evaluates
+attribute and relation conjunctions using three-valued interval comparisons
+and distinct existential bindings. It returns `None` if no binding is
+definitely true but an uncertain one remains possible; incompatible predicates
+and detector failures are not silently labeled. A ±1-pixel radius for narrow
+components is assumed, not empirically guaranteed, and other detected centers
+are treated as exact. The conservative interval logic does not model correlations
+between multiple uncertain relations and may abstain unnecessarily. On the
+same eight questions that motivated this change, it answered seven, all agreeing
+with the reviewers, and abstained on one; this is development data, not a
+holdout or evidence of research-grade accuracy. Neither standard detection nor
+the audit workflow invokes this experimental API.
+
 On clean-render scenes at seeds 46000–46099 with brightness 1.1 or blur radius
 0.5, the attribute-only experimental evaluator accepted all 100 scenes in each
 condition and made zero errors across the seven default singleton attribute

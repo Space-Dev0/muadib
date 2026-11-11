@@ -5,6 +5,7 @@ This is not validated for generated, textured, overlapping or perturbed images.
 
 import argparse
 import json
+from itertools import permutations
 from pathlib import Path
 
 import numpy as np
@@ -13,7 +14,7 @@ from scipy import ndimage
 
 from exposure.measure import load_rules, unique_object
 from exposure.render import COLORS, IMAGE_SIZE, SHAPES, render_scene
-from exposure.rules import Attribute, Predicate, Relation, SceneObject, satisfies
+from exposure.rules import Attribute, Predicate, Relation, SceneObject, satisfies, validate_rule
 
 
 class DetectionError(ValueError):
@@ -25,7 +26,8 @@ class _PaletteError(DetectionError):
 
 
 def _detect_palette(image: Image.Image, threshold: float = 100, *, palette_tolerance: float = 40,
-                    narrow_triangles: bool = False, guard_spatial: bool = True) -> tuple[SceneObject, ...]:
+                    narrow_triangles: bool = False, guard_spatial: bool = True,
+                    uncertain_out: list[bool] | None = None) -> tuple[SceneObject, ...]:
     """Check pixels against the original clean-render palette."""
     if not isinstance(image, Image.Image) or image.mode != "RGB" or image.size != (IMAGE_SIZE, IMAGE_SIZE):
         raise DetectionError("Expected a 64x64 RGB image")
@@ -78,6 +80,8 @@ def _detect_palette(image: Image.Image, threshold: float = 100, *, palette_toler
         uncertain.append(narrow)
     if narrow_triangles and guard_spatial:
         _check_uncertain_centers(result, uncertain)
+    if uncertain_out is not None:
+        uncertain_out.extend(uncertain)
     return tuple(result)
 
 
@@ -109,6 +113,54 @@ def evaluate_narrow_attributes_experimental(image: Image.Image, predicates: tupl
         raise ValueError("Experimental attribute evaluation requires attribute-only predicates")
     objects = _detect_palette(image, narrow_triangles=True, guard_spatial=False)
     return satisfies(objects, predicates)
+
+
+def _evaluate_uncertain(objects: tuple[SceneObject, ...], uncertain: list[bool],
+                        predicates: tuple[Predicate, ...]) -> bool | None:
+    """Conservative three-valued existential evaluation under assumed radii.
+
+    None means the available center intervals do not settle the rule. The
+    result is conservative: interacting uncertain relations may be infeasible,
+    but will still abstain rather than inventing a definite answer.
+    """
+    validate_rule(predicates)
+    if len(objects) != len(uncertain) or any(type(value) is not bool for value in uncertain):
+        raise ValueError("Each object must have one uncertainty flag")
+    names = sorted({name for p in predicates for name in
+                    ((p.variable,) if isinstance(p, Attribute) else (p.subject, p.object))})
+    possible = False
+    for indices in permutations(range(len(objects)), len(names)):
+        binding = dict(zip(names, indices, strict=True))
+        unresolved = False
+        for predicate in predicates:
+            if isinstance(predicate, Attribute):
+                if getattr(objects[binding[predicate.variable]], predicate.field) != predicate.value:
+                    break
+                continue
+            i, j = binding[predicate.subject], binding[predicate.object]
+            axis = "x" if predicate.kind == "left_of" else "y"
+            a, b = getattr(objects[i], axis), getattr(objects[j], axis)
+            radius = int(uncertain[i]) + int(uncertain[j])
+            if a - b >= radius:
+                break
+            if a - b >= -radius:
+                unresolved = True
+        else:
+            if not unresolved:
+                return True
+            possible = True
+    return None if possible else False
+
+
+def evaluate_narrow_rule_experimental(image: Image.Image, predicates: tuple[Predicate, ...]) -> bool | None:
+    """Evaluate a rule with assumed ±1 pixel radii for narrow objects.
+
+    This opt-in method returns None on uncertain relation truth and may raise
+    DetectionError. Its center bounds and object labels are not validated.
+    """
+    flags: list[bool] = []
+    objects = _detect_palette(image, narrow_triangles=True, guard_spatial=False, uncertain_out=flags)
+    return _evaluate_uncertain(objects, flags, predicates)
 
 
 def _detect_sharpened(image: Image.Image, *, palette_tolerance: float = 40) -> tuple[SceneObject, ...]:
