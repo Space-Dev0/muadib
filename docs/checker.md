@@ -58,7 +58,8 @@ thresholds without independent validation. Reports are in ignored
 `outputs/audit-results-800000-holdout/`.
 An exploratory investigation of these geometry rejections and a candidate
 triangle-width relaxation is in [geometry investigation](checker-geometry-investigation.md).
-The candidate is not part of the checker and is not validated.
+The candidate is available only through a separate experimental function; it
+is not used by the standard checker or validated for research use.
 
 Run the clean-render instrument audit:
 

@@ -9,12 +9,54 @@ from unittest.mock import patch
 from PIL import Image
 import numpy as np
 
-from exposure.checker import DetectionError, audit, audit_rules, detect
+from exposure.checker import DetectionError, audit, audit_rules, detect, detect_narrow_experimental, _check_uncertain_centers
 from exposure.render import COLORS, SHAPES, _draw, render_scene
 from exposure.rules import Attribute, Relation, SceneObject, satisfies
 
 
 class CheckerTests(unittest.TestCase):
+    def test_narrow_center_uncertainty_abstains_at_boundaries(self):
+        a = SceneObject("red", "triangle", 10.5, 10)
+        for b in (SceneObject("blue", "square", 11.5, 30),
+                  SceneObject("blue", "square", 30, 11),
+                  SceneObject("blue", "square", 10.5, 30)):
+            with self.subTest(other=b), self.assertRaisesRegex(DetectionError, "Uncertain spatial"):
+                _check_uncertain_centers([a, b], [True, False])
+        _check_uncertain_centers([a, SceneObject("blue", "square", 12, 12)], [True, False])
+        with self.assertRaises(DetectionError):
+            _check_uncertain_centers([a, SceneObject("blue", "triangle", 12.5, 30)], [True, True])
+
+    def test_experimental_geometry_keeps_clean_and_rejects_bad_images(self):
+        scene = render_scene(8)
+        try:
+            objects = detect_narrow_experimental(scene.image)
+        except DetectionError as exc:
+            self.fail(f"Clean scene unexpectedly rejected: {exc}")
+        self.assertEqual(sorted(objects, key=lambda o: o.x), sorted(scene.objects, key=lambda o: o.x))
+        with self.assertRaises(DetectionError):
+            detect_narrow_experimental(Image.new("RGB", (64, 64), "black"))
+
+    def test_experimental_narrow_triangle_and_spatial_tie(self):
+        pixels = np.full((64, 64, 3), 255, dtype=np.uint8)
+        for row in range(11):
+            radius = row // 2
+            pixels[5 + row, 10 - radius:11 + radius] = COLORS["red"]
+        pixels[24:36, 24:36] = COLORS["blue"]
+        pixels[44:56, 44:56] = COLORS["green"]
+        image = Image.fromarray(pixels)
+        with self.assertRaises(DetectionError):
+            detect(image)
+        objects = detect_narrow_experimental(image)
+        self.assertEqual([obj.shape for obj in objects], ["triangle", "square", "square"])
+        clipped = pixels.copy()
+        clipped[8:12, 7:14] = 255
+        with self.assertRaises(DetectionError):
+            detect_narrow_experimental(Image.fromarray(clipped))
+        pixels[24:36, 24:36] = 255
+        pixels[5:17, 24:36] = COLORS["blue"]
+        with self.assertRaisesRegex(DetectionError, "Uncertain spatial"):
+            detect_narrow_experimental(Image.fromarray(pixels))
+
     def test_audit_rejects_non_integer_arguments(self):
         for samples, seed in ((True, 0), (2.0, 0), (1, False), (1, 0.5)):
             with self.subTest(samples=samples, seed=seed), self.assertRaises(ValueError):

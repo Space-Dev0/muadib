@@ -24,7 +24,8 @@ class _PaletteError(DetectionError):
     """A pixel is incompatible with the supported renderer palette."""
 
 
-def _detect_palette(image: Image.Image, threshold: float = 100, *, palette_tolerance: float = 40) -> tuple[SceneObject, ...]:
+def _detect_palette(image: Image.Image, threshold: float = 100, *, palette_tolerance: float = 40,
+                    narrow_triangles: bool = False) -> tuple[SceneObject, ...]:
     """Check pixels against the original clean-render palette."""
     if not isinstance(image, Image.Image) or image.mode != "RGB" or image.size != (IMAGE_SIZE, IMAGE_SIZE):
         raise DetectionError("Expected a 64x64 RGB image")
@@ -46,14 +47,18 @@ def _detect_palette(image: Image.Image, threshold: float = 100, *, palette_toler
     if count != 3:
         raise DetectionError(f"Expected three separated objects; found {count} components")
     result = []
+    uncertain = []
     for number in range(1, count + 1):
         ys, xs = np.nonzero(labels == number)
         x0, x1, y0, y1 = int(xs.min()), int(xs.max()), int(ys.min()), int(ys.max())
         width, height = x1 - x0 + 1, y1 - y0 + 1
-        if width != 12 or height not in (11, 12):
+        narrow = narrow_triangles and width == 11 and height == 11
+        if not narrow and (width != 12 or height not in (11, 12)):
             raise DetectionError("Unsupported object size or occlusion")
         ratio = len(xs) / (width * height)
-        if height == 11 and 0.49 <= ratio <= 0.56:
+        if narrow and not 0.49 <= ratio <= 0.60:
+            raise DetectionError("Ambiguous narrow object shape")
+        if narrow or (height == 11 and 0.49 <= ratio <= 0.56):
             shape = "triangle"
         elif height == 12 and 0.76 <= ratio <= 0.84:
             shape = "circle"
@@ -70,7 +75,28 @@ def _detect_palette(image: Image.Image, threshold: float = 100, *, palette_toler
         x = (x0 + x1 + 1) / 2
         y = (y0 + y1 + (0 if shape == "triangle" else 1)) / 2
         result.append(SceneObject(tuple(COLORS)[color_index], shape, x, y))
+        uncertain.append(narrow)
+    if narrow_triangles:
+        _check_uncertain_centers(result, uncertain)
     return tuple(result)
+
+
+def _check_uncertain_centers(objects: list[SceneObject], uncertain: list[bool]) -> None:
+    """Conservative trial: reject potentially ambiguous x or y orderings.
+
+    A one-pixel radius per narrow component is an unvalidated assumption, not
+    a certified bound on generated images. It cannot establish shape validity.
+    """
+    for i, a in enumerate(objects):
+        for j in range(i + 1, len(objects)):
+            radius = int(uncertain[i]) + int(uncertain[j])
+            if radius and (abs(a.x - objects[j].x) <= radius or abs(a.y - objects[j].y) <= radius):
+                raise DetectionError("Uncertain spatial ordering")
+
+
+def detect_narrow_experimental(image: Image.Image) -> tuple[SceneObject, ...]:
+    """Trial narrow triangles without fallback; never validated for research use."""
+    return _detect_palette(image, narrow_triangles=True)
 
 
 def _detect_sharpened(image: Image.Image, *, palette_tolerance: float = 40) -> tuple[SceneObject, ...]:

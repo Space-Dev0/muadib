@@ -22,10 +22,20 @@ separate clean-render check of seeds 44000–44199 produced zero detector
 failures and zero rule errors among the default audit rules. Clean renders do
 not establish correctness on generated images or unsupported geometry.
 
-This trial is not used by the checker. An 11-pixel bounding box gives a
+An opt-in `detect_narrow_experimental(image)` now implements the narrow
+component trial in the checker without the standard detector's fallbacks.
+It assumes a one-pixel center uncertainty radius for each narrow component and
+abstains if any pair involving it has x or y distance at most the sum of the
+assumed radii. The standard `detect` and all existing audit workflows remain
+unchanged. This radius is a modeling assumption, not a verified bound for
+generated images. On the same eight development questions the experimental
+detector accepted seven and matched their unanimous whole-rule answers; no
+independent validation is implied.
+
+An 11-pixel bounding box gives a
 half-pixel center under the current estimator. A boundary or occlusion can move
 that center, potentially flipping a spatial relation. Before considering a
-change, define center uncertainty and abstention for near-ties; test tied and
+change to the standard audit, validate the center uncertainty bound; test tied and
 near-tied relations, overlapping and clipped shapes, unsupported geometry,
 mixed colors, and clean scenes with known annotations. Then use a fresh,
 independently human-labeled image set selected after the candidate is frozen,
