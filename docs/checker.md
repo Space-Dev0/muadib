@@ -56,6 +56,9 @@ the wider palette limit produced no coverage gain on this set. This is a small
 follow-up, not evidence of population accuracy or a reason to relax geometry
 thresholds without independent validation. Reports are in ignored
 `outputs/audit-results-800000-holdout/`.
+An exploratory investigation of these geometry rejections and a candidate
+triangle-width relaxation is in [geometry investigation](checker-geometry-investigation.md).
+The candidate is not part of the checker and is not validated.
 
 Run the clean-render instrument audit:
 
