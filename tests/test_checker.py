@@ -9,7 +9,8 @@ from unittest.mock import patch
 from PIL import Image
 import numpy as np
 
-from exposure.checker import DetectionError, audit, audit_rules, detect, detect_narrow_experimental, _check_uncertain_centers
+from exposure.checker import (DetectionError, audit, audit_rules, detect, detect_narrow_experimental,
+                              evaluate_narrow_attributes_experimental, _check_uncertain_centers)
 from exposure.render import COLORS, SHAPES, _draw, render_scene
 from exposure.rules import Attribute, Relation, SceneObject, satisfies
 
@@ -56,6 +57,11 @@ class CheckerTests(unittest.TestCase):
         pixels[5:17, 24:36] = COLORS["blue"]
         with self.assertRaisesRegex(DetectionError, "Uncertain spatial"):
             detect_narrow_experimental(Image.fromarray(pixels))
+        self.assertTrue(evaluate_narrow_attributes_experimental(
+            Image.fromarray(pixels), (Attribute("a", "color", "red"),)))
+        with self.assertRaisesRegex(ValueError, "attribute-only"):
+            evaluate_narrow_attributes_experimental(
+                Image.fromarray(pixels), (Relation("a", "left_of", "b"),))
 
     def test_audit_rejects_non_integer_arguments(self):
         for samples, seed in ((True, 0), (2.0, 0), (1, False), (1, 0.5)):

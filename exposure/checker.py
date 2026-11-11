@@ -13,7 +13,7 @@ from scipy import ndimage
 
 from exposure.measure import load_rules, unique_object
 from exposure.render import COLORS, IMAGE_SIZE, SHAPES, render_scene
-from exposure.rules import Attribute, Relation, SceneObject, satisfies
+from exposure.rules import Attribute, Predicate, Relation, SceneObject, satisfies
 
 
 class DetectionError(ValueError):
@@ -25,7 +25,7 @@ class _PaletteError(DetectionError):
 
 
 def _detect_palette(image: Image.Image, threshold: float = 100, *, palette_tolerance: float = 40,
-                    narrow_triangles: bool = False) -> tuple[SceneObject, ...]:
+                    narrow_triangles: bool = False, guard_spatial: bool = True) -> tuple[SceneObject, ...]:
     """Check pixels against the original clean-render palette."""
     if not isinstance(image, Image.Image) or image.mode != "RGB" or image.size != (IMAGE_SIZE, IMAGE_SIZE):
         raise DetectionError("Expected a 64x64 RGB image")
@@ -76,7 +76,7 @@ def _detect_palette(image: Image.Image, threshold: float = 100, *, palette_toler
         y = (y0 + y1 + (0 if shape == "triangle" else 1)) / 2
         result.append(SceneObject(tuple(COLORS)[color_index], shape, x, y))
         uncertain.append(narrow)
-    if narrow_triangles:
+    if narrow_triangles and guard_spatial:
         _check_uncertain_centers(result, uncertain)
     return tuple(result)
 
@@ -97,6 +97,18 @@ def _check_uncertain_centers(objects: list[SceneObject], uncertain: list[bool]) 
 def detect_narrow_experimental(image: Image.Image) -> tuple[SceneObject, ...]:
     """Trial narrow triangles without fallback; never validated for research use."""
     return _detect_palette(image, narrow_triangles=True)
+
+
+def evaluate_narrow_attributes_experimental(image: Image.Image, predicates: tuple[Predicate, ...]) -> bool:
+    """Evaluate attribute-only rules without requiring certain spatial ordering.
+
+    This opt-in experiment does not validate object shapes or colors. Relation
+    predicates are refused because uncertain centers can change their truth.
+    """
+    if not predicates or any(not isinstance(predicate, Attribute) for predicate in predicates):
+        raise ValueError("Experimental attribute evaluation requires attribute-only predicates")
+    objects = _detect_palette(image, narrow_triangles=True, guard_spatial=False)
+    return satisfies(objects, predicates)
 
 
 def _detect_sharpened(image: Image.Image, *, palette_tolerance: float = 40) -> tuple[SceneObject, ...]:

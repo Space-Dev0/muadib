@@ -49,6 +49,27 @@ checker/image hashes were saved privately before review in ignored
 across conditions. This small follow-up cannot replace the formal audit or
 certify the assumed uncertainty bound.
 
+The four returned reviewer sets agreed on all eight questions. Frozen standard
+predictions accepted 1/8; frozen narrow-detector predictions accepted 2/8.
+All accepted answers agreed with the reviewers; five of the six experimental
+rejections were uncertain spatial order, and one was unsupported geometry.
+The independent reviews and scores are in ignored
+`outputs/audit-results-geometry-800000/`. Reviewers' independence cannot be
+verified from their files. These counts do not establish population accuracy.
+
+Two of the uncertain-order rejections asked only about attributes. A separate
+experimental API, `evaluate_narrow_attributes_experimental(image, predicates)`,
+evaluates attribute-only rules without testing spatial order and refuses any
+relation predicate. On these two now-development examples it returned the
+human answer for each. Object shape/color uncertainty remains; this observation
+is not independent validation. Neither experimental function is used by the
+standard audit.
+
+On clean-render scenes at seeds 46000–46099 with brightness 1.1 or blur radius
+0.5, the attribute-only experimental evaluator accepted all 100 scenes in each
+condition and made zero errors across the seven default singleton attribute
+rules. These synthetic cases do not validate generated images or relations.
+
 An 11-pixel bounding box gives a
 half-pixel center under the current estimator. A boundary or occlusion can move
 that center, potentially flipping a spatial relation. Before considering a
