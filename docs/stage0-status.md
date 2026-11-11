@@ -51,6 +51,12 @@ accepted images has a 2–2 human disagreement. See
 [calibration results](calibration-310000.md); this does not pass the checker
 gate. The GPU was actively training from the 760,000-update checkpoint toward
 770,000 when checked.
+Four exploratory samples from 760,000 updates (one per pilot condition, seed
+101) contain recognizable shapes; the blue-above-circle sample has no clear
+circle and the red sample shows four objects. The checker accepted one image
+and rejected the other three. This is a four-image diagnostic, not an
+accuracy estimate or comparison of training checkpoints. Local copies are in
+ignored `outputs/preview-760000-20261111/`.
 
 ## Blocking status (verified 2026-11-05)
 
