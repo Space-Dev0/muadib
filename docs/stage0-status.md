@@ -75,12 +75,12 @@ instrument checks while no usable generator exists. The verified state is:
 
 | Gate | Current state | Evidence |
 | --- | --- | --- |
-| Learnability | **Not tested** | 12,000-update samples were noise; 32,000 updates produced two inspected samples (one red shape, no clear relation); no overfit-1/10/100-scene gate exists. |
+| Learnability | **Not established** | The four-rule velocity pilot reached 800,000 updates and generated recognizable shapes. Small human-reviewed previews exist, but no systematic learnability test, full benchmark model, or overfit-1/10/100-scene gate has been completed. |
 | Relational validity | **Fails** | Analytic relation singleton exposure `0.999271`; `left_of` is subject-only `3/3` and `above` both-bound `3/3` in `K_attr=2, K_rel=1`. `benchmark_audit` sets `confirmatory_ready: false`. |
 | Decorrelation | **Fails as written** | Pooled `r = −0.446`, VIF `11.61` vs proposal `|r| ≤ 0.3`, `VIF < 2`; `β_m` is exactly collinear with the rule intercept. |
 | Design dose | **Narrow sample, wider polytope** | Realized median within-rule range `0.0955`; exact LP width `1.172`; `23/57` rules admit positive lift but no sampled chain reaches the corner. |
-| Checker on generated images | **Not validated** | Perturbation rejection `84.5–90%` at blur radius `1.0`; accepted images have zero observed rule errors, so failure is attrition. No generated-image or human audit. |
-| MOSAIC replication | **Not run** | Only analysis plumbing exists. |
+| Checker on generated images | **Not validated** | Human-reviewed generated-image calibrations are available; substantial rejection remains, and their samples are too small and narrow to establish the 2% criterion. The experimental geometry detector is not validated for research use. |
+| MOSAIC replication | **Not run** | Analysis plumbing and a small data-feasibility pilot exist; no adaptation models have been trained or evaluated. |
 
 A learnability pre-gate should require: overfit one fixed scene (visual match
 and low MSE), overfit 10 scenes (RSR ≥ 0.9), overfit 100 scenes (RSR ≥ 0.7),
