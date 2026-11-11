@@ -47,7 +47,9 @@ formal audit.
 On 2026-11-11 four reviewers returned complete 310,000-preview calibration
 files. They agreed unanimously on 14/16 whole-rule and 31/32 predicate
 questions. The checker rejected 11/16 whole-rule images, and one of the five
-accepted images has a 2–2 human disagreement. See
+accepted images originally had a 2–2 human disagreement. The team subsequently
+adjudicated all three disputed questions as yes; this does not increase the
+sample size or establish checker accuracy. See
 [calibration results](calibration-310000.md); this does not pass the checker
 gate. The GPU was actively training from the 760,000-update checkpoint toward
 770,000 when checked.
