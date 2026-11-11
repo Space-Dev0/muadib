@@ -45,6 +45,18 @@ hashes saved privately before requesting labels. The review-only archive is
 follow-up can test the change on new samples but cannot establish the 2% gate
 or replace the 300-image complexity-stratified audit.
 
+Four reviewers returned complete follow-up reviews and agreed on all eight
+questions; independence cannot be verified from the files alone. Image hashes
+and the checker source hash matched the predictions saved before review. Both
+limits produced identical results: three accepted answers agreed with the
+reviewers (two human-positive, one human-negative) and five images were
+rejected (three human-positive, two human-negative). Four rejections were
+reported as unsupported size or occlusion, and one as ambiguous shape. Thus
+the wider palette limit produced no coverage gain on this set. This is a small
+follow-up, not evidence of population accuracy or a reason to relax geometry
+thresholds without independent validation. Reports are in ignored
+`outputs/audit-results-800000-holdout/`.
+
 Run the clean-render instrument audit:
 
 ```sh
