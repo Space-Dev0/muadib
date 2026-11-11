@@ -44,6 +44,14 @@ are in ignored `outputs/preview-310000-20261110/`; the reviewer-only pack is
 inferred. Four rules and two complexity strata cannot substitute for the
 formal audit.
 
+On 2026-11-11 four reviewers returned complete 310,000-preview calibration
+files. They agreed unanimously on 14/16 whole-rule and 31/32 predicate
+questions. The checker rejected 11/16 whole-rule images, and one of the five
+accepted images has a 2–2 human disagreement. See
+[calibration results](calibration-310000.md); this does not pass the checker
+gate. The GPU was actively training from the 760,000-update checkpoint toward
+770,000 when checked.
+
 ## Blocking status (verified 2026-11-05)
 
 Stage 0 currently has **no learnability criterion**, so it could be "passed" by
