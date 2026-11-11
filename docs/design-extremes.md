@@ -42,3 +42,16 @@ it is not a population error bound. The sampled distributions are extreme,
 many endpoints duplicate others, their rows share designs and rules, and
 matrix uncertainty is not propagated. `gate_status` in the holdout report is
 `not_assessed`; this does not pass Stage 0.
+
+An additional independently seeded matrix with 500 accepted scenes per
+condition (`outputs/exposure-57-holdout-81205.json`) gave endpoint pooled
+correlation −0.33034, lift VIF 2.28962, and maximum singleton deviation
+0.06789. The earlier 20 sampled designs on the same holdout had correlation
+−0.44545, lift VIF 11.58996, and maximum deviation 0.01082. These are
+different dependent design collections, not a causal or uncertainty-adjusted
+comparison. Both still miss the stated correlation/VIF thresholds in these
+exploratory pooled calculations; breadth is omitted. Reproduce with
+`exposure.measure` at seed 81205 and 500 samples per condition, then the
+`design_holdout` command above with the desired design file. Reports are in
+ignored `outputs/design-extremes-holdout-81205.json` and
+`outputs/design-samples-holdout-81205.json`.
