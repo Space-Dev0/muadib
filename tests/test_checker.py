@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from PIL import Image
+import numpy as np
 
 from exposure.checker import DetectionError, audit, audit_rules, detect
 from exposure.render import COLORS, SHAPES, _draw, render_scene
@@ -51,6 +52,23 @@ class CheckerTests(unittest.TestCase):
         rule = (Attribute("a", "color", "red"), Attribute("b", "color", "blue"),
                 Relation("a", "above", "b"))
         self.assertFalse(satisfies(detect(_draw(scene).image), rule))
+
+    def test_small_palette_deviation_and_unsupported_color(self):
+        objects = (SceneObject("green", "square", 12, 12),
+                   SceneObject("red", "circle", 32, 32),
+                   SceneObject("blue", "triangle", 52, 52))
+        pixels = np.asarray(_draw(objects).image).copy()
+        pixels[12, 12] = [14, 146, 51]
+        with self.assertRaises(DetectionError):
+            detect(Image.fromarray(pixels))
+        self.assertEqual(sorted(detect(Image.fromarray(pixels), palette_tolerance=45), key=lambda o: o.x),
+                         sorted(objects, key=lambda o: o.x))
+        pixels[12, 12] = [255, 0, 255]
+        with self.assertRaises(DetectionError):
+            detect(Image.fromarray(pixels), palette_tolerance=45)
+        for invalid in (float("nan"), -1, 46, True):
+            with self.subTest(tolerance=invalid), self.assertRaises(ValueError):
+                detect(Image.fromarray(pixels), palette_tolerance=invalid)
 
     def test_rejects_invalid_images(self):
         for image in (Image.new("RGB", (64, 64), "black"), Image.new("RGB", (64, 64), "white"),

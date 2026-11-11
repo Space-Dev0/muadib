@@ -24,7 +24,7 @@ class _PaletteError(DetectionError):
     """A pixel is incompatible with the supported renderer palette."""
 
 
-def _detect_palette(image: Image.Image, threshold: float = 100) -> tuple[SceneObject, ...]:
+def _detect_palette(image: Image.Image, threshold: float = 100, *, palette_tolerance: float = 40) -> tuple[SceneObject, ...]:
     """Check pixels against the original clean-render palette."""
     if not isinstance(image, Image.Image) or image.mode != "RGB" or image.size != (IMAGE_SIZE, IMAGE_SIZE):
         raise DetectionError("Expected a 64x64 RGB image")
@@ -39,7 +39,7 @@ def _detect_palette(image: Image.Image, threshold: float = 100) -> tuple[SceneOb
     relative = pixels[:, :, None, :] - 255.0
     alpha = np.clip(np.sum(relative * direction, axis=3) / np.sum(direction * direction, axis=1), 0, 1)
     blend_distance = np.linalg.norm(relative - alpha[:, :, :, None] * direction, axis=3).min(axis=2)
-    if np.any(blend_distance > 40):
+    if np.any(blend_distance > palette_tolerance):
         raise _PaletteError("Unrecognized foreground colors")
     mask = distance <= threshold
     labels, count = ndimage.label(mask)
@@ -73,24 +73,26 @@ def _detect_palette(image: Image.Image, threshold: float = 100) -> tuple[SceneOb
     return tuple(result)
 
 
-def _detect_sharpened(image: Image.Image) -> tuple[SceneObject, ...]:
+def _detect_sharpened(image: Image.Image, *, palette_tolerance: float = 40) -> tuple[SceneObject, ...]:
     """Accept mild sharpening only when two settings yield identical objects."""
     detections = [tuple(sorted(_detect_palette(image.filter(ImageFilter.UnsharpMask(
-        radius=radius, percent=100, threshold=0))), key=lambda obj: (obj.x, obj.y)))
+        radius=radius, percent=100, threshold=0)), palette_tolerance=palette_tolerance), key=lambda obj: (obj.x, obj.y)))
         for radius in (0.5, 0.6)]
     if detections[0] != detections[1]:
         raise DetectionError("Sharpening results disagree")
     return detections[0]
 
 
-def detect(image: Image.Image) -> tuple[SceneObject, ...]:
+def detect(image: Image.Image, *, palette_tolerance: float = 40) -> tuple[SceneObject, ...]:
     """Infer objects from pixels with conservative fallback checks.
 
     The correction addresses a uniform grayscale reduction of the white
     background. It is deliberately narrow and does not imply general robustness.
     """
+    if isinstance(palette_tolerance, bool) or not isinstance(palette_tolerance, (int, float)) or not np.isfinite(palette_tolerance) or not 0 <= palette_tolerance <= 45:
+        raise ValueError("palette_tolerance must be finite and between 0 and 45")
     try:
-        return _detect_palette(image)
+        return _detect_palette(image, palette_tolerance=palette_tolerance)
     except DetectionError as original:
         if not isinstance(image, Image.Image) or image.mode != "RGB" or image.size != (IMAGE_SIZE, IMAGE_SIZE):
             raise
@@ -103,14 +105,14 @@ def detect(image: Image.Image) -> tuple[SceneObject, ...]:
                 225 <= int(background[0]) < 255):
             corrected = np.clip(np.rint(pixels.astype(np.float64) * 255.0 / int(background[0])), 0, 255)
             try:
-                return _detect_palette(Image.fromarray(corrected.astype(np.uint8)))
+                return _detect_palette(Image.fromarray(corrected.astype(np.uint8)), palette_tolerance=palette_tolerance)
             except DetectionError:
                 pass
         # A second attempt is accepted only if two threshold
         # settings both classify all three components identically, including
         # exact recovered centers. Ambiguous/unsupported images still reject.
         try:
-            detections = [tuple(sorted(_detect_palette(image, threshold), key=lambda obj: (obj.x, obj.y)))
+            detections = [tuple(sorted(_detect_palette(image, threshold, palette_tolerance=palette_tolerance), key=lambda obj: (obj.x, obj.y)))
                           for threshold in (115, 130)]
         except DetectionError:
             detections = []
@@ -119,7 +121,7 @@ def detect(image: Image.Image) -> tuple[SceneObject, ...]:
         # Do not sharpen an image rejected by the original palette check.
         if not isinstance(original, _PaletteError):
             try:
-                return _detect_sharpened(image)
+                return _detect_sharpened(image, palette_tolerance=palette_tolerance)
             except DetectionError:
                 pass
         raise original from None

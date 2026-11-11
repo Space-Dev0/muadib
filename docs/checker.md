@@ -15,6 +15,18 @@ Fresh coverage numbers for synthetic seeds 41000–41199 are in
 [checker perturbations](checker-perturb.md); rejected scenes are excluded, so
 they do not establish overall validation.
 
+An exploratory API option, `detect(image, palette_tolerance=45)`, raises the
+default palette-blend residual limit from 40 to 45. On three 800,000-update
+preview images rejected for color, each rejection was triggered by one
+saturated object pixel with a residual between 40.21 and 42.21. The option
+allows two through the remaining checks; the third still fails geometry. On
+the earlier adjudicated 16-image preview, acceptance remained 5/16. A
+200-scene clean-render check at seeds 43000–43199 had no detector failures.
+These are exploratory checks, not an independent generated-image validation;
+the standard `detect(image)` and audit workflow retain the limit of 40.
+Relaxing the limit changes which colors can be accepted and must be checked
+against fresh human-labeled images before use in a research audit.
+
 Run the clean-render instrument audit:
 
 ```sh
