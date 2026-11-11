@@ -60,6 +60,14 @@ and rejected the other three. This is a four-image diagnostic, not an
 accuracy estimate or comparison of training checkpoints. Local copies are in
 ignored `outputs/preview-760000-20261111/`.
 
+At the user's request training was paused with a persistent pause marker on
+2026-11-11. The latest saved checkpoint was 800,000 updates. Four seed-101
+samples, one per pilot condition, were generated from it; the checker accepted
+one and rejected three for unrecognized foreground colors. These four images
+are an exploratory diagnostic, not a quality estimate or Stage 0 evaluation.
+Local copies are in ignored `outputs/preview-800000-20261111/`. The checker,
+design decorrelation, and MOSAIC gates remain outstanding.
+
 ## Blocking status (verified 2026-11-05)
 
 Stage 0 currently has **no learnability criterion**, so it could be "passed" by
