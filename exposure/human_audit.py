@@ -172,9 +172,19 @@ def _add(metrics: dict, human: bool, prediction: bool | None) -> None:
 
 def _finish(metrics: dict) -> dict:
     positives, negatives = metrics["tp"] + metrics["fn"], metrics["tn"] + metrics["fp"]
+    human_yes = positives + metrics["rejected_human_yes"]
+    human_no = negatives + metrics["rejected_human_no"]
+    total = human_yes + human_no
     return {**metrics, "accepted_human_yes": positives, "accepted_human_no": negatives,
             "false_reject_rate": metrics["fn"] / positives if positives else None,
-            "false_accept_rate": metrics["fp"] / negatives if negatives else None}
+            "false_accept_rate": metrics["fp"] / negatives if negatives else None,
+            "coverage": (positives + negatives) / total if total else None,
+            "coverage_human_yes": positives / human_yes if human_yes else None,
+            "coverage_human_no": negatives / human_no if human_no else None,
+            "false_reject_completion_bounds": ([metrics["fn"] / human_yes,
+                (metrics["fn"] + metrics["rejected_human_yes"]) / human_yes] if human_yes else None),
+            "false_accept_completion_bounds": ([metrics["fp"] / human_no,
+                (metrics["fp"] + metrics["rejected_human_no"]) / human_no] if human_no else None)}
 
 
 def score(manifest: object, judgments: dict[str, bool], predictions: object) -> dict:
@@ -197,7 +207,9 @@ def score(manifest: object, judgments: dict[str, bool], predictions: object) -> 
     return {"schema_version": 1, "reviewed": len(samples), "overall": _finish(overall),
             "by_rule": {name: _finish(value) for name, value in sorted(by_rule.items())},
             "by_stratum": {name: _finish(value) for name, value in sorted(by_stratum.items())},
-            "note": "Conditional rates exclude rejected predictions; no inference for unreviewed samples or automatic gate."}
+            "note": ("Conditional rates exclude rejected predictions. Completion bounds assign each "
+                     "rejection an arbitrary binary outcome and describe the reviewed sample only; "
+                     "they are not confidence intervals or actual error rates. No automatic gate.")}
 
 
 def _json(path: Path) -> object:

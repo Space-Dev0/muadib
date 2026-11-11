@@ -25,6 +25,19 @@ rejections, reviewers judged five or six images yes, depending on reviewer;
 rejection is an important separate coverage outcome, not a validated false
 or true classification.
 
+The checker produced binary answers for 5/16 images (31.25%). Treating each
+abstention as an unknown binary answer gives reviewed-sample false-reject
+completion ranges of 0–54.5% for two reviewers and 0–55.6% for the other two;
+the corresponding false-accept completion ranges are 0–100% and 14.3–100%.
+These are worst/best case assignments of unknown outcomes, not observed error
+rates or confidence intervals, and they depend on each reviewer's labels.
+The ranges show why accepted-only errors do not establish the checker gate.
+
+For the three disputed questions, a review-only discussion pack is available
+locally at `outputs/calibration-adjudication-310000.zip`. It includes an empty
+decision sheet, no checker predictions, and instructions to retain the original
+independent reviews. No adjudicated decisions have been supplied yet.
+
 Predicate scoring repeats questions on the same images; its 32 questions are
 not 32 independent images. One reviewer disagreed with the checker on one of
 11 accepted predicate questions; three agreed on all 11. Raw agreement does

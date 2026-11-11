@@ -121,6 +121,11 @@ class HumanAuditTests(unittest.TestCase):
             self.assertEqual(overall[key], 1)
         self.assertEqual(overall["false_reject_rate"], 0.5)
         self.assertEqual(overall["false_accept_rate"], 0.5)
+        self.assertEqual(overall["coverage"], 4 / 6)
+        self.assertEqual(overall["coverage_human_yes"], 2 / 3)
+        self.assertEqual(overall["coverage_human_no"], 2 / 3)
+        self.assertEqual(overall["false_reject_completion_bounds"], [1 / 3, 2 / 3])
+        self.assertEqual(overall["false_accept_completion_bounds"], [1 / 3, 2 / 3])
         self.assertEqual(result["by_rule"]["red"], overall)
         with self.assertRaises(ValueError):
             score({"samples": samples}, judgments, {**predictions, "5": 1})
@@ -185,6 +190,10 @@ class HumanAuditTests(unittest.TestCase):
         result = score({"samples": [sample("a")]}, {"a": True}, {"a": None})
         self.assertIsNone(result["overall"]["false_reject_rate"])
         self.assertIsNone(result["overall"]["false_accept_rate"])
+        self.assertEqual(result["overall"]["coverage"], 0)
+        self.assertEqual(result["overall"]["false_reject_completion_bounds"], [0, 1])
+        self.assertIsNone(result["overall"]["coverage_human_no"])
+        self.assertIsNone(result["overall"]["false_accept_completion_bounds"])
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "review.csv"
             path.write_text("sample_id,judgment\na,yes\na,no\n")

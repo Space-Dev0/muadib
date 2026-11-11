@@ -98,6 +98,15 @@ respective human-no and human-yes denominators. A missing denominator produces
 `null`. Inspect rejection counts alongside these conditional error rates;
 neither rates nor counts make claims about unreviewed images.
 
+The report also gives overall coverage and coverage separately among human
+yes and human no judgments. `false_reject_completion_bounds` and
+`false_accept_completion_bounds` show the range that would result if each
+rejected prediction were assigned an arbitrary binary decision. The lower
+endpoint treats all rejections in that human class as correct; the upper
+endpoint treats them all as errors. These bounds describe the reviewed sample
+only: they are not measured rejection errors, confidence intervals, or a
+Stage 0 decision. Empty human classes produce `null`.
+
 Each command writes its result to a temporary file in the output directory and
 then replaces the requested output. A failed validation or write leaves any
 existing output file intact.
