@@ -31,3 +31,18 @@ Across its 576 condition-by-rule relation-singleton entries, estimated
 probabilities ranged from 0.996 to 1.000 (mean 0.99983). These entries share
 scenes and duplicate relation events, so they are not 576 independent
 measurements; they confirm that this subset does not solve saturation.
+
+An unconditioned baseline can be reproduced with:
+
+```sh
+uv run python -m exposure.factorial_baseline --samples 10000 --seed 81202 \
+  --output outputs/factorial-baseline-81202.json
+```
+
+In this run the 24 full attributed rules ranged from 0.1863 to 0.2030
+(mean 0.1952), while the independently rebound `left_of` and `above`
+singletons were 0.9991 and 0.9996. These are distinct events: binding
+attributes to relation endpoints in the full rule does not change the
+unbound singleton event used in the current composition baseline. Every rule
+is evaluated on the same scenes; reported Wilson intervals are pointwise,
+not simultaneous, and rule estimates are correlated.
