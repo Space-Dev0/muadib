@@ -30,3 +30,26 @@ scenes and cannot consume this dataset directly. The common evaluation mixture
 includes both complexity levels, so its interpretation includes out-of-training
 complexity conditions. Do not submit an empty or synthetic-results file to
 `mosaic_contrast` as if it were an experiment.
+
+## CPU training-plumbing smoke
+
+`exposure.mosaic_toy_train` reads the generated manifest, verifies pixel hashes
+and the four cell quotas, and runs four distinct tiny velocity-prediction
+models with matched initialization, optimizer settings, batch size, and update
+count. It uses the target class as a condition. This is an intentionally small
+new model, not the project checkpoint or MOSAIC's latent diffusion backbone.
+It reports loss traces and source/runtime hashes but does not save checkpoints,
+generate images, score the evaluation set, or measure model quality.
+
+```sh
+uv run --extra train python -m exposure.mosaic_toy_train \
+  --dataset outputs/mosaic-data-feasibility-81203 --seed 81204 \
+  --steps 2 --batch-size 2 --width 8 --device cpu \
+  --output outputs/mosaic-toy-train-smoke-81204.json
+```
+
+A local CPU smoke with those settings completed all four cells with finite
+losses and the same initial parameter hash. The two updates and 20 training
+images per cell are far too small to infer learnability, effect direction,
+uncertainty or a MOSAIC replication. Longer training cannot be interpreted
+without the missing sampler, frozen evaluation protocol and independent runs.
