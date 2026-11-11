@@ -67,6 +67,13 @@ averages the balanced-minus-imbalanced drop across both complexity conditions.
 The difference between these drops is positive when the former is larger. Each
 seed and cell receives equal weight, even when image totals differ; the report
 retains the input counts. Images from one model are not independent training
-replicates. This summary has no uncertainty interval or automatic go/no-go;
+replicates. The report gives the sample standard deviation and standard error
+across seed-block contrasts when at least two complete blocks are available.
+The standard error assumes independent blocks, which the script cannot verify.
+It is not a confidence interval and does not include within-model image
+sampling uncertainty. A single block produces `null` for both. Algebraically,
+the difference in drops equals low-complexity imbalanced success minus
+high-complexity balanced success within a block; it is not a four-cell
+interaction. This summary has no uncertainty interval or automatic go/no-go;
 the full protocol, uncertainty and direction comparison remain to be specified
 and evaluated on real runs. No such run data exist yet.

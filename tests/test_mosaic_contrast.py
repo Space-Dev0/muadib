@@ -38,6 +38,15 @@ class MosaicContrastTests(unittest.TestCase):
             with self.subTest(case=case), self.assertRaises(ValueError):
                 summarize(case)
 
+    def test_seed_level_variation_and_single_block(self):
+        data = copy.deepcopy(self.data)
+        data["runs"][4]["successes"] = 7
+        report = summarize(data)
+        self.assertAlmostEqual(report["between_seed_variation"]["complexity_drop"]["sample_sd"], 0.1 / (2 ** 0.5))
+        self.assertAlmostEqual(report["between_seed_variation"]["complexity_drop"]["standard_error"], 0.05)
+        one = summarize({"runs": data["runs"][:4]})
+        self.assertIsNone(one["between_seed_variation"]["complexity_drop"]["standard_error"])
+
     def test_cli_output_never_overwrites_input_or_existing_report(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "runs.json"

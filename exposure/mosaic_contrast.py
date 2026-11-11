@@ -53,10 +53,21 @@ def summarize(data: object) -> dict:
                         "complexity_drop": complexity_drop, "imbalance_drop": imbalance_drop,
                         "difference_in_drops": complexity_drop - imbalance_drop})
     metrics = ("complexity_drop", "imbalance_drop", "difference_in_drops")
+    means = {key: math.fsum(row[key] for row in results) / len(results) for key in metrics}
+    # A seed block, not an image, is the unit of training replication.
+    variation = {}
+    for key in metrics:
+        if len(results) < 2:
+            variation[key] = {"sample_sd": None, "standard_error": None}
+        else:
+            variance = math.fsum((row[key] - means[key]) ** 2 for row in results) / (len(results) - 1)
+            sd = math.sqrt(variance)
+            variation[key] = {"sample_sd": sd, "standard_error": sd / math.sqrt(len(results))}
     return {"schema_version": 1, "seed_count": len(results), "seeds": results,
-            "mean": {key: math.fsum(row[key] for row in results) / len(results) for key in metrics},
+            "mean": means, "between_seed_variation": variation,
             "note": ("Descriptive equal-cell-weighted run-level contrasts only. A positive "
                      "difference in drops is not by itself a replication or Stage 0 gate pass. "
+                     "Standard errors assume independent seed blocks; no confidence interval is provided. "
                      "Comparability, independent model runs, checker validity, uncertainty, "
                      "the adapted protocol and the success criterion must be established separately.")}
 
