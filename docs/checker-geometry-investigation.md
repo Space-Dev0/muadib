@@ -32,6 +32,23 @@ generated images. On the same eight development questions the experimental
 detector accepted seven and matched their unanimous whole-rule answers; no
 independent validation is implied.
 
+A further synthetic check at previously unused seeds 45000–45199 applied
+brightness 1.1 and blur radius 0.5. The experimental detector accepted 157/200
+and 145/200 scenes respectively; none of its accepted scenes disagreed with
+renderer annotations on the nine default audit rules. These are synthetic
+scenes with a limited rule panel, not generated-image or position validation.
+The independent OpenCode review also observed half-pixel center differences on
+perturbed triangles, reinforcing that the uncertainty radius is an assumption.
+
+After freezing the experimental detector, eight additional images were
+generated from the 800,000-update checkpoint using seeds 301 and 302 across
+the four pilot conditions. The standard and experimental predictions and
+checker/image hashes were saved privately before review in ignored
+`outputs/geometry-holdout-800000/`. The separate blinded reviewer archive is
+`outputs/geometry-review-pack-800000.zip`. Reused seeds create dependence
+across conditions. This small follow-up cannot replace the formal audit or
+certify the assumed uncertainty bound.
+
 An 11-pixel bounding box gives a
 half-pixel center under the current estimator. A boundary or occlusion can move
 that center, potentially flipping a spatial relation. Before considering a
