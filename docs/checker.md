@@ -27,6 +27,24 @@ the standard `detect(image)` and audit workflow retain the limit of 40.
 Relaxing the limit changes which colors can be accepted and must be checked
 against fresh human-labeled images before use in a research audit.
 
+Four reviewers subsequently labeled all four 800,000-update seed-101 preview
+images, unanimously. The standard setting accepted one human-positive image,
+rejecting two human-positive and one human-negative image. The experimental
+setting accepted all three human-positive images, rejecting the one
+human-negative image on geometry. No accepted human-negative image is present,
+so accepted-only false-accept rates are undefined for both settings. These
+four images include the examples that motivated the tolerance change; they
+are development data, not an independent test, and do not validate a gate.
+Individual scores and predictions are in ignored `outputs/audit-results-800000/`.
+
+A separate eight-image follow-up was generated from the same checkpoint at
+previously unused seeds 201–202 for each of the four pilot conditions. Both
+checker settings were run and their predictions, checker code hash, and image
+hashes saved privately before requesting labels. The review-only archive is
+`outputs/holdout-review-pack-800000.zip`; it excludes predictions. This small
+follow-up can test the change on new samples but cannot establish the 2% gate
+or replace the 300-image complexity-stratified audit.
+
 Run the clean-render instrument audit:
 
 ```sh
