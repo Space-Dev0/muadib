@@ -1,5 +1,22 @@
 # Blinded human audit workflow
 
+## 800,000-update pilot pool in progress
+
+On 2026-11-13, generation of 300 images began on the laptop from the fixed
+800,000-update checkpoint: 75 seeds (20000–20074) for each of its four
+supported conditions. The restartable launcher is
+`scripts/generate-audit-pilot.ps1`; its Windows scheduled task is
+`Muadib Pilot Audit Generation 800000`. The model training pause remains in
+place. Images from different conditions reuse seeds and are dependent.
+
+This is a limited, two-complexity-stratum pilot pool, not evidence that the
+full benchmark's checker gate is passed. The other proposed complexity levels,
+predicates and rules remain uncovered. Reviewer packs and frozen checker
+predictions must be prepared after all 300 images are available; do not ask
+reviewers to use the raw condition-revealing filenames. The image-generation
+task requires the laptop to be awake and does not automatically restart after
+reboot. The script verifies existing PNGs on retry and never overwrites them.
+
 This tool prepares a review manifest and scores **actual reviewer judgments**
 against separately supplied checker predictions. It does not generate human
 labels, send images to anyone, or declare a research gate passed. The proposal's
