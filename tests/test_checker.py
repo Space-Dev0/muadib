@@ -11,12 +11,27 @@ import numpy as np
 
 from exposure.checker import (DetectionError, audit, audit_rules, detect, detect_narrow_experimental,
                               evaluate_narrow_attributes_experimental, _check_uncertain_centers,
-                              _evaluate_uncertain)
+                              _evaluate_uncertain, evaluate_variable_count_experimental)
 from exposure.render import COLORS, SHAPES, _draw, render_scene
 from exposure.rules import Attribute, Relation, SceneObject, satisfies
 
 
 class CheckerTests(unittest.TestCase):
+    def test_variable_count_accepts_visible_witness_but_not_missing_negative(self):
+        red = SceneObject("red", "circle", 12, 12)
+        blue = SceneObject("blue", "square", 32, 32)
+        green = SceneObject("green", "square", 52, 52)
+        yellow = SceneObject("yellow", "circle", 12, 52)
+        red_rule = (Attribute("a", "color", "red"),)
+        absent = (Attribute("a", "color", "yellow"),)
+        for objects in ((red, blue), (red, blue, green, yellow)):
+            image = _draw(objects).image
+            self.assertTrue(evaluate_variable_count_experimental(image, red_rule))
+        self.assertIsNone(evaluate_variable_count_experimental(_draw((red, blue)).image, absent))
+        self.assertFalse(evaluate_variable_count_experimental(_draw((red, blue, green)).image, absent))
+        with self.assertRaises(DetectionError):
+            evaluate_variable_count_experimental(_draw((red,)).image, red_rule)
+
     def test_uncertain_rule_evaluation_preserves_binding_and_abstains(self):
         scene = (SceneObject("red", "triangle", 10, 10),
                  SceneObject("blue", "square", 11, 20),

@@ -27,7 +27,8 @@ class _PaletteError(DetectionError):
 
 def _detect_palette(image: Image.Image, threshold: float = 100, *, palette_tolerance: float = 40,
                     narrow_triangles: bool = False, guard_spatial: bool = True,
-                    uncertain_out: list[bool] | None = None) -> tuple[SceneObject, ...]:
+                    uncertain_out: list[bool] | None = None,
+                    component_counts: tuple[int, ...] = (3,)) -> tuple[SceneObject, ...]:
     """Check pixels against the original clean-render palette."""
     if not isinstance(image, Image.Image) or image.mode != "RGB" or image.size != (IMAGE_SIZE, IMAGE_SIZE):
         raise DetectionError("Expected a 64x64 RGB image")
@@ -46,8 +47,9 @@ def _detect_palette(image: Image.Image, threshold: float = 100, *, palette_toler
         raise _PaletteError("Unrecognized foreground colors")
     mask = distance <= threshold
     labels, count = ndimage.label(mask)
-    if count != 3:
-        raise DetectionError(f"Expected three separated objects; found {count} components")
+    if count not in component_counts:
+        expected = "three" if component_counts == (3,) else "two, three or four"
+        raise DetectionError(f"Expected {expected} separated objects; found {count} components")
     result = []
     uncertain = []
     for number in range(1, count + 1):
@@ -161,6 +163,20 @@ def evaluate_narrow_rule_experimental(image: Image.Image, predicates: tuple[Pred
     flags: list[bool] = []
     objects = _detect_palette(image, narrow_triangles=True, guard_spatial=False, uncertain_out=flags)
     return _evaluate_uncertain(objects, flags, predicates)
+
+
+def evaluate_variable_count_experimental(image: Image.Image, predicates: tuple[Predicate, ...]) -> bool | None:
+    """Trial visible-witness evaluation on two, three or four components.
+
+    With an unexpected component count, a definite positive witness can be
+    returned, but missing or hidden objects mean a negative must abstain.
+    Object detection and assumed center intervals remain unvalidated.
+    """
+    flags: list[bool] = []
+    objects = _detect_palette(image, narrow_triangles=True, guard_spatial=False,
+                              uncertain_out=flags, component_counts=(2, 3, 4))
+    result = _evaluate_uncertain(objects, flags, predicates)
+    return None if len(objects) != 3 and result is False else result
 
 
 def _detect_sharpened(image: Image.Image, *, palette_tolerance: float = 40) -> tuple[SceneObject, ...]:

@@ -93,3 +93,25 @@ independently human-labeled image set selected after the candidate is frozen,
 with both requested and other relevant rule questions. Report checker
 rejections and errors separately by rule and class. The current model's four
 rules and two complexity strata do not cover the proposed benchmark.
+
+## Variable component count: development only
+
+`evaluate_variable_count_experimental` also examines two or four separated
+components. For those counts it returns a positive only when the detected
+objects contain a definite witness; negative conclusions abstain because an
+object could be missing or hidden. Three-component behavior uses the existing
+experimental rule evaluator. Segmentation, object identity and center
+uncertainty are assumptions, so even a positive answer is not guaranteed.
+The standard checker and audit remain unchanged.
+
+On the same 300 development images and assembled, partly adjudicated labels,
+this candidate answered 226 (186 positive and 40 negative), abstained on 74,
+and its answers agreed with the assembled labels. Of the 74 abstentions, 37
+had positive and 37 negative human labels. This is an adaptive development
+comparison, not independent accuracy validation; the results do not establish
+performance on new images, other rules or the full benchmark. A paired
+seed-block bootstrap estimated the coverage improvement over the standard
+checker as 43.7 percentage points (percentile interval 36.0–51.0), conditional
+on exchangeable blocks and without accounting for label or selection uncertainty.
+It is not an accuracy interval. Fresh blinded human labels and a frozen candidate
+are needed before changing the checker used for research.
