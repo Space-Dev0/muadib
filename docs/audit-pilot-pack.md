@@ -11,6 +11,17 @@ predicates.
 After the image-generation task completes, copy all 300 PNGs into a local
 source directory and use the verified local checkpoint copy:
 
+On the original Linux workstation, the temporary user service
+`muadib-pilot-collector.service` runs `scripts/collect-audit-pilot.sh`: it
+checks the Windows task once per minute for up to six hours, copies the images
+only after the task reports success with 300 files, then runs the packager.
+Check progress with `journalctl --user -u muadib-pilot-collector.service -n 20`.
+The service depends on both machines remaining available; if collection fails,
+it preserves partial files and requires inspection before a manual retry. It
+does not send reviewer packs or claim the full benchmark gate has passed.
+
+To run packaging manually after copying:
+
 ```sh
 uv run python -m exposure.audit_pilot_pack \
   --source outputs/audit-pilot-800000-seeds-20000-20074 \
