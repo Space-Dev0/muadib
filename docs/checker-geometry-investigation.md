@@ -115,3 +115,27 @@ checker as 43.7 percentage points (percentile interval 36.0–51.0), conditional
 on exchangeable blocks and without accounting for label or selection uncertainty.
 It is not an accuracy interval. Fresh blinded human labels and a frozen candidate
 are needed before changing the checker used for research.
+
+## Fresh restricted validation pack
+
+A fresh four-condition pilot was generated from the existing 800,000-update
+checkpoint using seeds 30000–30009 per condition and
+`scripts/generate-audit-validation.ps1`. The frozen candidate is the code in
+commit `bc36766`. Forty images were packaged with assignment seed 81219:
+eight are shared by all four reviewers, and each reviewer receives 16 images.
+Images and assignments are in ignored `outputs/audit-validation-packs-800000/`;
+only the four reviewer ZIPs should be distributed. The `private` directory
+contains checker predictions and provenance and must not be shared with reviewers. The
+packager records image and standard-prediction hashes; it identifies the
+supplied checkpoint by hash but does not independently prove image origin.
+
+Before human review, variable-count predictions were saved separately as
+`private/variable-count-rules-predictions.json` (SHA-256
+`f895ea3443625dc74566715e132f4812eedd70b07d47f348c68eea950152e47f`)
+and `private/variable-count-predicates-predictions.json` (SHA-256
+`d1f977854561d8cb11b14f4ebdcbc1422f6c5068b85485e9102c18054ed4b5f3`).
+This small, fresh validation checks the selected four-rule pilot only. Seeds
+are shared across conditions, reviewer independence must be maintained, and
+its small size will limit precision. It cannot establish the full benchmark
+checker gate. Assemble independent answers and adjudicate disagreements before
+comparing either checker's predictions.
