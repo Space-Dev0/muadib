@@ -44,3 +44,41 @@ the three reviewer-disagreement cases and three checker-versus-reviewer cases.
 It does not expose checker predictions. Because cases were selected after
 inspection, follow-up decisions are adjudication, not independent validation;
 preserve the original reviews and record any decisions separately.
+
+## Submitted follow-up and development comparison
+
+The submitted follow-up records yes for `pilot-0009`, a qualified “yes but
+very very slightly” for `pilot-0022`, no for `pilot-0032`, no for `pilot-0068`
+and `pilot-0168`, and yes for `pilot-0191`. The qualified answer was interpreted
+as yes for this separate sensitivity calculation; the original wording and
+individual reviews are preserved. Whether the decisions represent a group
+consensus cannot be determined from the file alone. Cases were selected after
+inspection and must not be treated as independent validation.
+
+Using those follow-up answers, unanimous shared answers, and original answers
+for other images, the standard checker has 74 accepted human-yes and 21
+accepted human-no matches, with no accepted disagreements; it still abstains on
+205/300, including 148 human-yes and 57 human-no labels. These are descriptive
+post-selection results. The 0/21 accepted-only false-accept and 0/74
+accepted-only false-reject fractions do not measure errors on rejected images,
+prove a 2% target, or remove the limited benchmark coverage.
+
+An exploratory rule-aware narrow-geometry checker, applied after labels were
+available, returned a decision on 166/300 and abstained on 134. It agreed on
+165 accepted images and disagreed on one (`pilot-0279`, a blue-above-circle
+question reviewed once). This is development analysis of previously reviewed
+data, not a blinded validation or a replacement for the standard checker. A
+new one-case discussion pack is in
+`outputs/audit-pilot-experimental-followup.zip`; no checker prediction is
+shown. The per-setting comparison, rejection reasons and label provenance are
+in ignored `outputs/audit-pilot-results-800000/`.
+
+`exposure.audit_followup` reproduces the standard-checker sensitivity score
+from the full private rule manifest, frozen predictions, four original review
+CSVs, and the submitted `sample_id,decision,notes` follow-up CSV. It identifies
+cases selected by either reviewer disagreement or checker/reviewer disagreement
+and refuses missing, duplicate, unexpected, or unresolved answers. A qualified
+`yes but ...` or `no but ...` is interpreted as yes or no while the original
+CSV retains its exact wording. It does not independently verify image hashes;
+run the pilot scorer's integrity checks first. The separately written
+`adjudicated-reproducible.json` matches the initial sensitivity calculation.

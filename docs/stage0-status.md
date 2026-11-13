@@ -12,7 +12,9 @@ The restricted 300-image, four-condition pilot has now been human-reviewed.
 The standard checker classified 95/300 and abstained on 205; the sample covers
 only two complexity strata and does not establish the full checker gate. See
 [pilot audit](pilot-audit-800000.md) for agreement, per-rule coverage, errors,
-and the pending follow-up cases.
+and follow-up cases. The six submitted follow-up answers resolve the selected
+cases for a separate sensitivity summary, but do not change original reviews,
+reduce abstention, or establish the gate.
 
 ## Latest checkpoint and calibration (2026-11-08)
 
