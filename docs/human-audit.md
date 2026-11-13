@@ -16,6 +16,14 @@ predictions must be prepared after all 300 images are available; do not ask
 reviewers to use the raw condition-revealing filenames. The image-generation
 task requires the laptop to be awake and does not automatically restart after
 reboot. The script verifies existing PNGs on retry and never overwrites them.
+At launch, the source checkout was `61ae41ab7cc7205c5b94bd70022deb5c99514b33`,
+the checkpoint SHA-256 was `a8efbb8de9407f10596cfd694f6b05902cf66c32c691368b6ec081b289142f05`,
+and the laptop reported Python 3.13.6 and NVIDIA driver 610.91. The locally
+copied checkpoint matched this hash. The local ignored record is
+`outputs/audit-pilot-generation-provenance.txt`; these metadata do not by
+themselves prove that every output image came from the checkpoint.
+Once generation completes, use the [pilot pack workflow](audit-pilot-pack.md)
+to prepare four blinded reviewer archives and freeze the checker predictions.
 
 This tool prepares a review manifest and scores **actual reviewer judgments**
 against separately supplied checker predictions. It does not generate human
