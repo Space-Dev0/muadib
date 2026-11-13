@@ -20,6 +20,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from exposure.mosaic_pilot_data import CELLS
+from exposure.pilot_train import save_checkpoint
 
 
 class TinyVelocity(nn.Module):
@@ -84,13 +85,19 @@ def load_cells(root: Path) -> tuple[dict, str]:
     return cells, hashlib.sha256(raw).hexdigest()
 
 
-def train(root: Path, *, seed: int, steps: int, batch_size: int, width: int, device: str) -> dict:
+def train(root: Path, *, seed: int, steps: int, batch_size: int, width: int, device: str,
+          checkpoint_dir: Path | None = None) -> dict:
     """Train four independent models under the same initialization and budget."""
     if any(type(x) is not int for x in (seed, steps, batch_size, width)) or seed < 0 or min(steps, batch_size, width) < 1:
         raise ValueError("seed must be nonnegative; steps, batch size and width must be positive integers")
     if device not in ("cpu", "cuda") or (device == "cuda" and not torch.cuda.is_available()):
         raise ValueError("Requested device is unavailable")
+    if checkpoint_dir is not None and not isinstance(checkpoint_dir, Path):
+        raise TypeError("checkpoint_dir must be a Path")
     cells, manifest_hash = load_cells(root)
+    trainer_hash = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    if checkpoint_dir is not None:
+        checkpoint_dir.mkdir(parents=True, exist_ok=False)
     results = []
     for cell in CELLS:
         # Reset streams so the four cells have matched initialization and
@@ -122,14 +129,27 @@ def train(root: Path, *, seed: int, steps: int, batch_size: int, width: int, dev
             losses.append(float(loss.detach().cpu()))
         if device == "cuda":
             torch.cuda.synchronize()
-        results.append({"complexity": cell[0], "imbalance": cell[1], "training_images": len(cells[cell]),
-                        "initial_parameter_sha256": initial_hash, "losses": losses,
-                        "elapsed_seconds": time.perf_counter() - start})
+        record = {"complexity": cell[0], "imbalance": cell[1], "training_images": len(cells[cell]),
+                  "initial_parameter_sha256": initial_hash, "losses": losses,
+                  "elapsed_seconds": time.perf_counter() - start}
+        if checkpoint_dir is not None:
+            target = checkpoint_dir / f"{cell[0]}-{cell[1]}.pt"
+            checkpoint = {"schema_version": 1, "kind": "mosaic_toy_velocity", "width": width,
+                          "seed": seed, "steps": steps, "batch_size": batch_size, "cell": list(cell),
+                          "learning_rate": 0.0001, "manifest_sha256": manifest_hash,
+                          "trainer_sha256": trainer_hash, "torch_version": str(torch.__version__),
+                          "python_version": sys.version.split()[0], "device": device,
+                          "initial_parameter_sha256": initial_hash, "resumable": False,
+                          "state_dict": {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}}
+            save_checkpoint(target, checkpoint)
+            record["checkpoint"] = str(target.resolve())
+            record["checkpoint_sha256"] = hashlib.sha256(target.read_bytes()).hexdigest()
+        results.append(record)
     return {"schema_version": 1, "seed": seed, "steps": steps, "batch_size": batch_size,
             "width": width, "device": device, "learning_rate": 0.0001,
             "manifest_sha256": manifest_hash, "torch_version": str(torch.__version__),
             "python_version": sys.version.split()[0],
-            "trainer_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), "runs": results,
+            "trainer_sha256": trainer_hash, "runs": results,
             "note": "Feasibility smoke only: no generated evaluation, replication or Stage 0 conclusion."}
 
 
@@ -142,6 +162,7 @@ def main() -> None:
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--width", type=int, default=8)
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
+    parser.add_argument("--checkpoint-dir", type=Path, help="new directory for four non-resumable checkpoints")
     args = parser.parse_args()
     try:
         if args.output.exists():
@@ -149,7 +170,7 @@ def main() -> None:
         if args.device == "cpu":
             torch.set_num_threads(1)
         result = train(args.dataset, seed=args.seed, steps=args.steps, batch_size=args.batch_size,
-                       width=args.width, device=args.device)
+                       width=args.width, device=args.device, checkpoint_dir=args.checkpoint_dir)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         with args.output.open("x", encoding="utf-8") as file:
             json.dump(result, file, indent=2, allow_nan=False)
