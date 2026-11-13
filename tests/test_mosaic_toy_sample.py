@@ -40,3 +40,19 @@ class ToySamplerTests(unittest.TestCase):
             sample(checkpoint, label="red", seed=0, steps=1, device="cpu")
         with self.assertRaises(ValueError):
             sample({}, label="red", seed=0, steps=3, device="cpu")
+
+    def test_oracle_velocity_follows_multistep_path(self):
+        import torch
+        from exposure.mosaic_toy_sample import velocity_components
+
+        clean = torch.tensor([[-0.8, 0.1, 0.9]])
+        noise = torch.tensor([[0.3, -0.4, 0.7]])
+        alphas = torch.linspace(0.01, 0.99, 11)
+        image = alphas[0].sqrt() * clean + (1 - alphas[0]).sqrt() * noise
+        for index, alpha in enumerate(alphas):
+            velocity = alpha.sqrt() * noise - (1 - alpha).sqrt() * clean
+            recovered, predicted_noise = velocity_components(image, velocity, alpha)
+            self.assertTrue(torch.allclose(recovered, clean, atol=1e-5))
+            if index + 1 < len(alphas):
+                next_alpha = alphas[index + 1]
+                image = next_alpha.sqrt() * recovered + (1 - next_alpha).sqrt() * predicted_noise

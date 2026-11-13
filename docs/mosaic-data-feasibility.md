@@ -84,6 +84,15 @@ directory is retained separately from the completed retry. These runs are not
 the MOSAIC replication, and individual training losses are not replication
 metrics.
 
+The one-image `exposure.mosaic_toy_overfit` diagnostic uses a separate fixed
+evaluation noise draw and reports reconstructed x0 MSE at alpha 0.01, 0.5,
+and 0.99 before and after training. On the first red training image at seed
+81209, width 8 and 5,000 updates, those MSEs changed from 0.9790/0.5291/0.0105
+to 0.1979/0.0411/0.0082. These values use one scene and one evaluation noise
+draw, and do not test full sampling, generalization, or Stage 0. The ignored
+report is `outputs/mosaic-toy-fixed-overfit-81209.json`; a multi-step oracle
+velocity inversion unit test separately verifies the sampler's algebra.
+
 For local CPU validation, an isolated temporary environment with PyTorch
 2.9.1+cpu ran the project test suite on 2026-11-11: 233 tests passed. The local
 machine reported Intel Iris Xe graphics and no NVIDIA CUDA device; the CPU
