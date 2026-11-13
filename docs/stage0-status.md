@@ -8,6 +8,12 @@ fingerprint check. Sampling compatibility should be verified separately.
 **Not passed.** The following measurements are instrument-development results,
 not confirmatory research findings.
 
+The restricted 300-image, four-condition pilot has now been human-reviewed.
+The standard checker classified 95/300 and abstained on 205; the sample covers
+only two complexity strata and does not establish the full checker gate. See
+[pilot audit](pilot-audit-800000.md) for agreement, per-rule coverage, errors,
+and the pending follow-up cases.
+
 ## Latest checkpoint and calibration (2026-11-08)
 
 The online velocity pilot reached 100,000 updates on the GPU laptop. A local
