@@ -16,6 +16,14 @@ and follow-up cases. The six submitted follow-up answers resolve the selected
 cases for a separate sensitivity summary, but do not change original reviews,
 reduce abstention, or establish the gate.
 
+For the current fixed-singleton, equally weighted complete rule rows, the
+correlation between log mean marginal exposure and relation count implies a
+pairwise VIF lower bound of 3.478 if both are included with an intercept. This
+is a property of the estimated pilot matrix and specified analysis, not a
+population or gate result; see [VIF floor](design-vif-floor.md). A separate
+[one-step MOSAIC toy diagnostic](mosaic-toy-denoise.md) evaluates known images,
+not generated-image success or replication.
+
 ## Latest checkpoint and calibration (2026-11-08)
 
 The online velocity pilot reached 100,000 updates on the GPU laptop. A local
