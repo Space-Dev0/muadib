@@ -55,3 +55,12 @@ exploratory pooled calculations; breadth is omitted. Reproduce with
 `design_holdout` command above with the desired design file. Reports are in
 ignored `outputs/design-extremes-holdout-81205.json` and
 `outputs/design-samples-holdout-81205.json`.
+
+As a second direction check, fitting the same endpoint construction on the
+500-scene seed-81205 matrix and evaluating on the separate seed-76001 matrix
+gave training correlation −0.33879 and lift VIF 2.32921; the holdout gave
+−0.34675 and 2.27176, with maximum singleton deviation 0.05504. The holdout
+has only 100 scenes per condition. This is again an exploratory reversal of
+matrix roles, not a registered gate evaluation or evidence that the candidate
+templates are suitable. Outputs are `outputs/design-extremes-81205.json` and
+`outputs/design-extremes-81205-holdout-76001.json`.
