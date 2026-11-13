@@ -73,6 +73,14 @@ new one-case discussion pack is in
 shown. The per-setting comparison, rejection reasons and label provenance are
 in ignored `outputs/audit-pilot-results-800000/`.
 
+The submitted one-case follow-up for `pilot-0279` is **yes**; its image hash
+matches the original reviewed image. The original single-reviewer “no” is
+preserved. The experimental checker had answered yes, while the standard
+checker had abstained. Incorporating this selected follow-up removes that
+particular checker-versus-label disagreement, but the case was selected after
+seeing outcomes, and its change is not independent validation. The standard
+checker still abstains on 205/300 and the experimental checker on 134/300.
+
 `exposure.audit_followup` reproduces the standard-checker sensitivity score
 from the full private rule manifest, frozen predictions, four original review
 CSVs, and the submitted `sample_id,decision,notes` follow-up CSV. It identifies
