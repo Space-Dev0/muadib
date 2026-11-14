@@ -35,3 +35,7 @@ identified the expected 30k source hash, batch 4, 120,000 new updates and all
 point, so this records a successful launch, not completion. The previous
 10,000-update segment took about 824 seconds on the laptop; timing may vary.
 For the performance screen and limitations see [GPU throughput](gpu-throughput-benchmark.md).
+
+The predecessor subsequently completed at 150,000 updates and handed off to
+[continuous training](mosaic-continuous-training.md), which has no configured
+final update count. Use the continuous stop procedure in that document.
