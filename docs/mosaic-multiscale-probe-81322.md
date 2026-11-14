@@ -106,3 +106,10 @@ All four 20,000-update checkpoint files were also copied to their cell folders
 under ignored `outputs/mosaic-multiscale-review-source-81322/`; each local SHA-256
 matches its run report. The 5,000-update and earlier toy checkpoints remain on
 the laptop.
+
+## Review deferred
+
+The researcher inspected the previews and reported that they are too blotchy
+to reliably identify shapes. Defer the proposed human review while investigating
+sampling steps and training; do not treat the pack as an accuracy study. The
+review files and predictions are preserved unchanged.
