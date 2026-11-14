@@ -49,3 +49,13 @@ a performance estimate, or proof of conditioning failure. They show the
 preview is not ready for a formal checker or MOSAIC gate. The checkpoints and
 images are under ignored `outputs/mosaic-pilotunet-resume-81378/` and
 `outputs/mosaic-pilotunet-resume-preview-81378/`.
+
+A further bounded resume from the verified 20,000-update checkpoint added
+10,000 updates with snapshots at 25,000 and 30,000. The command is recorded in
+`scripts/run-mosaic-pilotunet-resume-30k.ps1`. Its purpose is to check whether
+conditional generation improves with further training on the same one-cell,
+200-image dataset; it is not a Stage 0 replication. It restores saved states,
+but strict deterministic GPU replay is not established. It completed, and both downloaded checkpoint hashes matched the report.
+Last-100 mean losses were 0.04097 at 25,000 and 0.04053 at 30,000. These
+values are not evidence of sample accuracy. Outputs are stored under ignored
+`outputs/mosaic-pilotunet-resume-81379/`.
