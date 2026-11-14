@@ -209,3 +209,11 @@ pack and each review pair to `python -m exposure.audit_validation_score` with
 `--reviewer-N-rule`, `--reviewer-N-predicate` (N = 1–4), and a new `--output`
 path. The scorer checks the frozen hashes and assignments and excludes any
 reviewer-disputed item instead of inventing a label.
+
+OpenCode independently checked the returned assignments, frozen artifact hashes,
+and these counts. It highlighted the small number of accepted decisions and
+predominantly single-reviewer labels. The numerical generation seeds 30000–30009
+were also used in an earlier clean-render audit (30000–30299); the clean-render
+scenes and model-generated images are different procedures, but the overlap
+should be recorded rather than described as entirely unused seed values. Future
+validation should reserve seed ranges across all diagnostics in advance.

@@ -20,8 +20,9 @@ In the [paper's experimental setup](https://arxiv.org/html/2605.00273), the
 complexity variants add objects or distractors; controlled skew changes class
 frequencies at several dataset sizes. Its diffusion backbone operates in a
 frozen pretrained VAE's latent space, and task-specific classifiers evaluate
-generated images. Our prototype instead uses three 2D objects, currently has
-no trained model, and has not validated its checker on generated outputs. These
+generated images. Our prototype instead uses three 2D objects. A four-rule model has reached
+800,000 updates, but its restricted checker validations do not establish
+validity across the full benchmark. These
 differences must be controlled or explicitly reported in any comparison.
 
 Before running or claiming this gate:

@@ -26,7 +26,11 @@ For the current fixed-singleton, equally weighted complete rule rows, the
 correlation between log mean marginal exposure and relation count implies a
 pairwise VIF lower bound of 3.478 if both are included with an intercept. This
 is a property of the estimated pilot matrix and specified analysis, not a
-population or gate result; see [VIF floor](design-vif-floor.md). A separate
+population or gate result; see [VIF floor](design-vif-floor.md). A fitted nonuniform reference reduces
+the exploratory log-marginal/lift correlation, but five sampled chains
+still give held-out lift VIF 5.997–6.233, above 2; see
+[reference design diagnostics](design-reference-design-diagnostics.md).
+A separate
 [one-step MOSAIC toy diagnostic](mosaic-toy-denoise.md) evaluates known images,
 not generated-image success or replication.
 
