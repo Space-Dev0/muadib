@@ -8,6 +8,12 @@ fingerprint check. Sampling compatibility should be verified separately.
 **Not passed.** The following measurements are instrument-development results,
 not confirmatory research findings.
 
+The fresh 40-image restricted checker validation has been reviewed: the
+standard checker answered 19/40 and the experimental candidate 28/40, with
+zero disagreements among answered questions. Twelve candidate decisions
+abstained. This small, four-rule sample does not establish the checker gate;
+see [checker validation](checker-geometry-investigation.md#fresh-validation-results).
+
 The restricted 300-image, four-condition pilot has now been human-reviewed.
 The standard checker classified 95/300 and abstained on 205; the sample covers
 only two complexity strata and does not establish the full checker gate. See

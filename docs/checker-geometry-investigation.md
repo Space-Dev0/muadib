@@ -139,3 +139,73 @@ are shared across conditions, reviewer independence must be maintained, and
 its small size will limit precision. It cannot establish the full benchmark
 checker gate. Assemble independent answers and adjudicate disagreements before
 comparing either checker's predictions.
+
+## Fresh validation results
+
+The returned four review pairs matched their assignments and all frozen pack
+and candidate-prediction hashes. The four reviewers agreed on all eight shared
+whole-rule questions and 16 shared predicate questions. The other 32 images
+were each reviewed once; the files do not prove the reviewers worked independently.
+No adjudication was needed for the shared questions.
+
+| Frozen checker | Whole-rule answered | Abstained | Disagreements among answered |
+|---|---:|---:|---:|
+| Standard | 19/40 | 21/40 | 0/19 |
+| Variable count | 28/40 | 12/40 | 0/28 |
+
+The variable-count checker answered 7/10, 9/10, 6/10 and 6/10 for blue above
+circle, square, red, and red left of square, respectively. Of its 12
+abstentions, five were human-positive and seven human-negative. For predicate
+questions, standard answered 39/80 and candidate 61/80, each with zero
+accepted-answer disagreements. Those 80 labels are clustered within 40 images,
+and seeds are reused across the four conditions. They are not 80 independent
+observations. Both relation singleton questions were positive in all ten
+samples for each relation, so these data do not test detection of negative
+relation singletons. Review labels are a reference, not error-free ground truth.
+
+This is a new sample for a frozen checker, but only ten seed blocks and four
+conditions. Zero observed errors does not establish zero error, and neither
+this sample nor the earlier development results justify changing the standard
+checker or declaring the full Stage 0 gate passed. Improve validation with
+predefined negative and near-tie spatial examples, occlusion and segmentation
+cases, a broader rule/complexity sample, and more independently labeled seed
+blocks. Preserve the existing rule semantics and report selection separately.
+
+### Relevant research and implications
+
+[Selective classification](https://papers.neurips.cc/paper_files/paper/2017/hash/4a8423d5e91fda00bb7e46540e2b0cf1-Abstract.html)
+frames the key tradeoff as coverage versus error among accepted predictions.
+For this project, additionally report label distributions and coverage by rule
+and class: an accepted-only success rate estimates a selected population, and
+the abstentions cannot be silently discarded. The paper's guarantees do not
+automatically apply to our fixed heuristic or this dependent sample.
+
+[GenEval](https://arxiv.org/abs/2310.11513) uses object-focused checks for
+position, count, color and related compositional properties and compares them
+with human judgments. This supports testing individual failure modes and human
+agreement; its reported results do not validate our checker. The controlled
+[MOSAIC study](https://arxiv.org/abs/2605.00273) investigates multi-object
+attribute, spatial and counting behavior under controlled datasets and model
+settings. Its experimental settings provide a useful independent comparison,
+but our short toy run is not a replication. Together these suggest targeted,
+pre-specified negative spatial examples and class-conditional checker audits,
+not an assumption that training longer alone fixes either checker selection or
+the exposure design.
+
+As a selection sensitivity illustration, the candidate accepted 21 positive
+and seven negative whole-rule answers and abstained on 12. If its accepted
+answers were assumed correct but the abstentions had unknown labels, the
+positive fraction for these exact 40 images could be anywhere from 21/40
+(52.5%) to 33/40 (82.5%). The complete human labels give 26/40 (65%) for
+this sample. The interval is a finite-sample worst-case bound under the
+accepted-answer assumption, not a confidence interval or proof of checker
+correctness. [Horowitz and Manski](https://www.sciencedirect.com/science/article/pii/S030440760500062X)
+discuss bounds when missing data prevent point identification; they do not
+specifically validate this checker.
+
+The machine-readable scoring report is stored locally at ignored
+`outputs/audit-validation-results-800000.json`. To reproduce it, pass the
+pack and each review pair to `python -m exposure.audit_validation_score` with
+`--reviewer-N-rule`, `--reviewer-N-predicate` (N = 1–4), and a new `--output`
+path. The scorer checks the frozen hashes and assignments and excludes any
+reviewer-disputed item instead of inventing a label.
