@@ -43,6 +43,10 @@ A further [rule-allocation exploration](design-rule-allocation-exploration.md)
 achieves held-out VIF below 2 for four features, but changes the rule-weighted
 population, uses concentrated endpoint mixtures, omits breadth, and leaves the
 within-rule marginal effect unidentified. It is not a gate assessment.
+A two-reference, rule-reweighted exploration also produces four VIFs below 2
+on the holdout while varying marginals within rule, but the full model,
+reference adjustment, breadth, target population and uncertainty remain
+unresolved. See [two-reference exploration](design-two-reference-exploration.md).
 A separate
 [one-step MOSAIC toy diagnostic](mosaic-toy-denoise.md) evaluates known images,
 not generated-image success or replication.
