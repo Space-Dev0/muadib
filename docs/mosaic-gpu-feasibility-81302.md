@@ -84,3 +84,11 @@ identify a possible mismatch when training retains terminal signal but sampling
 starts from noise; their result does not prove that mismatch explains this run.
 A controlled architecture/schedule comparison and recognizable generation are
 needed before proceeding to a meaningful MOSAIC-style contrast.
+
+An independent OpenCode review on the GPU laptop recommended checking the
+velocity/sampler contract with oracle inversion, measuring error by noise level,
+performing fixed-image overfit and conditioning ablations, and comparing full
+sampling under matched schedules before attributing failure to capacity. The
+existing one-step and multistep oracle diagnostics cover parts of that list;
+they do not by themselves prove the learned sampler is correct. The multiscale
+probe is exploratory rather than an isolated causal test of architecture.

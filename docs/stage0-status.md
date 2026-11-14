@@ -8,6 +8,11 @@ fingerprint check. Sampling compatibility should be verified separately.
 **Not passed.** The following measurements are instrument-development results,
 not confirmatory research findings.
 
+A four-cell CUDA multiscale feasibility run has produced 16 exploratory
+previews and a blinded team review pack; both checkers abstained on all 16
+target-circle questions. It is one training-seed block, not a MOSAIC gate
+result. See [GPU probe](mosaic-multiscale-probe-81322.md).
+
 The fresh 40-image restricted checker validation has been reviewed: the
 standard checker answered 19/40 and the experimental candidate 28/40, with
 zero disagreements among answered questions. Twelve candidate decisions
