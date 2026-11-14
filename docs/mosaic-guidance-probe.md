@@ -30,3 +30,14 @@ These are informal observations, not independent human labels. The ignored
 outputs are `outputs/mosaic-guidance-30k-81385/`. A small adaptively chosen sample cannot establish the
 appropriate guidance value; any research protocol must freeze it in advance
 and evaluate fresh images with a validated checker or blinded human review.
+
+A blinded readiness review of the eight 30k images is available in ignored
+`outputs/mosaic-guidance-review-30k-81387/reviewer-1.zip` through
+`reviewer-4.zip`. Each reviewer sees all eight and records yes/no/unsure for
+requested-color circle and exactly two distinct visible objects. Only the ZIPs
+should be shared; `private/` contains the guidance/seed mapping. The pack was
+created after inspecting these samples and contains one training seed and two
+paired sampling seeds, so the review can assess whether further work is worth
+pursuing but cannot establish a Stage 0 gate or an independent accuracy claim.
+Source image and archive hashes were checked before review. The generator is
+`python -m exposure.mosaic_guidance_review_pack` and records its source hash.
