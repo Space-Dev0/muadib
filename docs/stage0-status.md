@@ -12,6 +12,10 @@ A four-cell CUDA multiscale feasibility run has produced 16 exploratory
 previews and a blinded team review pack; both checkers abstained on all 16
 target-circle questions. It is one training-seed block, not a MOSAIC gate
 result. See [GPU probe](mosaic-multiscale-probe-81322.md).
+A further 30,000-update single-cell continuation saved three stateful
+checkpoints; an inspected final preview still contains merged shapes. It
+does not establish model quality or a replication; see
+[resumable probe](mosaic-resumable-probe.md).
 
 The fresh 40-image restricted checker validation has been reviewed: the
 standard checker answered 19/40 and the experimental candidate 28/40, with
