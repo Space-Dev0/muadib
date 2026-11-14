@@ -30,9 +30,22 @@ recognizable objects. This is an informal inspection of two images, not a
 quality metric or evidence the model has converged. Checkpoints and previews
 are stored in ignored `outputs/mosaic-pilotunet-warmstart-81377/`.
 
-An additional bounded `resume` run was started from the 8,000-update
+An additional bounded `resume` run was completed from the 8,000-update
 checkpoint with `scripts/run-mosaic-pilotunet-resume.ps1`: 12,000 updates,
 checkpoints at cumulative 14,000 and 20,000, and no automatic previews during
 resume. It restores saved optimizer and random states; the source run did not
 enable strict deterministic algorithms, so bitwise CUDA replay is not
 established. The one-cell run does not constitute a MOSAIC replication.
+
+The resumed run completed through cumulative 20,000 updates. The 14,000 and
+20,000 checkpoint hashes matched the downloaded report; last-100 mean losses
+were 0.04799 and 0.04242 respectively. A 14,000-update red preview and paired
+20,000-update red/blue previews at seeds 81380–81383 were generated separately
+from the saved checkpoints. Informal inspection found small colored regions,
+sometimes with no obvious requested color; the 81383 red and blue requests
+both produced a green-looking object. Other blue requests did produce blue
+regions. These are eight exploratory images, not independent human ratings,
+a performance estimate, or proof of conditioning failure. They show the
+preview is not ready for a formal checker or MOSAIC gate. The checkpoints and
+images are under ignored `outputs/mosaic-pilotunet-resume-81378/` and
+`outputs/mosaic-pilotunet-resume-preview-81378/`.
