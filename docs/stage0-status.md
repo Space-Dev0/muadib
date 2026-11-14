@@ -30,6 +30,10 @@ population or gate result; see [VIF floor](design-vif-floor.md). A fitted nonuni
 the exploratory log-marginal/lift correlation, but five sampled chains
 still give held-out lift VIF 5.997–6.233, above 2; see
 [reference design diagnostics](design-reference-design-diagnostics.md).
+A further [rule-allocation exploration](design-rule-allocation-exploration.md)
+achieves held-out VIF below 2 for four features, but changes the rule-weighted
+population, uses concentrated endpoint mixtures, omits breadth, and leaves the
+within-rule marginal effect unidentified. It is not a gate assessment.
 A separate
 [one-step MOSAIC toy diagnostic](mosaic-toy-denoise.md) evaluates known images,
 not generated-image success or replication.
