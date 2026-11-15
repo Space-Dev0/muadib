@@ -77,3 +77,10 @@ trainer was not stopped. The task and one Python launcher/child process tree
 were then observed running together with the original training task. The
 second laptop's setup task was observed running with an active connection to
 the PyTorch download host; its training task was not yet present.
+
+On a later check, the original laptop had completed high-balanced at 500,000
+updates and was continuing high-imbalanced beyond 320,000. The second laptop
+had installed CUDA PyTorch, but NumPy timed out. Setup was restarted with a
+180-second HTTP timeout and the first laptop's exact NumPy, Pillow and SciPy
+versions. The low-cell task must still pass its checkpoint migration smoke
+test before it starts.

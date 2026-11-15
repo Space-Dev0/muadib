@@ -1,5 +1,6 @@
 # One-time second-laptop setup; may be retried after network loss.
 $ErrorActionPreference = 'Stop'
+$env:UV_HTTP_TIMEOUT = '180'
 $root = Join-Path $env:USERPROFILE 'muadib'
 $workspace = Join-Path $root 'mosaic-gpu-81300'
 $python = Join-Path $root '.venv-official\Scripts\python.exe'
@@ -24,7 +25,7 @@ try {
     if (-not (Test-Path $python) -or -not (Test-Path $uv)) { throw 'Missing approved Python environment or uv.' }
     & $uv pip install --python $python 'torch==2.9.1' --index-url 'https://download.pytorch.org/whl/cu128'
     if ($LASTEXITCODE -ne 0) { throw 'CUDA PyTorch installation failed; task will retry.' }
-    & $uv pip install --python $python pillow scipy
+    & $uv pip install --python $python 'numpy==2.5.4' 'pillow==13.0.0' 'scipy==1.18.1'
     if ($LASTEXITCODE -ne 0) { throw 'Python dependency installation failed; task will retry.' }
     Set-Location $workspace
     & $python -c "import torch; assert torch.__version__ == '2.9.1+cu128' and torch.cuda.is_available(); print(torch.cuda.get_device_name(0))"
