@@ -8,6 +8,11 @@ fingerprint check. Sampling compatibility should be verified separately.
 **Not passed.** The following measurements are instrument-development results,
 not confirmatory research findings.
 
+A new bounded, one-block four-cell PilotUNet experiment has started on the GPU
+with user authorization, separate from the stopped 760k continuous run. Its
+first cell is in checkpointed continuation; no comparison result is available.
+See [matched experiment](mosaic-matched-81570.md).
+
 The single-cell PilotUNet trainer was stopped at a verified 760,000-update
 checkpoint. Its exploratory previews appear clearer, but they do not establish
 any Stage 0 gate; see [760k assessment](mosaic-760k-assessment.md).
