@@ -7,6 +7,7 @@ import zipfile
 from pathlib import Path
 from PIL import Image
 from exposure.mosaic_guidance_review_pack import build
+from exposure.mosaic_guidance_predictions import predictions
 from exposure.mosaic_guidance_review_score import score
 
 
@@ -72,6 +73,13 @@ class GuidanceReviewPackTests(unittest.TestCase):
         self.assertEqual(build(self.source, self.root / 'fresh', fresh_81530=True)['images'], 32)
         with zipfile.ZipFile(self.root / 'fresh' / 'reviewer-1.zip') as archive:
             self.assertEqual(len(archive.read('reviews.csv').decode().splitlines()), 33)
+        result = predictions(self.root / 'fresh')
+        self.assertEqual(len(result['results']), 32)
+        self.assertTrue(all(row['target_circle'] is None for row in result['results'].values()))
+        image = self.root / 'fresh' / 'private' / 'images' / 'readiness-001.png'
+        image.write_bytes(b'tampered')
+        with self.assertRaisesRegex(ValueError, 'hash mismatch'):
+            predictions(self.root / 'fresh')
 
     def test_score_preserves_disagreement_and_rejects_incomplete_reviews(self):
         pack = self.root / 'pack'

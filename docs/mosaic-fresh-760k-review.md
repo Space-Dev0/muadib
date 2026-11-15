@@ -43,3 +43,17 @@ hash. The report is a provenance record, not independent proof of how each
 image was generated. This sample tests only a single model trained on one
 low-complexity, two-object cell. It cannot establish the proposal's 300-image
 complexity-stratified checker gate, a MOSAIC replication, or a Stage 0 pass.
+
+Freeze experimental checker decisions before sharing packs or collecting new
+reviews. Keep this output private until review is complete:
+
+```sh
+uv run --no-sync python -m exposure.mosaic_guidance_predictions \
+  --pack outputs/mosaic-guidance-fresh-review-760k-81530 \
+  --output outputs/mosaic-guidance-fresh-review-760k-81530/private/predictions.json
+```
+
+These decisions concern the requested-color circle only, and `null` means
+abstention. The checker source hash is recorded, but dependencies and the
+runtime are not independently attested. Compare with human labels only after
+review, and retain disagreements and abstentions.
