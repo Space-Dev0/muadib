@@ -11,6 +11,10 @@ not confirmatory research findings.
 The single-cell PilotUNet trainer was stopped at a verified 760,000-update
 checkpoint. Its exploratory previews appear clearer, but they do not establish
 any Stage 0 gate; see [760k assessment](mosaic-760k-assessment.md).
+The returned eight-image readiness reviews mark the target circle present and
+exactly two objects visible for every image. Reviewer identity and independence
+cannot be verified from the identical exports; this remains a small post-hoc
+readiness check, not the required complexity-stratified audit.
 
 A four-cell CUDA multiscale feasibility run has produced 16 exploratory
 previews and a blinded team review pack; both checkers abstained on all 16

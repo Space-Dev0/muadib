@@ -17,7 +17,8 @@ DDPM sampler. These are paired with prior 30k and 150k examples. All eight
 image hashes and the checkpoint hash match the report. Informal inspection
 found separated colored objects in the displayed examples. The experimental
 variable-count checker returned true for the requested-color circle on all
-eight; no independent human judgment has yet validated these predictions.
+eight. The returned human review files also mark the target circle present on
+all eight; see the review results below.
 These selected, paired images are not a population accuracy estimate.
 
 The earlier 150k comparison contains eight matched and four additional-seed
@@ -38,6 +39,28 @@ seed and checker decisions are private. Archive and image hashes were verified.
 The pack was selected after looking at the samples; one model, two paired seeds
 and two guidance settings cannot establish the checker-error gate or MOSAIC
 replication. It is a readiness check only.
+
+## Returned reviews
+
+Five completed exports (`reviews.csv` and `reviews_1.csv` through
+`reviews_4.csv`) were found in the pack directory. Each contains exactly the
+eight expected IDs, with `yes` for both questions on every image. All five
+files have the same SHA-256
+`dc5104a4a1add23035a0690a31360fe8a20de16d0c415ed6a99cdd012b9b8e14`;
+the filled `reviewer-1/reviews.csv` is identical as well. Identical answers
+are consistent with agreement, but the exports contain no reviewer identifier
+and the reviewer archives are identical, so the number of independent
+reviewers or duplicate exports cannot be established from these files alone.
+No disagreements or unsure answers are recorded. The results match the
+previously recorded experimental checker decisions for target-circle presence;
+they do not independently validate the checker's object-count output.
+
+The image file hashes in the private manifest match the eight images in each
+of the private, reviewer-1 and reviewer-2 directories. The source report and
+checkpoint hashes match the private provenance. The review CSVs remain in the
+ignored output directory. This post-hoc, eight-image convenience sample does
+not estimate population error, measure false accepts and false rejects, or
+meet the complexity-stratified 300-image checker audit.
 
 Training remains stopped. This one model is conditioned on red/blue target
 color in low/balanced two-object scenes. It cannot by itself establish the
