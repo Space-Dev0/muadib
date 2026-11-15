@@ -15,7 +15,36 @@ and pixel hashes and wrote reviewer ZIPs under
 predictions were frozen in the private directory before distributing the
 pack; their file SHA-256 is
 `47e12ff20b3fd20b212a4c2109d64e67b90ff402f72deea7d8bffb9bc2a2fa0e`.
-Human review remains outstanding.
+Human review results are summarized below.
+
+## Returned reviews
+
+Four complete review files were returned, each with the same SHA-256
+`07b151d381253bda02443669bd3dfe9ddf825302ab5483883cf0f348558ef87a`.
+The user reported the reviews complete. Because the files and review archives
+contain no identifying metadata, independent authorship cannot be verified from
+the artifacts alone. The reviewers answered yes to both questions for 31 of
+32 images, and no to both for `readiness-009`. There were no unsure responses
+or recorded disagreements. For `readiness-007`, each file says "yes, objects
+are touching" for target-circle presence; the scorer interprets the explicit
+yes and preserves the original files and their hashes. Pairwise agreement is
+32/32 for each question and each reviewer pair.
+
+The frozen experimental checker answered true on 28 images, all rated yes for
+target-circle presence. It abstained on four: three rated yes (`readiness-007`,
+`-010`, `-032`) and the one rated no (`-009`). The 28 accepted answers contain
+no disagreements with the reviews; no negative image was accepted, so the
+sample cannot estimate a false-accept rate. Checker abstention reasons were
+unrecognized foreground color on one, one connected component on one, and
+unsupported size or occlusion on two. These labels do not validate object-count
+predictions; the checker was not asked that question. The 32 images are paired
+across 16 seeds and come from one model and one simple training cell. Neither
+the 31/32 review result nor accepted-only checker agreement meets the Stage 0
+gate or establishes quality for more complex scenes.
+
+The frozen prediction hash above was checked again before comparison. Scored
+votes and file hashes are in the ignored `score.json` next to the packs; the
+original review files are unchanged.
 
 The package contains four identical blinded image sets. Each reviewer answers
 whether the requested-color circle is visible and whether exactly two distinct

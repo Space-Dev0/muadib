@@ -16,6 +16,12 @@ exactly two objects visible for every image. The user confirmed the numbered
 reviews are independent; individual attribution is not recorded in the files.
 This remains a small post-hoc readiness check, not the required
 complexity-stratified audit.
+In a subsequent fresh 32-image single-cell batch, the four returned review
+files all say 31 images contain the requested circle and exactly two objects;
+the experimental checker answered 28, all consistent with the target-circle
+reviews, and abstained on four including the only human-negative image. This
+does not establish false-accept error or the broader checker gate; see
+[fresh review](mosaic-fresh-760k-review.md).
 
 A four-cell CUDA multiscale feasibility run has produced 16 exploratory
 previews and a blinded team review pack; both checkers abstained on all 16

@@ -11,6 +11,15 @@ from pathlib import Path
 QUESTIONS = ('target_circle', 'exactly_two_objects')
 
 
+def decision(value):
+    """Accept an explicit answer optionally followed by a comma and a note."""
+    answer, separator, note = value.partition(',')
+    answer = answer.strip().lower()
+    if answer not in ('yes', 'no', 'unsure') or (separator and not note.strip()):
+        raise ValueError('Each response must be yes, no or unsure, optionally followed by a comma and note')
+    return answer
+
+
 def digest(data):
     return hashlib.sha256(data).hexdigest()
 
@@ -39,9 +48,10 @@ def score(pack, review_paths):
         ids = [r['sample_id'] for r in rows]
         if len(ids) != len(items) or len(set(ids)) != len(ids) or set(ids) != set(items):
             raise ValueError(f'Missing, duplicate or unexpected sample ID: {path}')
-        if any(row[q] not in ('yes', 'no', 'unsure') for row in rows for q in QUESTIONS):
-            raise ValueError(f'Each response must be yes, no or unsure: {path}')
-        reviews.append({row['sample_id']: row for row in rows})
+        try:
+            reviews.append({row['sample_id']: {q: decision(row[q]) for q in QUESTIONS} for row in rows})
+        except (ValueError, AttributeError) as exc:
+            raise ValueError(f'Invalid response in {path}: {exc}') from exc
     summaries = {}
     for question in QUESTIONS:
         counts = {item: dict(Counter(r[item][question] for r in reviews)) for item in sorted(items)}

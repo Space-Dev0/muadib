@@ -91,6 +91,7 @@ class GuidanceReviewPackTests(unittest.TestCase):
                 text = archive.read('reviews.csv').decode().replace(',,', ',yes,yes')
             if number == 0:
                 text = text.replace('readiness-001,yes,yes', 'readiness-001,no,unsure')
+                text = text.replace('readiness-002,yes,yes', 'readiness-002,"yes, touching",yes')
             path.write_text(text)
             files.append(path)
         result = score(pack, files)
