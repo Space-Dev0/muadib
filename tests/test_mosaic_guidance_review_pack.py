@@ -49,6 +49,29 @@ class GuidanceReviewPackTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'hash mismatch'):
             build(self.source, self.root / 'pack')
 
+    def test_fresh_pack_requires_exact_samples_and_checkpoint(self):
+        rows = []
+        for color in ('red', 'blue'):
+            for seed in range(81530, 81546):
+                image = Image.new('RGB', (64, 64), (seed % 255, len(color), 10))
+                out = io.BytesIO()
+                image.save(out, format='PNG')
+                raw = out.getvalue()
+                name = f'{color}-{seed}.png'
+                (self.source / name).write_bytes(raw)
+                rows.append({'color': color, 'seed': seed, 'guidance': 1.0, 'file': name,
+                             'sha256': hashlib.sha256(raw).hexdigest(),
+                             'pixel_sha256': hashlib.sha256(image.tobytes()).hexdigest()})
+        report = {'checkpoint_sha256': 'wrong', 'images': rows}
+        (self.source / 'report.json').write_text(json.dumps(report))
+        with self.assertRaisesRegex(ValueError, 'checkpoint'):
+            build(self.source, self.root / 'bad', fresh_81530=True)
+        report['checkpoint_sha256'] = '84dac304a3a2b67ca8342f331b05adea940da746293dd7a3002bb902c43d91d4'
+        (self.source / 'report.json').write_text(json.dumps(report))
+        self.assertEqual(build(self.source, self.root / 'fresh', fresh_81530=True)['images'], 32)
+        with zipfile.ZipFile(self.root / 'fresh' / 'reviewer-1.zip') as archive:
+            self.assertEqual(len(archive.read('reviews.csv').decode().splitlines()), 33)
+
 
 if __name__ == '__main__':
     unittest.main()

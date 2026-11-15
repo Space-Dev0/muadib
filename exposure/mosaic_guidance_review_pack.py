@@ -15,8 +15,8 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def build(source: Path, output: Path, *, seed: int = 81386):
-    """Freeze the eight recorded scale-1/2 images without exposing scale or seed."""
+def build(source: Path, output: Path, *, seed: int = 81386, fresh_81530: bool = False):
+    """Freeze a prespecified sample set without exposing scale or seed."""
     source = source.resolve(strict=True)
     output = output.resolve()
     if output.is_relative_to(source) or source.is_relative_to(output):
@@ -24,12 +24,16 @@ def build(source: Path, output: Path, *, seed: int = 81386):
     report_path = source / 'report.json'
     report_bytes = report_path.read_bytes()
     report = json.loads(report_bytes)
+    seeds = range(81530, 81546) if fresh_81530 else (81380, 81381)
+    scales = (1.0,) if fresh_81530 else (1.0, 2.0)
     expected = {(color, sample_seed, scale) for color in ('red', 'blue')
-                for sample_seed in (81380, 81381) for scale in (1.0, 2.0)}
+                for sample_seed in seeds for scale in scales}
     rows = report['images']
     keys = [(r['color'], r['seed'], r['guidance']) for r in rows]
-    if len(keys) != 8 or set(keys) != expected:
-        raise ValueError('Expected exactly the frozen eight guidance samples')
+    if len(keys) != len(expected) or set(keys) != expected:
+        raise ValueError('Sample set does not match the prespecified conditions')
+    if fresh_81530 and report['checkpoint_sha256'] != '84dac304a3a2b67ca8342f331b05adea940da746293dd7a3002bb902c43d91d4':
+        raise ValueError('Unexpected checkpoint for the fresh 760k sample')
     items = []
     for row in rows:
         filename = row['file']
@@ -67,7 +71,9 @@ def build(source: Path, output: Path, *, seed: int = 81386):
                   'items': {item['id']: {'color': item['color'], 'seed': item['seed'],
                              'guidance': item['guidance'], 'pixel_sha256': item['pixel_sha256'],
                              'image_sha256': digest(item['png'])} for item in items},
-                  'note': 'Post-hoc readiness check, one model and two paired seeds; not a Stage 0 audit.'}
+                  'note': ('Fresh prespecified 32-image check, one model and 16 paired seeds; '
+                           'not a complexity-stratified Stage 0 audit.' if fresh_81530 else
+                           'Post-hoc readiness check, one model and two paired seeds; not a Stage 0 audit.')}
     (private / 'provenance.json').write_text(json.dumps(provenance, indent=2) + '\n')
     table = io.StringIO(newline='')
     writer = csv.writer(table, lineterminator='\n')
@@ -103,9 +109,10 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--source', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--fresh-81530', action='store_true', help='Use the prespecified fresh 760k sample set')
     a = p.parse_args()
     try:
-        print(json.dumps(build(a.source, a.output), indent=2))
+        print(json.dumps(build(a.source, a.output, fresh_81530=a.fresh_81530), indent=2))
     except (OSError, ValueError, KeyError, TypeError) as exc:
         p.error(str(exc))
 
