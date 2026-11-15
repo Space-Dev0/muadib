@@ -16,6 +16,21 @@ predictions must not be given to reviewers before they finish. Record unsure,
 disagreements and abstentions; do not treat detector failures as negative human
 answers or majority agreement as infallible ground truth.
 
+Once all four files have been returned, score them with four distinct paths:
+
+```sh
+uv run --no-sync python -m exposure.mosaic_guidance_review_score \
+  --pack outputs/mosaic-guidance-fresh-review-760k-81530 \
+  --reviews reviewer1.csv reviewer2.csv reviewer3.csv reviewer4.csv \
+  --output outputs/mosaic-guidance-fresh-review-760k-81530/score.json
+```
+
+The scorer checks the private images against the local provenance manifest,
+checks complete unique sample IDs and response values, retains vote counts and
+reports pairwise agreement excluding unsure answers. The manifest is not a
+cryptographic attestation of reviewer identity, independent review, or image
+generation. The scorer does not decide disputed cases or evaluate checker error.
+
 ```sh
 UV_CACHE_DIR=/tmp/muadib-uv-cache uv run --no-sync python -m exposure.mosaic_guidance_review_pack \
   --source outputs/mosaic-guidance-fresh-760k-81530 \

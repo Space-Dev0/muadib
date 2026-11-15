@@ -7,6 +7,7 @@ import zipfile
 from pathlib import Path
 from PIL import Image
 from exposure.mosaic_guidance_review_pack import build
+from exposure.mosaic_guidance_review_score import score
 
 
 class GuidanceReviewPackTests(unittest.TestCase):
@@ -71,6 +72,26 @@ class GuidanceReviewPackTests(unittest.TestCase):
         self.assertEqual(build(self.source, self.root / 'fresh', fresh_81530=True)['images'], 32)
         with zipfile.ZipFile(self.root / 'fresh' / 'reviewer-1.zip') as archive:
             self.assertEqual(len(archive.read('reviews.csv').decode().splitlines()), 33)
+
+    def test_score_preserves_disagreement_and_rejects_incomplete_reviews(self):
+        pack = self.root / 'pack'
+        build(self.source, pack)
+        files = []
+        for number in range(4):
+            path = self.root / f'review-{number}.csv'
+            with zipfile.ZipFile(pack / f'reviewer-{number + 1}.zip') as archive:
+                text = archive.read('reviews.csv').decode().replace(',,', ',yes,yes')
+            if number == 0:
+                text = text.replace('readiness-001,yes,yes', 'readiness-001,no,unsure')
+            path.write_text(text)
+            files.append(path)
+        result = score(pack, files)
+        self.assertEqual(result['questions']['target_circle']['yes_no_disagreement'], 1)
+        self.assertEqual(result['questions']['exactly_two_objects']['any_unsure'], 1)
+        self.assertEqual(result['questions']['target_circle']['unanimous_yes'], 7)
+        files[0].write_text(files[0].read_text().replace('readiness-001', 'readiness-002'))
+        with self.assertRaisesRegex(ValueError, 'duplicate'):
+            score(pack, files)
 
 
 if __name__ == '__main__':
