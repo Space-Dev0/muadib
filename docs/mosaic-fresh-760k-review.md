@@ -8,6 +8,15 @@ colors; they are not 32 independent training runs. The seed and condition set
 was fixed before the run and the pack includes every generated output, with no
 selection based on visual quality or checker decisions.
 
+The run completed on the CUDA laptop and the full batch was copied to
+`outputs/mosaic-guidance-fresh-760k-81530/`. The packager verified all 32 image
+and pixel hashes and wrote reviewer ZIPs under
+`outputs/mosaic-guidance-fresh-review-760k-81530/`. Experimental checker
+predictions were frozen in the private directory before distributing the
+pack; their file SHA-256 is
+`47e12ff20b3fd20b212a4c2109d64e67b90ff402f72deea7d8bffb9bc2a2fa0e`.
+Human review remains outstanding.
+
 The package contains four identical blinded image sets. Each reviewer answers
 whether the requested-color circle is visible and whether exactly two distinct
 objects are visible. Reviewer answers should be kept as separate files and
