@@ -68,3 +68,12 @@ transferred checkpoints, performs and verifies a one-step CUDA continuation,
 and installs the low-cell supervisor only if those steps succeed. The low-cell
 task has not yet been observed running; installation of the setup task alone is
 not evidence that low-cell training has started.
+
+During setup, stopping the first scheduled supervisor left detached Python
+processes, and subsequent starts encountered its held lock. The scheduled task
+was disabled, only processes whose command line named the distributed
+supervisor were stopped, and the task was re-enabled. The original model
+trainer was not stopped. The task and one Python launcher/child process tree
+were then observed running together with the original training task. The
+second laptop's setup task was observed running with an active connection to
+the PyTorch download host; its training task was not yet present.
