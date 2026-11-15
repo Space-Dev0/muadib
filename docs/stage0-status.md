@@ -8,6 +8,10 @@ fingerprint check. Sampling compatibility should be verified separately.
 **Not passed.** The following measurements are instrument-development results,
 not confirmatory research findings.
 
+The single-cell PilotUNet trainer was stopped at a verified 760,000-update
+checkpoint. Its exploratory previews appear clearer, but they do not establish
+any Stage 0 gate; see [760k assessment](mosaic-760k-assessment.md).
+
 A four-cell CUDA multiscale feasibility run has produced 16 exploratory
 previews and a blinded team review pack; both checkers abstained on all 16
 target-circle questions. It is one training-seed block, not a MOSAIC gate
