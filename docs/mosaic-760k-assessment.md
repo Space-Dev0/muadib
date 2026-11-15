@@ -47,10 +47,11 @@ Five completed exports (`reviews.csv` and `reviews_1.csv` through
 eight expected IDs, with `yes` for both questions on every image. All five
 files have the same SHA-256
 `dc5104a4a1add23035a0690a31360fe8a20de16d0c415ed6a99cdd012b9b8e14`;
-the filled `reviewer-1/reviews.csv` is identical as well. Identical answers
-are consistent with agreement, but the exports contain no reviewer identifier
-and the reviewer archives are identical, so the number of independent
-reviewers or duplicate exports cannot be established from these files alone.
+the filled `reviewer-1/reviews.csv` is identical as well. The user confirmed
+that the numbered review files came from independent reviewers. The files
+themselves contain no reviewer identifier and the archives are identical, so
+their individual attribution cannot be verified from the artifacts. The extra
+unnumbered export is not counted as an additional reviewer.
 No disagreements or unsure answers are recorded. The results match the
 previously recorded experimental checker decisions for target-circle presence;
 they do not independently validate the checker's object-count output.

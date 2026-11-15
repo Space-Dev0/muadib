@@ -12,9 +12,10 @@ The single-cell PilotUNet trainer was stopped at a verified 760,000-update
 checkpoint. Its exploratory previews appear clearer, but they do not establish
 any Stage 0 gate; see [760k assessment](mosaic-760k-assessment.md).
 The returned eight-image readiness reviews mark the target circle present and
-exactly two objects visible for every image. Reviewer identity and independence
-cannot be verified from the identical exports; this remains a small post-hoc
-readiness check, not the required complexity-stratified audit.
+exactly two objects visible for every image. The user confirmed the numbered
+reviews are independent; individual attribution is not recorded in the files.
+This remains a small post-hoc readiness check, not the required
+complexity-stratified audit.
 
 A four-cell CUDA multiscale feasibility run has produced 16 exploratory
 previews and a blinded team review pack; both checkers abstained on all 16
@@ -55,6 +56,9 @@ A two-reference, rule-reweighted exploration also produces four VIFs below 2
 on the holdout while varying marginals within rule, but the full model,
 reference adjustment, breadth, target population and uncertainty remain
 unresolved. See [two-reference exploration](design-two-reference-exploration.md).
+With rule-by-reference intercepts, the fitting matrix has no within-cell
+marginal variation; a shared reference intercept leaves two residualized
+exposure columns with rank two, under a stronger modeling assumption.
 A separate
 [one-step MOSAIC toy diagnostic](mosaic-toy-denoise.md) evaluates known images,
 not generated-image success or replication.

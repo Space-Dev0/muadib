@@ -20,6 +20,37 @@ uncertainty remain omitted; reference mixtures and extreme endpoints alter the
 population and may be costly to train. The independent matrix is a separate
 Monte Carlo measurement, not a new external benchmark.
 
+### Rule-by-reference adjustment
+
+With an intercept for each rule and reference combination, the same endpoint
+designs do **not** identify the marginal-exposure coefficient on the fitting
+matrix. Within a reference the design constraints preserve the singleton
+marginals, so the mean marginal for a given rule is constant over designs;
+its log is therefore absorbed by the rule-by-reference intercept. Numerically,
+across 114 rule-reference groups and 13,110 rows the within-group marginal
+root-mean-square deviation is `8.53e-15`, the largest group range is
+`2.36e-13`, and the centered marginal-and-lift matrix has rank 1 at tolerance
+`1e-10`. The within-group lift RMS is `0.399`.
+
+On the independent Monte Carlo matrix the corresponding marginal RMS is
+`0.0141`, maximum range `0.220`, and numerical rank 2. The designs only
+preserve singleton constraints on the fitting estimates; deviations on an
+independent estimate can reflect Monte Carlo measurement and constraint
+error. That numerical rank therefore does not by itself demonstrate real,
+reliably measured within-cell marginal variation. This diagnostic addresses
+the specified rule-by-reference intercept model; it does not prove that every
+other adjustment, such as a shared reference intercept, is unidentifiable.
+For example, after removing rule intercepts and one shared reference intercept,
+the two residualized exposure columns have rank 2 on both matrices; their
+correlations are 0.227 and 0.238, with corresponding two-column residual VIFs
+1.054 and 1.060. These are equal-row exploratory diagnostics, not VIFs for the
+full planned model or a test of the reference-intercept assumption. Breadth,
+measurement uncertainty and the choice of estimand remain unresolved.
+
+```sh
+PYTHONPATH=. OPENBLAS_NUM_THREADS=1 uv run --no-sync python scripts/explore-reference-cell-identifiability.py
+```
+
 Reproduce using the existing ignored matrix reports:
 
 ```sh
