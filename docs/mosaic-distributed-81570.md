@@ -84,3 +84,12 @@ had installed CUDA PyTorch, but NumPy timed out. Setup was restarted with a
 180-second HTTP timeout and the first laptop's exact NumPy, Pillow and SciPy
 versions. The low-cell task must still pass its checkpoint migration smoke
 test before it starts.
+
+On the next check, the second laptop's network setup had failed again. The
+three pinned Windows wheels were downloaded from PyPI on the local machine,
+transferred, and checked by SHA-256. Setup was updated to use these local
+wheels when present. It installed all three, verified CUDA and both 150k
+checkpoint hashes, and completed a one-update migration smoke test.
+`MuadibMosaicDistributed81570-low` was then observed running a low-balanced
+150,000-to-160,000 segment with GPU activity. Cross-machine continuation is
+not guaranteed bitwise identical despite restored RNG state.

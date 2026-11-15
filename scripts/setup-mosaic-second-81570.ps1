@@ -25,7 +25,14 @@ try {
     if (-not (Test-Path $python) -or -not (Test-Path $uv)) { throw 'Missing approved Python environment or uv.' }
     & $uv pip install --python $python 'torch==2.9.1' --index-url 'https://download.pytorch.org/whl/cu128'
     if ($LASTEXITCODE -ne 0) { throw 'CUDA PyTorch installation failed; task will retry.' }
-    & $uv pip install --python $python 'numpy==2.5.4' 'pillow==13.0.0' 'scipy==1.18.1'
+    $wheels = Join-Path $root 'wheels'
+    if ((Test-Path (Join-Path $wheels 'numpy-2.5.4-cp313-cp313-win_amd64.whl')) -and
+        (Test-Path (Join-Path $wheels 'pillow-13.0.0-cp313-cp313-win_amd64.whl')) -and
+        (Test-Path (Join-Path $wheels 'scipy-1.18.1-cp313-cp313-win_amd64.whl'))) {
+        & $uv pip install --python $python --no-index --find-links $wheels 'numpy==2.5.4' 'pillow==13.0.0' 'scipy==1.18.1'
+    } else {
+        & $uv pip install --python $python 'numpy==2.5.4' 'pillow==13.0.0' 'scipy==1.18.1'
+    }
     if ($LASTEXITCODE -ne 0) { throw 'Python dependency installation failed; task will retry.' }
     Set-Location $workspace
     & $python -c "import torch; assert torch.__version__ == '2.9.1+cu128' and torch.cuda.is_available(); print(torch.cuda.get_device_name(0))"
