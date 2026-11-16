@@ -681,6 +681,6 @@ default sampler was not changed. The local ignored files
 `outputs/x0clip-12k-experiment.py` and `outputs/x0clip-12k-report.json` retain
 the one-off script and measurements.
 
-See the [research and hardware plan](research-and-hardware-plan.md),
-[Stage 0 status](stage0-status.md), and the
-[human checklist](human-checklist.md).
+See the [research and hardware plan](../00-start-here/research-and-hardware-plan.md),
+[Stage 0 status](../07-status-and-reviews/stage0-status.md), and the
+[human checklist](../04-checker-and-human-audit/human-checklist.md).

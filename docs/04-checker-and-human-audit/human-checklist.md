@@ -65,7 +65,7 @@ and continue exploratory implementation while the final choices are pending.
    needs changes, and define the held-out leave-out set for H3. The proposal
    calls for about 54 training templates plus a held-out set (Section 5, p. 4).
    **You only.** Blocks the A-matrix, decorrelation analysis, and leave-out
-   probes. See [templates](templates.md).
+   probes. See [templates](../02-benchmark/templates.md).
 3. [ ] **Decide the A-matrix Monte Carlo size.** The proposal estimates each
    entry once with about `10^5` scenes per template (Section 6, p. 5). The
    current smoke test uses 100 scenes per template. **You only.** Blocks
@@ -73,7 +73,7 @@ and continue exploratory implementation while the final choices are pending.
 4. [ ] **Decide how uncertainty, breadth, and zeroes enter the decorrelation
    analysis.** Freeze the analysis table and uncertainty method before treating
    any result as the gate evaluation. **You only.** Blocks the decorrelation
-   gate. See [design diagnostics](design-diagnostics.md).
+   gate. See [design diagnostics](../03-exposure-design/design-diagnostics.md).
 5. [x] **SSH access confirmed for the pilot machine.** A user-authorized,
    read-only GPU preflight succeeded. The public repository is cloned on the
    laptop, locked sync and 127 Windows tests passed, and exploratory CUDA runs
@@ -84,7 +84,7 @@ and continue exploratory implementation while the final choices are pending.
    quality score, and are not ready for human audit; the audit image pool still
    needs to be generated. At least 300 generated images must be human-audited
    in a complexity-stratified sample. Blocks the human audit and checker gate.
-   Stage 0 remains explicitly unpassed. See [pilot training](pilot-training.md)
+   Stage 0 remains explicitly unpassed. See [pilot training](../05-training/pilot-training.md)
    and [human audit workflow](human-audit.md).
 6. [ ] **Confirm the reviewer pool and a neutral delivery method.** Four team
    members are reported as potential reviewers available later. Confirm their
@@ -101,12 +101,12 @@ and continue exploratory implementation while the final choices are pending.
    repository is cloned into the laptop's `source` subdirectory, with the
    isolated `.venv` in its parent; locked sync and 127 Windows tests passed.
    Confirm the available GPU time and set a budget for longer project runs. See
-   [research and hardware plan](research-and-hardware-plan.md) and
-   [pilot training](pilot-training.md).
+   [research and hardware plan](../00-start-here/research-and-hardware-plan.md) and
+   [pilot training](../05-training/pilot-training.md).
 8. [ ] **Review the proposed MOSAIC adaptation and arrange any required access.**
    We can study the paper and implementation and propose the contrast, metrics,
    datasets, and classifier inputs for your review. Blocks the MOSAIC gate. See
-   [MOSAIC notes](mosaic-replication.md).
+   [MOSAIC notes](../06-mosaic/mosaic-replication.md).
 
 ## What Codex can do once unblocked
 
@@ -126,7 +126,7 @@ decisions.
   `..\.venv\Scripts\python.exe -m uv sync --locked --inexact --extra train`,
   then run the exploratory pilot and record its provenance. Locked sync,
   Windows tests, and a 100-step CUDA run completed. The sample was noise;
-  further model training and evaluation are needed. See [pilot training](pilot-training.md).
+  further model training and evaluation are needed. See [pilot training](../05-training/pilot-training.md).
 - [ ] Improve checker rejection handling under brightening and blur, rerun
   clean and perturbation audits, and evaluate the checker against the supplied
   generated images.
@@ -191,7 +191,7 @@ counts alone do not establish the `≤ 2%` target on real renders. See
 - [ ] Run the adapted replication and compare only the direction with MOSAIC
   unless a full reproduction is achieved. Codex can prepare and run the
   experiment; the human decides whether the direction matches and whether the
-  comparison is credible. See [MOSAIC replication](mosaic-replication.md).
+  comparison is credible. See [MOSAIC replication](../06-mosaic/mosaic-replication.md).
 
 ## Current evidence at a glance
 
@@ -205,7 +205,7 @@ counts alone do not establish the `≤ 2%` target on real renders. See
 | GPU | Windows RTX 3050 6GB; locked CUDA environment and 127 tests passed; 4,000-step fixed-scene diagnostic used 96,207,872 bytes allocated and 111,149,056 bytes reserved | Longer-run memory and research compute budget |
 | Human audit | Blinded rule and predicate prepare/predict/score workflow; four team members reported as potential reviewers available later | Confirmed independence/blinding, at least 300 real generated images, actual judgments |
 
-See [Stage 0 status](stage0-status.md) for the full current report and commands.
+See [Stage 0 status](../07-status-and-reviews/stage0-status.md) for the full current report and commands.
 
 ## Final go/no-go
 

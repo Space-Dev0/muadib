@@ -65,13 +65,13 @@
     "exposure/checker.py",
     "exposure/checker_perturb.py",
     "exposure/human_audit.py",
-    "docs/architecture.md",
-    "docs/stage0-status.md",
-    "docs/review-2026-11-04.md",
-    "docs/verification-2026-11-04.md",
-    "docs/pilot-training.md",
-    "docs/exposure-design.md",
-    "docs/experiment-spec.md"
+    "docs/00-start-here/architecture.md",
+    "docs/07-status-and-reviews/stage0-status.md",
+    "docs/07-status-and-reviews/review-2026-11-04.md",
+    "docs/07-status-and-reviews/verification-2026-11-04.md",
+    "docs/05-training/pilot-training.md",
+    "docs/03-exposure-design/exposure-design.md",
+    "docs/00-start-here/experiment-spec.md"
   ],
   "research_map": {
     "task_family": "conditional_diffusion_exposure",
@@ -261,7 +261,7 @@
     "exposure/velocity_guidance.py: review whether dropout-sensitive evaluation behavior is intentional.",
     "exposure/optimizer_probe.py: review whether dropout-sensitive evaluation behavior is intentional.",
     "exposure/optimizer_probe.py: verify optimizer parameter coverage if custom freezing is expected.",
-    "Methodological heuristic (corrected): the proposal's logit composition gap is zero under the multiplicative null; the original review's arithmetic claim was retracted (see docs/verification-2026-11-04.md).",
+    "Methodological heuristic (corrected): the proposal's logit composition gap is zero under the multiplicative null; the original review's arithmetic claim was retracted (see docs/07-status-and-reviews/verification-2026-11-04.md).",
     "Methodological finding: relational singleton exposure is analytically 0.999271 under 3-object grid existential semantics, so the relational contrast is saturated.",
     "Methodological finding: relation kind is confounded with endpoint binding (left_of subject-only 3/3, above both-bound 3/3 in k_attr=2,k_rel=1), and only 3/12 color-shape pairs are co-bound.",
     "Implementation risk: Pixel checker in exposure/checker.py relies on fixed size (12x11/12) and count (3). Perturbation errors are attrition (84.5-90% rejection at blur 1.0), not misclassification."

@@ -50,7 +50,7 @@ Seeded output is reproducible when the code and dependency versions match.
 
 ## Next steps
 
-- [Rendering and rules](rendering-and-rules.md) explains rule files, predicate
+- [Rendering and rules](../01-instruments/rendering-and-rules.md) explains rule files, predicate
   semantics, conditioned sampling, and the output JSON.
 - [Research and hardware plan](research-and-hardware-plan.md) covers the dataset
   strategy and the planned training hardware.

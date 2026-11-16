@@ -45,12 +45,12 @@
 
 ## 2. Task-Relevant Files & Documents
 
-- [`docs/architecture.md`](file:///home/mango/Repos/muadib/docs/architecture.md): Architectural decisions and constraints.
-- [`docs/stage0-status.md`](file:///home/mango/Repos/muadib/docs/stage0-status.md): Comprehensive review of Stage 0 instrument milestones.
-- [`docs/review-2026-11-04.md`](file:///home/mango/Repos/muadib/docs/review-2026-11-04.md): Methodological and code review assessing proposal Rev. 4.
-- [`docs/pilot-training.md`](file:///home/mango/Repos/muadib/docs/pilot-training.md): Online training mechanics and exploratory results.
-- [`docs/exposure-design.md`](file:///home/mango/Repos/muadib/docs/exposure-design.md): LP formulation and simplex solver details.
-- [`docs/templates.md`](file:///home/mango/Repos/muadib/docs/templates.md): Candidate 57-template rule set.
+- [`docs/00-start-here/architecture.md`](file:///home/mango/Repos/muadib/docs/00-start-here/architecture.md): Architectural decisions and constraints.
+- [`docs/07-status-and-reviews/stage0-status.md`](file:///home/mango/Repos/muadib/docs/07-status-and-reviews/stage0-status.md): Comprehensive review of Stage 0 instrument milestones.
+- [`docs/07-status-and-reviews/review-2026-11-04.md`](file:///home/mango/Repos/muadib/docs/07-status-and-reviews/review-2026-11-04.md): Methodological and code review assessing proposal Rev. 4.
+- [`docs/05-training/pilot-training.md`](file:///home/mango/Repos/muadib/docs/05-training/pilot-training.md): Online training mechanics and exploratory results.
+- [`docs/03-exposure-design/exposure-design.md`](file:///home/mango/Repos/muadib/docs/03-exposure-design/exposure-design.md): LP formulation and simplex solver details.
+- [`docs/02-benchmark/templates.md`](file:///home/mango/Repos/muadib/docs/02-benchmark/templates.md): Candidate 57-template rule set.
 
 ---
 

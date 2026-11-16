@@ -34,7 +34,7 @@ identified the expected 30k source hash, batch 4, 120,000 new updates and all
 12 requested checkpoint steps. No first new checkpoint was present at that
 point, so this records a successful launch, not completion. The previous
 10,000-update segment took about 824 seconds on the laptop; timing may vary.
-For the performance screen and limitations see [GPU throughput](gpu-throughput-benchmark.md).
+For the performance screen and limitations see [GPU throughput](../08-operations/gpu-throughput-benchmark.md).
 
 The predecessor subsequently completed at 150,000 updates and handed off to
 [continuous training](mosaic-continuous-training.md), which has no configured

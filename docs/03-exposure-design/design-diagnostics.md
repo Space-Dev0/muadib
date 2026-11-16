@@ -34,7 +34,7 @@ the target is constant, or it is exactly or nearly explained by the others.
 `examples/pilot_designs.json` is a reproducible alternative containing the
 uniform, low, and high allocations from the matched-marginal pilot. It is tied
 to that pilot's 200-scene, seed-42 rule matrix; see
-[matched-marginal pilot](matched-marginal-pilot.md). For example:
+[matched-marginal pilot](../02-benchmark/matched-marginal-pilot.md). For example:
 
 ```sh
 uv run python -m exposure.design_diagnostics --report outputs/exposure-subsets.json --designs examples/pilot_designs.json --output outputs/design-diagnostics.json

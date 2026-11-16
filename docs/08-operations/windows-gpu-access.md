@@ -110,5 +110,5 @@ Share the command output, not credentials.
 - A preflight pass is not a project-fit result, a Stage 0 gate, or a budget for
   an unbounded training run.
 - For the broader plan, see
-  [research and hardware plan](research-and-hardware-plan.md) and the
-  [human checklist](human-checklist.md).
+  [research and hardware plan](../00-start-here/research-and-hardware-plan.md) and the
+  [human checklist](../04-checker-and-human-audit/human-checklist.md).

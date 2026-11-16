@@ -233,7 +233,7 @@ tested.
                   |
                   v
   +-------------------------------+
-  | 9. STAGE 0 GATES              |  docs/stage0-status.md
+  | 9. STAGE 0 GATES              |  docs/07-status-and-reviews/stage0-status.md
   |    learnability / checker /   |  exposure/benchmark_audit.py
   |    decorrelation / MOSAIC     |  exposure/design_diagnostics.py
   +-------------------------------+
@@ -609,96 +609,96 @@ document answers, not every number.
 | Doc | What it answers |
 |---|---|
 | `README.md` | What this is, how to run it, doc index. |
-| `docs/getting-started.md` | Install, test, first render. |
-| `docs/architecture.md` | Module interfaces, design decisions, current limits. |
-| `docs/experiment-spec.md` | Working semantics: events, bindings, exposure, gaps, pending decisions. **Read this before explaining any metric.** |
-| `docs/research-and-hardware-plan.md` | Dataset strategy, CPU/CUDA plan, limitations. |
-| `docs/review-2026-11-04.md` | Internal code/research review (with a correction notice). |
-| `docs/verification-2026-11-04.md` | Independent re-derivation of the algebra and concerns. |
-| `docs/stage0-status.md` | The master status file: every gate, every artifact, every caveat. |
-| `docs/windows-gpu-access.md` | SSH, scheduled tasks, training tray. |
+| `docs/00-start-here/getting-started.md` | Install, test, first render. |
+| `docs/00-start-here/architecture.md` | Module interfaces, design decisions, current limits. |
+| `docs/00-start-here/experiment-spec.md` | Working semantics: events, bindings, exposure, gaps, pending decisions. **Read this before explaining any metric.** |
+| `docs/00-start-here/research-and-hardware-plan.md` | Dataset strategy, CPU/CUDA plan, limitations. |
+| `docs/07-status-and-reviews/review-2026-11-04.md` | Internal code/research review (with a correction notice). |
+| `docs/07-status-and-reviews/verification-2026-11-04.md` | Independent re-derivation of the algebra and concerns. |
+| `docs/07-status-and-reviews/stage0-status.md` | The master status file: every gate, every artifact, every caveat. |
+| `docs/08-operations/windows-gpu-access.md` | SSH, scheduled tasks, training tray. |
 
 ### 8.2 Rendering, rules, measurement
 
 | Doc | What it answers |
 |---|---|
-| `docs/rendering-and-rules.md` | CLI options, rule JSON, predicate semantics, sampling, output JSON. |
-| `docs/exposure-measurement.md` | Named rule sets, measurement CLI, satisfaction columns, Wilson intervals. |
-| `docs/mixture-analysis.md` | Weighted exposures, rule/pair lift, interpretation limits. |
-| `docs/composition-gap.md` | Both gap scales, boundary status, multiplicative null. |
-| `docs/gaussian-diagnostic.md` | Analytic noise-loss reference for a 1D Gaussian mixture. |
-| `docs/grammar-audit.md` | Canonical layouts and witnesses. |
-| `docs/templates.md` | The provisional 57-template set. |
-| `docs/template-balance.md` | Per-cell vocabulary coverage (not a balance claim). |
-| `docs/benchmark-audit.md` | Relational validity findings and `confirmatory_ready`. |
-| `docs/factorial-relations.md` | 24-rule factorial relation subset. |
-| `docs/matched-marginal-pilot.md` | Low/high full-rule exposure with matched marginals. |
+| `docs/01-instruments/rendering-and-rules.md` | CLI options, rule JSON, predicate semantics, sampling, output JSON. |
+| `docs/01-instruments/exposure-measurement.md` | Named rule sets, measurement CLI, satisfaction columns, Wilson intervals. |
+| `docs/01-instruments/mixture-analysis.md` | Weighted exposures, rule/pair lift, interpretation limits. |
+| `docs/01-instruments/composition-gap.md` | Both gap scales, boundary status, multiplicative null. |
+| `docs/01-instruments/gaussian-diagnostic.md` | Analytic noise-loss reference for a 1D Gaussian mixture. |
+| `docs/01-instruments/grammar-audit.md` | Canonical layouts and witnesses. |
+| `docs/02-benchmark/templates.md` | The provisional 57-template set. |
+| `docs/02-benchmark/template-balance.md` | Per-cell vocabulary coverage (not a balance claim). |
+| `docs/02-benchmark/benchmark-audit.md` | Relational validity findings and `confirmatory_ready`. |
+| `docs/02-benchmark/factorial-relations.md` | 24-rule factorial relation subset. |
+| `docs/02-benchmark/matched-marginal-pilot.md` | Low/high full-rule exposure with matched marginals. |
 
 ### 8.3 Exposure design and identifiability
 
 | Doc | What it answers |
 |---|---|
-| `docs/exposure-design.md` | Feasibility constraints, LP formulation, solver statuses. |
-| `docs/design-subspace.md` | Numerical singleton-preserving directions. |
-| `docs/design-sample.md` | Hit-and-run sampling preserving singleton exposures. |
-| `docs/design-bounds.md` | Exact LP exposure/lift bounds. |
-| `docs/design-chains.md` | Multi-chain R-hat and ESS. |
-| `docs/design-diagnostics.md` | Pooled correlations and VIF. |
-| `docs/design-strata.md` | Correlation by rule and complexity. |
-| `docs/design-identifiability.md` | Within-rule rank/identifiability. |
-| `docs/design-holdout.md` | Fixed-design holdout. |
-| `docs/design-extremes.md` | LP endpoint designs. |
-| `docs/design-vif-floor.md` | Structural VIF lower bound. |
-| `docs/design-reference-exploration.md` | Nonuniform reference-mixture sensitivity. |
-| `docs/design-reference-design-diagnostics.md` | Sampled designs for that reference. |
-| `docs/design-reference-endpoint-diagnostics.md` | Endpoint contributors to VIF. |
-| `docs/design-reference-exploration.md` | Reference-mixture diagnostic intervention. |
-| `docs/design-rule-allocation-exploration.md` | Nonuniform rule allocation. |
-| `docs/design-two-reference-exploration.md` | Two-reference design to vary marginals within rule. |
-| `docs/mixture-validation.md` | Matrix predictions vs fresh mixture samples. |
+| `docs/03-exposure-design/exposure-design.md` | Feasibility constraints, LP formulation, solver statuses. |
+| `docs/03-exposure-design/design-subspace.md` | Numerical singleton-preserving directions. |
+| `docs/03-exposure-design/design-sample.md` | Hit-and-run sampling preserving singleton exposures. |
+| `docs/03-exposure-design/design-bounds.md` | Exact LP exposure/lift bounds. |
+| `docs/03-exposure-design/design-chains.md` | Multi-chain R-hat and ESS. |
+| `docs/03-exposure-design/design-diagnostics.md` | Pooled correlations and VIF. |
+| `docs/03-exposure-design/design-strata.md` | Correlation by rule and complexity. |
+| `docs/03-exposure-design/design-identifiability.md` | Within-rule rank/identifiability. |
+| `docs/03-exposure-design/design-holdout.md` | Fixed-design holdout. |
+| `docs/03-exposure-design/design-extremes.md` | LP endpoint designs. |
+| `docs/03-exposure-design/design-vif-floor.md` | Structural VIF lower bound. |
+| `docs/03-exposure-design/design-reference-exploration.md` | Nonuniform reference-mixture sensitivity. |
+| `docs/03-exposure-design/design-reference-design-diagnostics.md` | Sampled designs for that reference. |
+| `docs/03-exposure-design/design-reference-endpoint-diagnostics.md` | Endpoint contributors to VIF. |
+| `docs/03-exposure-design/design-reference-exploration.md` | Reference-mixture diagnostic intervention. |
+| `docs/03-exposure-design/design-rule-allocation-exploration.md` | Nonuniform rule allocation. |
+| `docs/03-exposure-design/design-two-reference-exploration.md` | Two-reference design to vary marginals within rule. |
+| `docs/03-exposure-design/mixture-validation.md` | Matrix predictions vs fresh mixture samples. |
 
 ### 8.4 Checker and human audit
 
 | Doc | What it answers |
 |---|---|
-| `docs/checker.md` | Prototype pixel checker and clean-render audit. |
-| `docs/checker-perturb.md` | Coverage/error under brightness and blur. |
-| `docs/checker-geometry-investigation.md` | Why valid-looking generated shapes get rejected. |
-| `docs/checker-palette-diagnostic.md` | Whether relaxing the palette guard helps. |
-| `docs/spatial-counterfactual-audit.md` | Clean negative/near-tie spatial cases. |
-| `docs/human-audit.md` | Blinded pack preparation and scoring. |
-| `docs/human-checklist.md` | Human decisions, access, image review, gate sign-off. |
-| `docs/audit-pilot-pack.md` | The restricted four-condition 300-image pilot. |
-| `docs/audit-block-comparison.md` | Paired checker coverage comparison. |
-| `docs/pilot-audit-800000.md` | Human-reviewed pilot audit results. |
-| `docs/calibration-310000.md` | Four-reviewer calibration at 310k updates. |
+| `docs/04-checker-and-human-audit/checker.md` | Prototype pixel checker and clean-render audit. |
+| `docs/04-checker-and-human-audit/checker-perturb.md` | Coverage/error under brightness and blur. |
+| `docs/04-checker-and-human-audit/checker-geometry-investigation.md` | Why valid-looking generated shapes get rejected. |
+| `docs/04-checker-and-human-audit/checker-palette-diagnostic.md` | Whether relaxing the palette guard helps. |
+| `docs/04-checker-and-human-audit/spatial-counterfactual-audit.md` | Clean negative/near-tie spatial cases. |
+| `docs/04-checker-and-human-audit/human-audit.md` | Blinded pack preparation and scoring. |
+| `docs/04-checker-and-human-audit/human-checklist.md` | Human decisions, access, image review, gate sign-off. |
+| `docs/04-checker-and-human-audit/audit-pilot-pack.md` | The restricted four-condition 300-image pilot. |
+| `docs/04-checker-and-human-audit/audit-block-comparison.md` | Paired checker coverage comparison. |
+| `docs/04-checker-and-human-audit/pilot-audit-800000.md` | Human-reviewed pilot audit results. |
+| `docs/04-checker-and-human-audit/calibration-310000.md` | Four-reviewer calibration at 310k updates. |
 
 ### 8.5 Training, GPU, MOSAIC
 
 | Doc | What it answers |
 |---|---|
-| `docs/pilot-training.md` | The main training document: mechanics, probes, every measured result and caveat. |
-| `docs/diffusion-failure-research.md` | Literature hypotheses for merged/blurry samples. |
-| `docs/gpu-throughput-benchmark.md` | Short GPU speed screen before the overnight run. |
-| `docs/mosaic-replication.md` | MOSAIC source review; no replication run. |
-| `docs/mosaic-data-feasibility.md` | Can a matched 2×2 toy dataset be built? |
-| `docs/mosaic-gpu-feasibility-81302.md` | Larger toy dataset + CUDA feasibility. |
-| `docs/mosaic-pilotunet-feasibility-81373.md` | One-cell PilotUNet probe. |
-| `docs/mosaic-pilotunet-warmstart.md` | Warm start vs exact resume. |
-| `docs/mosaic-warmstart-probe.md` | 30k additional updates on one cell. |
-| `docs/mosaic-resumable-probe.md` | Bounded resumable probe. |
-| `docs/mosaic-multiscale-probe-81322.md` | Multiscale learnability probe. |
-| `docs/mosaic-sampling-steps-81330.md` | 50 vs 200 vs 500 reverse steps. |
-| `docs/mosaic-toy-conditioning.md` | Does the class condition change pixels? |
-| `docs/mosaic-toy-denoise.md` | One-step denoising of known images. |
-| `docs/mosaic-toy-trajectory.md` | Repeated reverse updates with an oracle. |
-| `docs/mosaic-guidance-probe.md` | Classifier-free guidance feasibility. |
-| `docs/mosaic-overnight-81390.md` | Overnight continuation to 150k. |
-| `docs/mosaic-continuous-training.md` | Continuous segmented supervisor. |
-| `docs/mosaic-760k-assessment.md` | Stopped 760k checkpoint assessment. |
-| `docs/mosaic-fresh-760k-review.md` | Fresh 32-image review. |
-| `docs/mosaic-matched-81570.md` | New bounded four-cell experiment. |
-| `docs/mosaic-distributed-81570.md` | 500k-update distributed continuation. |
+| `docs/05-training/pilot-training.md` | The main training document: mechanics, probes, every measured result and caveat. |
+| `docs/05-training/diffusion-failure-research.md` | Literature hypotheses for merged/blurry samples. |
+| `docs/08-operations/gpu-throughput-benchmark.md` | Short GPU speed screen before the overnight run. |
+| `docs/06-mosaic/mosaic-replication.md` | MOSAIC source review; no replication run. |
+| `docs/06-mosaic/mosaic-data-feasibility.md` | Can a matched 2×2 toy dataset be built? |
+| `docs/06-mosaic/mosaic-gpu-feasibility-81302.md` | Larger toy dataset + CUDA feasibility. |
+| `docs/06-mosaic/mosaic-pilotunet-feasibility-81373.md` | One-cell PilotUNet probe. |
+| `docs/06-mosaic/mosaic-pilotunet-warmstart.md` | Warm start vs exact resume. |
+| `docs/06-mosaic/mosaic-warmstart-probe.md` | 30k additional updates on one cell. |
+| `docs/06-mosaic/mosaic-resumable-probe.md` | Bounded resumable probe. |
+| `docs/06-mosaic/mosaic-multiscale-probe-81322.md` | Multiscale learnability probe. |
+| `docs/06-mosaic/mosaic-sampling-steps-81330.md` | 50 vs 200 vs 500 reverse steps. |
+| `docs/06-mosaic/mosaic-toy-conditioning.md` | Does the class condition change pixels? |
+| `docs/06-mosaic/mosaic-toy-denoise.md` | One-step denoising of known images. |
+| `docs/06-mosaic/mosaic-toy-trajectory.md` | Repeated reverse updates with an oracle. |
+| `docs/06-mosaic/mosaic-guidance-probe.md` | Classifier-free guidance feasibility. |
+| `docs/06-mosaic/mosaic-overnight-81390.md` | Overnight continuation to 150k. |
+| `docs/06-mosaic/mosaic-continuous-training.md` | Continuous segmented supervisor. |
+| `docs/06-mosaic/mosaic-760k-assessment.md` | Stopped 760k checkpoint assessment. |
+| `docs/06-mosaic/mosaic-fresh-760k-review.md` | Fresh 32-image review. |
+| `docs/06-mosaic/mosaic-matched-81570.md` | New bounded four-cell experiment. |
+| `docs/06-mosaic/mosaic-distributed-81570.md` | 500k-update distributed continuation. |
 
 ---
 
@@ -842,15 +842,15 @@ optimization (slides 40–43), and the obstacles (slides 51–54).
 ### Read in this order
 
 1. `README.md` — 2 minutes.
-2. `docs/getting-started.md` — 5 minutes.
-3. `docs/experiment-spec.md` — 15 minutes; this is the semantic contract.
+2. `docs/00-start-here/getting-started.md` — 5 minutes.
+3. `docs/00-start-here/experiment-spec.md` — 15 minutes; this is the semantic contract.
 4. `exposure/rules.py` — 15 minutes.
 5. `exposure/render.py` — 15 minutes.
 6. `exposure/measure.py` — 20 minutes.
 7. `exposure/mixture.py` + `exposure/composition.py` — 20 minutes.
 8. `exposure/design.py` — 20 minutes.
 9. `exposure/pilot_train.py` — 30 minutes (model + training + sampling).
-10. `docs/stage0-status.md` — 20 minutes; read the caveats, not just the numbers.
+10. `docs/07-status-and-reviews/stage0-status.md` — 20 minutes; read the caveats, not just the numbers.
 11. `analysis_outputs/SUMMARY.md`, `RISKS.md`, `EVAL_CONTRACT.md` — prior analysis.
 12. The proposal PDF, sections 1–6 and 11–12.
 

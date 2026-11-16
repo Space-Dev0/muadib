@@ -5,7 +5,7 @@
 > retracted. `logit` is injective, so the stated gap is exactly zero when
 > `RSR = Π c_p`; the original `−2.20/−4.11` numbers belong to
 > `logit(Π c_p) − Σ logit(c_p)`. The items below now use independently verified
-> values. See `docs/verification-2026-11-04.md` for proofs and
+> values. See `docs/07-status-and-reviews/verification-2026-11-04.md` for proofs and
 > `exposure/composition.py` for the corrected implementation.
 
 > [!NOTE]

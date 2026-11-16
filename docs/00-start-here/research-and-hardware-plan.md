@@ -53,7 +53,7 @@ generic smoke. A short project run also fit; longer-run compute is unmeasured.
 ## Pilot training
 
 `exposure/pilot_train.py` is an exploratory online conditional diffusion
-instrument; see [pilot training](pilot-training.md) for commands and limits. It
+instrument; see [pilot training](../05-training/pilot-training.md) for commands and limits. It
 uses the online renderer, predicate-slot cross-attention, classifier-free
 dropout, AdamW, EMA, and a fixed sampler. CPU pilot tests and the one-step
 train/checkpoint/sample mechanical sample passed in a separate CPU PyTorch 2.9.1

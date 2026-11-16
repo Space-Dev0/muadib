@@ -5,7 +5,7 @@
 **Purpose:** Re-derive the disputed algebra, independently verify each remaining
 concern against the code and saved outputs, and separate what is proved from
 what is merely asserted. This document supersedes the relevant sections of
-`docs/review-2026-11-04.md`; the review is left intact as a historical record
+`docs/07-status-and-reviews/review-2026-11-04.md`; the review is left intact as a historical record
 with the author's correction notices.
 
 **Evidence labels used below**
@@ -560,7 +560,7 @@ renderer geometry as the acceptance criterion for generated images.
 
 ### 7.1 Documented evidence
 
-`docs/stage0-status.md` begins: **"Not passed."** The relevant entries:
+`docs/07-status-and-reviews/stage0-status.md` begins: **"Not passed."** The relevant entries:
 
 - `4,000`-update fixed-scene sample: image MSE `0.8017` on `[0,1]`, "mostly
   dark noise."
@@ -572,7 +572,7 @@ renderer geometry as the acceptance criterion for generated images.
   These are visual observations, not an accuracy estimate."
 - No Stage 1 pilot; no reference RSR; the proposed calibration target (median
   reference RSR in `[0.3,0.7]`) has never been approached.
-- `docs/mosaic-replication.md`: "**no MOSAIC experiment or replication has been
+- `docs/06-mosaic/mosaic-replication.md`: "**no MOSAIC experiment or replication has been
   run**."
 
 The Stage 0 gate in the proposal is: checker error `≤2%`, the design polytope
@@ -729,7 +729,7 @@ The following are retracted or corrected:
 | F4 | **Partial** | `exposure/design_bounds.py` computes exact LP bounds and the positive corner; `exposure/design_chains.py` reports split-R-hat and autocorrelation ESS; `tests/test_design_bounds.py` and `tests/test_design_chains.py` cover them. The D-optimal/c-optimal objective and wiring into the default sampler are missing. |
 | F5 | **Partial** | `design_diagnostics` and `design_strata` document the exact within-rule collinearity (`log m̄` range `2.2e−16`); the gate is still reported as pooled by default, and no fitted model drops or reparameterizes `β_m`. |
 | F6 | **Partial** | `checker.audit` and `checker_perturb.audit` now report rejection rate, coverage, and conditional/unconditional sensitivity/specificity per rule; `tests/test_checker.py` and `tests/test_checker_perturb.py` cover the fields. No generated-image or human-labelled validation exists. |
-| F7 | **Not implemented** | Documented as a proposed gate in `docs/stage0-status.md` and `docs/experiment-spec.md`; no model criterion is enforced. |
+| F7 | **Not implemented** | Documented as a proposed gate in `docs/07-status-and-reviews/stage0-status.md` and `docs/00-start-here/experiment-spec.md`; no model criterion is enforced. |
 | F8 | **Not implemented** | LP and lift computations still use the estimated matrix as exact. |
 | F9 | **Implemented** | `exposure/rules.validate_rule` rejects duplicate predicates, contradictory same-variable attributes, and cyclic strict relations; `render.parse_rule` calls it, so `measure.load_rules` inherits it; `tests/test_rules.py` covers all three. |
 

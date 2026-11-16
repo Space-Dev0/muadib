@@ -69,5 +69,5 @@ acceleration.
 uv run --no-sync python -m unittest discover -s tests -q
 ```
 
-See [Exposure design](exposure-design.md) for the constraint schema and LP
+See [Exposure design](../03-exposure-design/exposure-design.md) for the constraint schema and LP
 details.

@@ -19,7 +19,7 @@ reports with distinct recorded integer seeds, valid reference weights and
 designs. It refuses to overwrite its output. A different seed is a useful
 separation, not proof that sampled scenes are independent or disjoint. Input
 generation and candidate design sampling are described in
-[exposure measurement](exposure-measurement.md) and
+[exposure measurement](../01-instruments/exposure-measurement.md) and
 [design sampling](design-sample.md).
 
 In this exploratory run, each condition had 100 accepted scenes in each

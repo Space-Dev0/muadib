@@ -27,4 +27,4 @@ multiscale probe, so the previews are not an isolated architecture comparison.
 
 Local focused validation: `uv run --extra train python -m unittest tests.test_mosaic_pilotunet_probe -q` (the GPU laptop's CUDA smoke test and the
 local CPU tests both passed). The research hypotheses are documented in
-[diffusion failure research](diffusion-failure-research.md).
+[diffusion failure research](../05-training/diffusion-failure-research.md).

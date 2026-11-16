@@ -206,12 +206,12 @@ against the full paper and released code before any novelty claim.
 
 ### Current status in this repo
 
-- `docs/mosaic-replication.md` — source review; no replication run.
-- `docs/mosaic-data-feasibility.md` — toy dataset feasibility.
-- `docs/mosaic-matched-81570.md` and `docs/mosaic-distributed-81570.md` —
+- `docs/06-mosaic/mosaic-replication.md` — source review; no replication run.
+- `docs/06-mosaic/mosaic-data-feasibility.md` — toy dataset feasibility.
+- `docs/06-mosaic/mosaic-matched-81570.md` and `docs/06-mosaic/mosaic-distributed-81570.md` —
   bounded four-cell matched experiment on two GPUs (low/high × balanced/
   imbalanced), exploratory only.
-- `docs/stage0-status.md` — MOSAIC gate listed as **not run / no result**.
+- `docs/07-status-and-reviews/stage0-status.md` — MOSAIC gate listed as **not run / no result**.
 
 ### Questions to ask when reading the full paper
 

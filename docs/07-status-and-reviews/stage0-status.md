@@ -11,11 +11,11 @@ not confirmatory research findings.
 A new bounded, one-block four-cell PilotUNet experiment has started on the GPU
 with user authorization, separate from the stopped 760k continuous run. Its
 first cell is in checkpointed continuation; no comparison result is available.
-See [matched experiment](mosaic-matched-81570.md).
+See [matched experiment](../06-mosaic/mosaic-matched-81570.md).
 
 The single-cell PilotUNet trainer was stopped at a verified 760,000-update
 checkpoint. Its exploratory previews appear clearer, but they do not establish
-any Stage 0 gate; see [760k assessment](mosaic-760k-assessment.md).
+any Stage 0 gate; see [760k assessment](../06-mosaic/mosaic-760k-assessment.md).
 The returned eight-image readiness reviews mark the target circle present and
 exactly two objects visible for every image. The user confirmed the numbered
 reviews are independent; individual attribution is not recorded in the files.
@@ -26,16 +26,16 @@ files all say 31 images contain the requested circle and exactly two objects;
 the experimental checker answered 28, all consistent with the target-circle
 reviews, and abstained on four including the only human-negative image. This
 does not establish false-accept error or the broader checker gate; see
-[fresh review](mosaic-fresh-760k-review.md).
+[fresh review](../06-mosaic/mosaic-fresh-760k-review.md).
 
 A four-cell CUDA multiscale feasibility run has produced 16 exploratory
 previews and a blinded team review pack; both checkers abstained on all 16
 target-circle questions. It is one training-seed block, not a MOSAIC gate
-result. See [GPU probe](mosaic-multiscale-probe-81322.md).
+result. See [GPU probe](../06-mosaic/mosaic-multiscale-probe-81322.md).
 A further 30,000-update single-cell continuation saved three stateful
 checkpoints; an inspected final preview still contains merged shapes. It
 does not establish model quality or a replication; see
-[resumable probe](mosaic-resumable-probe.md).
+[resumable probe](../06-mosaic/mosaic-resumable-probe.md).
 
 The fresh 40-image restricted checker validation has been reviewed: the
 standard checker answered 19/40 and the experimental candidate 28/40, with
@@ -46,7 +46,7 @@ see [checker validation](checker-geometry-investigation.md#fresh-validation-resu
 The restricted 300-image, four-condition pilot has now been human-reviewed.
 The standard checker classified 95/300 and abstained on 205; the sample covers
 only two complexity strata and does not establish the full checker gate. See
-[pilot audit](pilot-audit-800000.md) for agreement, per-rule coverage, errors,
+[pilot audit](../04-checker-and-human-audit/pilot-audit-800000.md) for agreement, per-rule coverage, errors,
 and follow-up cases. The six submitted follow-up answers resolve the selected
 cases for a separate sensitivity summary, but do not change original reviews,
 reduce abstention, or establish the gate.
@@ -55,23 +55,23 @@ For the current fixed-singleton, equally weighted complete rule rows, the
 correlation between log mean marginal exposure and relation count implies a
 pairwise VIF lower bound of 3.478 if both are included with an intercept. This
 is a property of the estimated pilot matrix and specified analysis, not a
-population or gate result; see [VIF floor](design-vif-floor.md). A fitted nonuniform reference reduces
+population or gate result; see [VIF floor](../03-exposure-design/design-vif-floor.md). A fitted nonuniform reference reduces
 the exploratory log-marginal/lift correlation, but five sampled chains
 still give held-out lift VIF 5.997–6.233, above 2; see
-[reference design diagnostics](design-reference-design-diagnostics.md).
-A further [rule-allocation exploration](design-rule-allocation-exploration.md)
+[reference design diagnostics](../03-exposure-design/design-reference-design-diagnostics.md).
+A further [rule-allocation exploration](../03-exposure-design/design-rule-allocation-exploration.md)
 achieves held-out VIF below 2 for four features, but changes the rule-weighted
 population, uses concentrated endpoint mixtures, omits breadth, and leaves the
 within-rule marginal effect unidentified. It is not a gate assessment.
 A two-reference, rule-reweighted exploration also produces four VIFs below 2
 on the holdout while varying marginals within rule, but the full model,
 reference adjustment, breadth, target population and uncertainty remain
-unresolved. See [two-reference exploration](design-two-reference-exploration.md).
+unresolved. See [two-reference exploration](../03-exposure-design/design-two-reference-exploration.md).
 With rule-by-reference intercepts, the fitting matrix has no within-cell
 marginal variation; a shared reference intercept leaves two residualized
 exposure columns with rank two, under a stronger modeling assumption.
 A separate
-[one-step MOSAIC toy diagnostic](mosaic-toy-denoise.md) evaluates known images,
+[one-step MOSAIC toy diagnostic](../06-mosaic/mosaic-toy-denoise.md) evaluates known images,
 not generated-image success or replication.
 
 ## Latest checkpoint and calibration (2026-11-08)
@@ -85,7 +85,7 @@ reviewer-only calibration pack is available in the ignored local path
 Each reviewer can independently answer the 16 rule questions and 32 separate
 predicate questions. Actual human judgments remain outstanding. The laptop was
 unreachable over SSH when this pack was prepared, so no newer checkpoint was
-verified. See [human checklist](human-checklist.md) and
+verified. See [human checklist](../04-checker-and-human-audit/human-checklist.md) and
 [pilot training](pilot-training.md#evidence-and-omissions).
 
 On 2026-11-09 the GPU laptop was reachable again and contained the completed
@@ -116,7 +116,7 @@ questions. The checker rejected 11/16 whole-rule images, and one of the five
 accepted images originally had a 2–2 human disagreement. The team subsequently
 adjudicated all three disputed questions as yes; this does not increase the
 sample size or establish checker accuracy. See
-[calibration results](calibration-310000.md); this does not pass the checker
+[calibration results](../04-checker-and-human-audit/calibration-310000.md); this does not pass the checker
 gate. The GPU was actively training from the 760,000-update checkpoint toward
 770,000 when checked.
 Four exploratory samples from 760,000 updates (one per pilot condition, seed
@@ -173,18 +173,18 @@ A fixed-design holdout using a second 100-scene-per-condition measurement
 matrix gave pooled correlation -0.4640 and log-lift VIF 11.07; the maximum
 singleton deviation from the uniform reference was 0.01767. This exploratory
 analysis omits breadth and does not assess the final gate. See
-[design holdout](design-holdout.md).
+[design holdout](../03-exposure-design/design-holdout.md).
 
 | Component | Current evidence | Remaining work |
 | --- | --- | --- |
 | Renderer and rules | 2D renderer, annotation-based rule evaluation and grammar witnesses | Finalize and validate the benchmark vocabulary and full counterbalancing. |
 | Candidate templates | Provisional 57-template generator covers all singleton colors and shapes in each one-attribute cell; a 100-scene-per-template sampling smoke test completed, but only `3/12` color–shape pairs are co-bound and relation kind is confounded with endpoint binding | Redesign as a factorial, counterbalanced set with a held-out split; `benchmark_audit` currently reports `confirmatory_ready: false`. |
-| Pilot training | Locked sync and 127 Windows tests passed. A deterministic pilot reached 12,000 steps with checkpoints, and a 4,000-step fixed-scene diagnostic ran on RTX 3050 with truncated-reconstruction, one-step high-t baseline, and paired high-t fine-tuning follow-ups. | Inspected online samples were noise; single fixed-scene sample was mostly dark noise (MSE 0.8017); no validated model outputs, reference model, controlled guidance sweep, or human audit. See [pilot training](pilot-training.md). |
+| Pilot training | Locked sync and 127 Windows tests passed. A deterministic pilot reached 12,000 steps with checkpoints, and a 4,000-step fixed-scene diagnostic ran on RTX 3050 with truncated-reconstruction, one-step high-t baseline, and paired high-t fine-tuning follow-ups. | Inspected online samples were noise; single fixed-scene sample was mostly dark noise (MSE 0.8017); no validated model outputs, reference model, controlled guidance sweep, or human audit. See [pilot training](../05-training/pilot-training.md). |
 | Checker | Clean-render and controlled perturbation audits; conservative sharpening fallback; per-rule rejection, coverage and conditional/unconditional sensitivity/specificity now reported | Rejection is `84.5–90%` at blur radius `1.0`; accepted images show zero observed rule errors, so the failure is attrition. Validate on generated images and audit with human judgments. |
 | Exposure matrix and design | Monte Carlo estimates, LP feasibility and numerical minimum-KL allocation | Quantify matrix uncertainty and verify feasible exposure manipulations and leave-out probes on the final benchmark. |
 | Decorrelation | Twenty exploratory hit-and-run designs from the 57-condition pilot; pooled correlations and VIF computed over 1,140 rule-by-design rows; exact LP lift bounds and multi-chain diagnostics now available | Pooled `r = −0.446`, VIF `11.61` fails the proposal gate as written; `β_m` is exactly collinear with the rule intercept. Define the gate on an identified within-rule quantity and target `β_λ`/`β_λR`. |
 | Gaussian diagnostic | One-dimensional analytic Bayes noise-loss reference and Monte Carlo check | Connect normalization checks to the eventual model/loss implementation. |
-| MOSAIC contrast | Preliminary paper/code review | Run and document the adapted replication; see [MOSAIC notes](mosaic-replication.md). |
+| MOSAIC contrast | Preliminary paper/code review | Run and document the adapted replication; see [MOSAIC notes](../06-mosaic/mosaic-replication.md). |
 | Human audit | Blinded preparation, prediction and scoring for rules and independently judged predicate events | Obtain model-generated images and actual independent human judgments; none have been fabricated. |
 
 For the current checker, a 200-scene holdout on separate synthetic seeds

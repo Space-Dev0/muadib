@@ -22,56 +22,27 @@ third renders a rule-conditioned scene to `outputs/example.png` and
 
 ## Documentation
 
-- [Getting started](docs/getting-started.md): setup, tests, and a first render.
-- [Rendering and rules](docs/rendering-and-rules.md): command-line options, rule
-  file format, predicate semantics, sampling, and output JSON.
-- [Exposure measurement](docs/exposure-measurement.md): named rule sets, the
-  measurement CLI, satisfaction columns, Wilson intervals, and limitations.
-- [Grammar audit](docs/grammar-audit.md): canonical rule layouts and witnesses.
-- [Candidate templates](docs/templates.md) and [vocabulary coverage](docs/template-balance.md):
-  provisional rule set and per-cell representation.
-- [Prototype image checker](docs/checker.md): clean-render audit and limitations.
-- [Checker perturbations](docs/checker-perturb.md): detector coverage and errors
-  under controlled image changes.
-- [Human audit workflow](docs/human-audit.md): prepare blinded reviews and score
-  human judgments once generated images are available.
-- [Human checklist for Stage 0](docs/human-checklist.md): human decisions,
-  access, image review, GPU/MOSAIC work, and final gate sign-off.
-- [Gaussian diagnostic](docs/gaussian-diagnostic.md): an analytic noise-loss
-  reference for a one-dimensional Gaussian mixture.
-- [Design diagnostics](docs/design-diagnostics.md): exploratory correlations
-  and VIF for candidate designs.
-- [Design subspace](docs/design-subspace.md): numerical singleton-preserving
-  directions for an estimated exposure matrix.
-- [Design sampler](docs/design-sample.md): exploratory hit-and-run sampling
-  that preserves estimated singleton exposures.
-- [Design bounds](docs/design-bounds.md): exact LP exposure and lift bounds,
-  including the positive-lift corner.
-- [Design chains](docs/design-chains.md): multi-chain split-R-hat and
-  autocorrelation ESS diagnostics.
-- [Benchmark audit](docs/benchmark-audit.md): adversarial relational-validity
-  checks and `confirmatory_ready` status.
-- [Composition gap](docs/composition-gap.md): the two composition-gap scales,
-  boundary status, and the multiplicative-null check.
-- [Mixture validation](docs/mixture-validation.md): compare matrix predictions
-  against fresh sampled scenes.
-- [Mixture analysis](docs/mixture-analysis.md): weighted exposures, rule and
-  pair log lift, weight validation, and interpretation limits.
-- [Exposure design](docs/exposure-design.md): feasibility constraints, LP
-  formulation, solver statuses, and numerical limits.
-- [Matched-marginal pilot](docs/matched-marginal-pilot.md): illustrative low and
-  high full-rule exposure with two matched predicate marginals.
-- [MOSAIC replication notes](docs/mosaic-replication.md): source review and
-  outstanding prerequisites for the Stage 0 comparison.
-- [Stage 0 status](docs/stage0-status.md): current instrument evidence and
-  outstanding go/no-go requirements.
-- [Architecture](docs/architecture.md): module interfaces, design decisions,
-  current limits, and the test command.
-- [Experiment specification](docs/experiment-spec.md): current rule and
-  exposure semantics, unresolved decisions, and Stage 0 gates.
-- [Research and hardware plan](docs/research-and-hardware-plan.md): dataset
-  strategy, CPU/CUDA plans, and current limitations.
-- [Pilot training](docs/pilot-training.md): exploratory online diffusion
-  mechanics, commands, outputs, and limitations.
-- [Windows GPU access](docs/windows-gpu-access.md): safe SSH access and the
-  read-only GPU preflight for the reported RTX 3050 laptop.
+**Start with the [documentation guide](docs/README.md).** It explains how the docs
+are organized and gives reading paths for presenters, engineers, and reviewers.
+
+- [Getting started](docs/00-start-here/getting-started.md) and
+  [architecture](docs/00-start-here/architecture.md): setup, tests, modules, and limits.
+- [Experiment specification](docs/00-start-here/experiment-spec.md): rules, exposure,
+  composition gaps, and pending decisions.
+- [Core instruments](docs/01-instruments/): rendering, rules, exposure measurement,
+  mixture analysis, and composition gaps.
+- [Benchmark](docs/02-benchmark/): the provisional 57-rule set and its validity audit.
+- [Exposure design](docs/03-exposure-design/): LP feasibility, sampling, bounds, and
+  decorrelation diagnostics.
+- [Checker and human audit](docs/04-checker-and-human-audit/): pixel checker, perturbation
+  audits, and blinded review workflow.
+- [Training](docs/05-training/pilot-training.md): exploratory diffusion pilot, probes, and
+  measured limitations.
+- [MOSAIC-inspired work](docs/06-mosaic/): source review, feasibility runs, and the
+  four-cell matched experiment.
+- [Status and reviews](docs/07-status-and-reviews/stage0-status.md): the authoritative
+  Stage 0 gate dashboard and internal reviews.
+- [Operations](docs/08-operations/): Windows GPU access and throughput benchmarking.
+
+For the full narrative, code walkthrough, and presentation script, see
+[`presentation/PROJECT-WALKTHROUGH.md`](presentation/PROJECT-WALKTHROUGH.md).
