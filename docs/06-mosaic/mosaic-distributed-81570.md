@@ -101,6 +101,8 @@ verified 150,000-update low-cell checkpoints. Its new
 `MuadibMosaicDistributed81570-low` task was observed running the
 low-balanced 150,000-to-160,000 segment on CUDA. The target remains 500,000
 updates per cell and checkpoints remain spaced at 10,000 updates.
+The completed high-cell supervisor was disabled to avoid competing periodic
+checks; its checkpoints remain intact.
 
 The second laptop's later progress and task state could not be inspected, and
 its automatic low-cell task could not be disabled while it was offline. If it
