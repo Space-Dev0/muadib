@@ -93,3 +93,17 @@ checkpoint hashes, and completed a one-update migration smoke test.
 `MuadibMosaicDistributed81570-low` was then observed running a low-balanced
 150,000-to-160,000 segment with GPU activity. Cross-machine continuation is
 not guaranteed bitwise identical despite restored RNG state.
+
+On 2026-11-17 the user requested moving the unfinished low-cell work back to
+the first laptop because the second laptop was unreachable. The first laptop
+had completed both high cells at 500,000 updates and retained the original
+verified 150,000-update low-cell checkpoints. Its new
+`MuadibMosaicDistributed81570-low` task was observed running the
+low-balanced 150,000-to-160,000 segment on CUDA. The target remains 500,000
+updates per cell and checkpoints remain spaced at 10,000 updates.
+
+The second laptop's later progress and task state could not be inspected, and
+its automatic low-cell task could not be disabled while it was offline. If it
+comes back online, disable or stop that task before it resumes the same work;
+preserve its checkpoints and verify their provenance before comparing or using
+them. The first laptop may repeat updates already completed on the second.

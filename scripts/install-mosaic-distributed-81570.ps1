@@ -1,8 +1,11 @@
-param([Parameter(Mandatory=$true)][ValidateSet('low','high')][string]$Role)
+param(
+    [Parameter(Mandatory=$true)][ValidateSet('low','high')][string]$Role,
+    [string]$PythonPath
+)
 $ErrorActionPreference = 'Stop'
 $root = Join-Path $env:USERPROFILE 'muadib'
 $workspace = Join-Path $root 'mosaic-gpu-81300'
-$python = if ($Role -eq 'low') { Join-Path $root '.venv-official\Scripts\python.exe' } else { Join-Path $root '.venv\Scripts\python.exe' }
+$python = if ($PythonPath) { $PythonPath } elseif ($Role -eq 'low') { Join-Path $root '.venv-official\Scripts\python.exe' } else { Join-Path $root '.venv\Scripts\python.exe' }
 $name = "MuadibMosaicDistributed81570-$Role"
 $runner = Join-Path $root "run-mosaic-distributed-81570-$Role.ps1"
 if (-not (Test-Path $python) -or -not (Test-Path (Join-Path $workspace 'exposure\mosaic_distributed_supervisor.py'))) { throw 'Missing project or Python.' }
