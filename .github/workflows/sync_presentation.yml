@@ -17,10 +17,14 @@ concurrency:
 jobs:
   build-and-sync:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -64,6 +68,25 @@ jobs:
           python3 scripts/pdf_to_pptx.py presentation/submission.pdf -o presentation/submission.pptx --dpi 200
           ls -lh presentation/submission.pptx
 
+      - name: Render Slide PNG Images
+        run: |
+          mkdir -p presentation/slides
+          rm -f presentation/slides/*.png
+          pdftoppm -png -r 200 presentation/submission.pdf presentation/slides/slide
+          ls -lh presentation/slides
+
+      - name: Commit & Push Slide Assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add presentation/slides/*.png presentation/submission.pdf
+          if git diff --staged --quiet; then
+            echo "No slide assets changed."
+          else
+            git commit -m "Auto-update presentation build & slide assets [skip ci]"
+            git push origin main
+          fi
+
       - name: Upload Build Artifacts (PDF & PPTX)
         uses: actions/upload-artifact@v4
         with:
@@ -73,16 +96,22 @@ jobs:
             presentation/submission.pptx
           retention-days: 14
 
-      - name: Sync to Google Slides / Drive
+      - name: Sync to Google Slides Deck
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
           GDRIVE_PRESENTATION_ID: ${{ secrets.GDRIVE_PRESENTATION_ID }}
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
         run: |
           if [ -z "$GCP_SA_KEY" ]; then
             echo "::error::GCP_SA_KEY secret is not configured in GitHub repository secrets."
             exit 1
           fi
+          if [ -z "$GDRIVE_PRESENTATION_ID" ]; then
+            echo "::error::GDRIVE_PRESENTATION_ID secret is not configured in GitHub repository secrets."
+            exit 1
+          fi
 
-          python3 scripts/upload_to_gslides.py presentation/submission.pptx \
-            --title "Which Exposure Matters - Presentation"
+          python3 scripts/upload_to_gslides.py \
+            --presentation-id "$GDRIVE_PRESENTATION_ID" \
+            --slides-dir presentation/slides \
+            --base-url "https://raw.githubusercontent.com/${{ github.repository }}/main/presentation/slides" \
+            --version-tag "${{ github.sha }}"
