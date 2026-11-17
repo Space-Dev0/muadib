@@ -23,7 +23,7 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def build(source, output, *, seed=82020):
+def build(source, output, *, seed=82020, seeds=None):
     source = Path(source).resolve(strict=True)
     output = Path(output).resolve()
     if output.is_relative_to(source) or source.is_relative_to(output):
@@ -32,7 +32,10 @@ def build(source, output, *, seed=82020):
         raise ValueError('Sampling did not complete')
     protocol_raw = (source / 'protocol.json').read_bytes()
     protocol = json.loads(protocol_raw)
-    if protocol['seeds'] != SEEDS or set(protocol['cells']) != set(CELLS) or protocol['guidance'] != 1.0:
+    expected_seeds = SEEDS if seeds is None else list(seeds)
+    if expected_seeds not in (SEEDS, list(range(83000, 83008))):
+        raise ValueError('Unsupported prespecified seed block')
+    if protocol['seeds'] != expected_seeds or set(protocol['cells']) != set(CELLS) or protocol['guidance'] != 1.0:
         raise ValueError('Unexpected protocol')
     items, reports = [], {}
     for cell in CELLS:
@@ -40,11 +43,11 @@ def build(source, output, *, seed=82020):
         report_raw = (directory / 'report.json').read_bytes()
         report = json.loads(report_raw)
         if (report['checkpoint_sha256'] != protocol['cells'][cell]['sha256'] or
-                report['seeds'] != SEEDS or report['guidance'] != [1.0]):
+                report['seeds'] != expected_seeds or report['guidance'] != [1.0]):
             raise ValueError(f'Checkpoint or sampling mismatch: {cell}')
         rows = report['images']
         keys = [(r['color'], r['seed'], r['guidance']) for r in rows]
-        expected = {(color, s, 1.0) for color in ('red', 'blue') for s in SEEDS}
+        expected = {(color, s, 1.0) for color in ('red', 'blue') for s in expected_seeds}
         if len(keys) != 16 or set(keys) != expected:
             raise ValueError(f'Unexpected image set: {cell}')
         reports[cell] = sha(report_raw)
@@ -124,9 +127,11 @@ def build(source, output, *, seed=82020):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--source', type=Path, required=True); p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--second-block', action='store_true')
     args = p.parse_args()
     try:
-        print(json.dumps(build(args.source, args.output), indent=2))
+        print(json.dumps(build(args.source, args.output,
+                               seeds=range(83000, 83008) if args.second_block else None), indent=2))
     except (OSError, ValueError, KeyError, TypeError) as exc:
         p.error(str(exc))
 

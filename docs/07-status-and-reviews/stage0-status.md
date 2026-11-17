@@ -79,6 +79,13 @@ have holdout VIFs above 2. Wider rule-weight bounds yield five VIFs below 2,
 but concentrate weight on an effective 15.3 of 57 rules, change the target
 population and use an unregistered breadth definition. Neither is a gate pass;
 see [breadth exploration](../03-exposure-design/design-breadth-exploration.md).
+An additional two-matrix constraint candidate reduced estimated singleton
+drift, but its frozen allocation produced marginal/lift correlation 0.313 on
+a new 300-scene-per-condition draw, above the proposal's 0.3 threshold.
+A later, locally refitted margin candidate gave correlation 0.248 and maximum
+VIF 1.910 on another 300-scene draw; it still heavily reweights the rule
+population and leaves estimated singleton deviations up to 0.0295. It is not
+an approved or confirmatory gate result.
 A separate
 [one-step MOSAIC toy diagnostic](../06-mosaic/mosaic-toy-denoise.md) evaluates known images,
 not generated-image success or replication.

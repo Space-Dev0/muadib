@@ -34,6 +34,17 @@ updates on this GPU. Four new 500,000-update runs therefore may take roughly
 laptop powered and signed in. Interruption can lose work since the last saved
 checkpoint; it does not affect the completed first block.
 
+`MuadibMosaicIndependentEval83000` is installed separately and waits for the
+training task. It verifies all four 500,000-update checkpoint reports, then
+generates the reserved 64 images and prepares blinded packs with frozen checker
+predictions on the laptop. Sampling attempts use exclusive directories;
+completed cell reports are validated and reused after interruption, while
+partial attempts are preserved. It retries at sign-in and every five minutes
+and disables itself on successful completion. The resume workflow passed a
+mocked end-to-end test on the GPU laptop; actual evaluation cannot be
+validated until training reaches its targets. Scheduling the task alone does
+not establish evaluation success.
+
 The namespace and checkpoint-recovery tests passed on the GPU laptop. The
 one-time installation started `MuadibMosaicIndependent82600`; its log showed a
 new low-balanced initial run in the separate 82600 output directory, and CUDA
@@ -42,3 +53,6 @@ The low-balanced initial run subsequently completed 1,000 updates; the
 supervisor verified checkpoint SHA-256
 `0c27d4772cfd769157c6c720504d619ef44add61dd7ad0c0a5426fa445dde7a9`
 and started the 1,000-to-10,000 continuation. GPU activity was observed.
+It subsequently reached a verified 20,000-update low-balanced checkpoint,
+SHA-256 `b55919fbb786893e274802c0864006d23f562fc9f6d52aadef53a80a8dcb9214`,
+and the training task remained running.

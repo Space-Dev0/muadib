@@ -167,6 +167,34 @@ the first allocation and endpoints were saved without refitting in
 This additional matrix tests sensitivity to another renderer draw, not an
 independent benchmark or a registered confirmatory analysis.
 
+On that frozen seed-82506 check, the largest VIF was 1.884, but the
+marginal/lift correlation was 0.3132, exceeding the proposal's 0.3 threshold.
+Maximum singleton deviations were 0.0270 for uniform and 0.0179 for fitted.
+Thus the frozen candidate does not meet all numerical thresholds on this draw.
+This is an exploratory Monte Carlo estimate and does not establish population
+infeasibility. The input hashes and result are in ignored
+`outputs/design-breadth-multimatrix-fresh-82506.json`.
+
+A further local optimization emphasized correlation margin on the two fitting
+matrices while retaining the same endpoints and 0.05–4.0 rule-weight bounds.
+It returned correlations 0.243 and 0.236 on those matrices, with maximum VIFs
+1.886 and 1.898; on the already inspected seed-82506 matrix, correlation was
+0.254 and maximum VIF 1.886. The effective rule count is about 15.60. This is
+still a highly reweighted, post-hoc candidate, not an approved estimand or gate
+pass. It was saved as ignored `outputs/design-breadth-margin-82540.json`,
+SHA-256 `fae16854df605094a0c9f19c42cabe1a75bb06a989eddf752cfba73ff6b91126`,
+before starting an additional 300-scene-per-condition seed-82507 sensitivity
+draw without refitting. That new draw is from the same renderer and is not an
+external benchmark.
+
+On the new seed-82507 draw, the frozen candidate gave correlation 0.2482 and
+maximum VIF 1.9098. Maximum singleton deviations from their own reference were
+0.0249 (uniform) and 0.0295 (fitted). The result and input hashes are in
+ignored `outputs/design-breadth-margin-fresh-82507.json`. This further
+supports numerical stability at this Monte Carlo scale, while leaving the
+nonzero constraint deviation, highly reweighted population, 100,000-scene
+measurement target, breadth definition, and grammar limitations unresolved.
+
 Reproduce from the repository root with the existing ignored reports:
 
 ```sh
