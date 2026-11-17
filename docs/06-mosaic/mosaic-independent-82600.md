@@ -33,3 +33,12 @@ updates on this GPU. Four new 500,000-update runs therefore may take roughly
 46 hours plus startup and previews; actual throughput can differ. Keep the
 laptop powered and signed in. Interruption can lose work since the last saved
 checkpoint; it does not affect the completed first block.
+
+The namespace and checkpoint-recovery tests passed on the GPU laptop. The
+one-time installation started `MuadibMosaicIndependent82600`; its log showed a
+new low-balanced initial run in the separate 82600 output directory, and CUDA
+activity was observed. No checkpoint had been completed at launch verification.
+The low-balanced initial run subsequently completed 1,000 updates; the
+supervisor verified checkpoint SHA-256
+`0c27d4772cfd769157c6c720504d619ef44add61dd7ad0c0a5426fa445dde7a9`
+and started the 1,000-to-10,000 continuation. GPU activity was observed.

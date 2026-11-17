@@ -14,11 +14,13 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def score(pack, paths):
+def score(pack, paths, *, expected_prediction_sha256=None, expected_provenance_sha256=None):
     pack = Path(pack)
     if len(paths) != 4 or len({Path(p).resolve() for p in paths}) != 4:
         raise ValueError('Four distinct review paths are required')
     meta_raw = (pack / 'private' / 'provenance.json').read_bytes()
+    if expected_provenance_sha256 and sha(meta_raw) != expected_provenance_sha256:
+        raise ValueError('Provenance hash mismatch')
     meta = json.loads(meta_raw); items = meta['items']
     if len(items) != 64 or set(x['cell'] for x in items.values()) != set(CELLS):
         raise ValueError('Unexpected review pack')
@@ -65,6 +67,8 @@ def score(pack, paths):
     difference = [bounds['low-imbalanced'][0] - bounds['high-balanced'][1],
                   bounds['low-imbalanced'][1] - bounds['high-balanced'][0]]
     predictions_raw = (pack / 'private' / 'predictions.json').read_bytes()
+    if expected_prediction_sha256 and sha(predictions_raw) != expected_prediction_sha256:
+        raise ValueError('Prediction hash mismatch')
     predictions = json.loads(predictions_raw)
     if set(predictions) != set(items):
         raise ValueError('Prediction IDs mismatch')
@@ -74,16 +78,19 @@ def score(pack, paths):
         for identifier in items:
             truth = per_image[identifier]['unanimous']['target_circle']
             predicted = predictions[identifier][checker]
+            if predicted is not None and type(predicted) is not bool:
+                raise ValueError('Invalid checker prediction')
             if predicted is None:
                 counts['abstained'] += 1
+                counts['abstained_' + (truth if truth is not None else 'unresolved')] += 1
             elif truth is None:
                 counts['review_unresolved'] += 1
-            elif type(predicted) is not bool:
-                raise ValueError('Invalid checker prediction')
             elif predicted == (truth == 'yes'):
                 counts['agree'] += 1
+                counts['tp' if predicted else 'tn'] += 1
             else:
                 counts['disagree'] += 1
+                counts['fp' if predicted else 'fn'] += 1
         agreement[checker] = dict(counts)
     return {'schema_version': 1, 'provenance_sha256': sha(meta_raw),
             'prediction_sha256': sha(predictions_raw), 'review_sha256': hashes,
@@ -97,9 +104,12 @@ def score(pack, paths):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--pack', type=Path, required=True); p.add_argument('--reviews', type=Path, nargs=4, required=True)
-    p.add_argument('--output', type=Path, required=True); args = p.parse_args()
+    p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--expected-predictions-sha256'); p.add_argument('--expected-provenance-sha256')
+    args = p.parse_args()
     try:
-        result = score(args.pack, args.reviews)
+        result = score(args.pack, args.reviews, expected_prediction_sha256=args.expected_predictions_sha256,
+                       expected_provenance_sha256=args.expected_provenance_sha256)
         with args.output.open('x', encoding='utf-8') as f:
             json.dump(result, f, indent=2, allow_nan=False); f.write('\n')
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:

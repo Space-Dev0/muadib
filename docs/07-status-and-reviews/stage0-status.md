@@ -13,6 +13,8 @@ with user authorization, separate from the stopped 760k continuous run. All
 four cells have reached verified 500,000-update checkpoints. A fixed 64-image
 evaluation and blinded reviewer packs are prepared, but no comparison result is
 available until review; see [evaluation](../06-mosaic/mosaic-matched-eval-82000.md).
+A second matched model-seed block has started, with four new 500,000-update
+targets and periodic checkpoints; see [independent block](../06-mosaic/mosaic-independent-82600.md).
 
 The single-cell PilotUNet trainer was stopped at a verified 760,000-update
 checkpoint. Its exploratory previews appear clearer, but they do not establish

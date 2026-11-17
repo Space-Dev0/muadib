@@ -56,6 +56,8 @@ class MatchedEvaluationTests(unittest.TestCase):
                              for color in ('red', 'blue')), 1)
         self.assertEqual(sum(c[color]['yes'] for c in result['cells_by_color'].values()
                              for color in ('red', 'blue')), 63)
+        with self.assertRaisesRegex(ValueError, 'Prediction hash mismatch'):
+            score(pack, paths, expected_prediction_sha256='wrong')
         paths[0].write_text(paths[0].read_text().replace('matched-0001', 'matched-0002'))
         with self.assertRaisesRegex(ValueError, 'duplicate'):
             score(pack, paths)

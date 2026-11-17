@@ -49,6 +49,8 @@ After all reviews are returned, use four distinct review CSVs:
 uv run python -m exposure.mosaic_matched_eval_score \
   --pack outputs/mosaic-matched-review-500k-82000 \
   --reviews reviewer1.csv reviewer2.csv reviewer3.csv reviewer4.csv \
+  --expected-predictions-sha256 fba809ab332aa30ac7664c745fb20c0b68b63ac984c0310f780a3e76b43114d0 \
+  --expected-provenance-sha256 08e9dbca49143e15decca05205b2f74f8146b292e08c9a0b82df5188fc53907d \
   --output outputs/mosaic-matched-review-500k-82000/score.json
 ```
 
