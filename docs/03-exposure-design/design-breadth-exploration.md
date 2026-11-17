@@ -214,6 +214,15 @@ role-sensitive breadth and concentrated allocation remain exploratory. The
 ignored artifacts are `outputs/design-breadth-reference-margin-82550.json`
 and `outputs/design-breadth-reference-margin-check-82506.json`.
 
+A subsequent local optimization allowed rule allocations to differ between
+the two reference groups while weighting the groups equally. On the already
+inspected seed-82507 matrix it produced correlation 0.252 and maximum
+reference-adjusted VIF 2.087 (log lift); the other five VIFs were below 2.
+Effective rule counts were about 16.0 and 16.1 in the two groups. This remains
+post-hoc, changes the rule population differently by reference, and does not
+show that no better allocation exists. The ignored result is
+`outputs/design-reference-allocation-82560.json`.
+
 Reproduce from the repository root with the existing ignored reports:
 
 ```sh

@@ -35,6 +35,21 @@ class BreadthDesignTests(unittest.TestCase):
         for value in result.values():
             self.assertAlmostEqual(value, 1.)
 
+    def test_group_specific_moments_have_expected_vifs(self):
+        spec = importlib.util.spec_from_file_location('ref_alloc',
+                    Path('scripts/explore-reference-allocation.py'))
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        fields = module.FEATURE_NAMES[:-1]
+        rows = [dict(zip(fields, values, strict=True)) |
+                {'design': group + '_x', 'rule': rule, 'reference_group': float(group == 'fitted')}
+                for values in itertools.product((-1., 1.), repeat=5)
+                for group in ('uniform', 'fitted') for rule in ('a', 'b')]
+        means, seconds = module.moments(rows, ['a', 'b'])
+        result = module.statistics(means, seconds, [0.25] * 4)
+        self.assertAlmostEqual(result['marginal_lift_r'], 0.)
+        for value in result['vif'].values():
+            self.assertAlmostEqual(value, 1.)
+
 
 if __name__ == '__main__':
     unittest.main()
