@@ -8,7 +8,7 @@ from PIL import Image
 data = json.loads((Path(__file__).parent / 'review-aggregate.json').read_text())
 out = Path(__file__).parent / 'figures'
 out.mkdir(exist_ok=True)
-plt.rcParams.update({'font.size': 10, 'savefig.bbox': 'tight', 'figure.dpi': 160})
+plt.rcParams.update({'pdf.fonttype': 42, 'font.size': 10, 'savefig.bbox': 'tight', 'figure.dpi': 160})
 labels = ['Low / balanced', 'Low / imbalanced', 'High / balanced', 'High / imbalanced']
 fig, ax = plt.subplots(figsize=(7.4, 3.5))
 y = np.arange(4)
