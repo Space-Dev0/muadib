@@ -9,10 +9,20 @@
 \setmainfont{NimbusRoman-Regular.otf}[Path=/usr/share/fonts/urw-base35/,BoldFont=NimbusRoman-Bold.otf,ItalicFont=NimbusRoman-Italic.otf,BoldItalicFont=NimbusRoman-BoldItalic.otf]
 \usepackage{amsmath,amssymb,array,xcolor,url,tikz}
 \usetikzlibrary{arrows.meta,positioning}
+% ICML hides the margin ruler in preprint mode. Keep the supplied ruler
+% visible in the named project copy as well; review mode already supplies it.
+\ifdefined\anonymouspaper\else
+\AddToShipoutPicture{%
+  \icmlruleroffset=\textheight
+  \advance\icmlruleroffset by 5.2pt
+  \color[rgb]{.7,.7,.7}%
+  \AtTextUpperLeft{\put(\LenToUnit{-35pt},\LenToUnit{-\icmlruleroffset}){\icmlruler{\icmlrulercount}}}%
+}
+\fi
 \icmltitlerunning{Which Exposure Matters?}
 \begin{document}
 \twocolumn[
-\icmltitle{Which Exposure Matters? Design Diagnostics and Diffusion Model Feasibility}
+\icmltitle{\texorpdfstring{\LARGE Which Exposure Matters?\\Design Diagnostics and Diffusion Model Feasibility}{Which Exposure Matters? Design Diagnostics and Diffusion Model Feasibility}}
 \begin{icmlauthorlist}
 \icmlauthor{Kanishak Mittal}{iiit}
 \icmlauthor{Aryan Tripathi}{iiit}
