@@ -9,9 +9,10 @@ fingerprint check. Sampling compatibility should be verified separately.
 not confirmatory research findings.
 
 A new bounded, one-block four-cell PilotUNet experiment has started on the GPU
-with user authorization, separate from the stopped 760k continuous run. Its
-first cell is in checkpointed continuation; no comparison result is available.
-See [matched experiment](../06-mosaic/mosaic-matched-81570.md).
+with user authorization, separate from the stopped 760k continuous run. All
+four cells have reached verified 500,000-update checkpoints. A fixed 64-image
+evaluation and blinded reviewer packs are prepared, but no comparison result is
+available until review; see [evaluation](../06-mosaic/mosaic-matched-eval-82000.md).
 
 The single-cell PilotUNet trainer was stopped at a verified 760,000-update
 checkpoint. Its exploratory previews appear clearer, but they do not establish
@@ -70,6 +71,12 @@ unresolved. See [two-reference exploration](../03-exposure-design/design-two-ref
 With rule-by-reference intercepts, the fitting matrix has no within-cell
 marginal variation; a shared reference intercept leaves two residualized
 exposure columns with rank two, under a stronger modeling assumption.
+An exploratory five-feature calculation now includes an explicit role-sensitive
+breadth definition. The existing allocation and a bounded five-feature refit
+have holdout VIFs above 2. Wider rule-weight bounds yield five VIFs below 2,
+but concentrate weight on an effective 15.3 of 57 rules, change the target
+population and use an unregistered breadth definition. Neither is a gate pass;
+see [breadth exploration](../03-exposure-design/design-breadth-exploration.md).
 A separate
 [one-step MOSAIC toy diagnostic](../06-mosaic/mosaic-toy-denoise.md) evaluates known images,
 not generated-image success or replication.
