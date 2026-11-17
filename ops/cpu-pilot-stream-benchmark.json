@@ -1,0 +1,34 @@
+{
+  "description": "One CPU update per mode and batch; width 4, 4 timesteps, same host localhost TCP",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.13.6",
+  "torch": "2.9.1+cu128",
+  "torch_threads": 1,
+  "measurements": [
+    {
+      "batch_size": 2,
+      "baseline_train_loop_seconds": 0.04683160001877695,
+      "stream_train_loop_seconds": 0.03832449996843934,
+      "stream_render_roundtrip_seconds": 0.02111020003212616,
+      "stream_png_payload_bytes": 2382,
+      "exact_model_ema_loss_counts_rng_parity": true
+    },
+    {
+      "batch_size": 8,
+      "baseline_train_loop_seconds": 0.05567620001966134,
+      "stream_train_loop_seconds": 0.11235350003698841,
+      "stream_render_roundtrip_seconds": 0.0130868999985978,
+      "stream_png_payload_bytes": 8672,
+      "exact_model_ema_loss_counts_rng_parity": true
+    },
+    {
+      "batch_size": 16,
+      "baseline_train_loop_seconds": 0.41118299996014684,
+      "stream_train_loop_seconds": 0.38140329997986555,
+      "stream_render_roundtrip_seconds": 0.036919899692293257,
+      "stream_png_payload_bytes": 17160,
+      "exact_model_ema_loss_counts_rng_parity": true
+    }
+  ],
+  "limitations": "One trial per batch, no warmup; synchronous per-image calls. Round trip includes remote rendering, TCP socket wait and decode; no GPU idle, LAN bandwidth, steady state, or validated performance improvement."
+}
