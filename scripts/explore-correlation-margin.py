@@ -16,13 +16,23 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--adjust-reference', action='store_true')
+    parser.add_argument('--min-multiple', type=float, default=0.05)
+    parser.add_argument('--max-multiple', type=float, default=4.0)
+    parser.add_argument('--vif-target', type=float, default=1.85)
+    parser.add_argument('--correlation-target', type=float, default=0.24)
+    parser.add_argument('--endpoints', default='outputs/design-breadth-multimatrix-82531.json')
+    parser.add_argument('--reports', nargs=3, default=['outputs/exposure-57-fresh-82505.json',
+                        'outputs/exposure-57-fresh-82501.json', 'outputs/exposure-57-fresh-82506.json'])
+    parser.add_argument('--breadths', nargs=3, default=['outputs/breadth-57-fresh-82505.json',
+                        'outputs/breadth-57-fresh-82501.json', 'outputs/breadth-57-fresh-82506.json'])
     args = parser.parse_args()
-    source = Path('outputs/design-breadth-multimatrix-82531.json').read_bytes()
+    if not (0 < args.min_multiple <= 1 <= args.max_multiple and args.vif_target > 1 and
+            0 <= args.correlation_target < 1):
+        raise ValueError('Invalid allocation bounds or diagnostic targets')
+    source = Path(args.endpoints).read_bytes()
     frozen = json.loads(source)
-    report_paths = ('outputs/exposure-57-fresh-82505.json', 'outputs/exposure-57-fresh-82501.json',
-                    'outputs/exposure-57-fresh-82506.json')
-    breadth_paths = ('outputs/breadth-57-fresh-82505.json', 'outputs/breadth-57-fresh-82501.json',
-                     'outputs/breadth-57-fresh-82506.json')
+    report_paths = args.reports
+    breadth_paths = args.breadths
     report_raw = [Path(x).read_bytes() for x in report_paths]
     breadth_raw = [Path(x).read_bytes() for x in breadth_paths]
     reports = [json.loads(x) for x in report_raw]; breadths = [json.loads(x) for x in breadth_raw]
@@ -74,12 +84,12 @@ def main():
     def objective(weights):
         try:
             result = [statistics(m, weights) for m in moments[:2]]
-            return sum(float(np.sum(np.maximum(np.array(list(x['vif'].values()))-1.85, 0)**2))
-                       + 25 * max(abs(x['marginal_lift_r'])-.24, 0)**2 for x in result)
+            return sum(float(np.sum(np.maximum(np.array(list(x['vif'].values()))-args.vif_target, 0)**2))
+                       + 25 * max(abs(x['marginal_lift_r'])-args.correlation_target, 0)**2 for x in result)
         except (ValueError, np.linalg.LinAlgError):
             return 1e6
     initial = np.array([frozen['rule_allocation'][name] for name in names])
-    opt = minimize(objective, initial, method='SLSQP', bounds=[(.05/len(names), 4/len(names))]*len(names),
+    opt = minimize(objective, initial, method='SLSQP', bounds=[(args.min_multiple/len(names), args.max_multiple/len(names))]*len(names),
                    constraints={'type':'eq', 'fun':lambda x: x.sum()-1}, options={'maxiter':1000,'ftol':1e-10})
     if not opt.success or abs(opt.x.sum()-1)>1e-8:
         raise ValueError(f'Optimizer failed: {opt.message}')
@@ -89,6 +99,8 @@ def main():
               'report_sha256':[hashlib.sha256(x).hexdigest() for x in report_raw],
               'objective':float(opt.fun), 'effective_rules':float(1/np.sum(opt.x**2)),
               'adjust_reference':args.adjust_reference,
+              'bounds_relative_to_equal':[args.min_multiple, args.max_multiple],
+              'vif_target':args.vif_target, 'correlation_target':args.correlation_target,
               'statistics':[statistics(m,opt.x) for m in moments],
               'note':'Exploratory local fit to two estimated matrices; third was previously inspected. Not a gate.'}
     with args.output.open('x',encoding='utf-8') as f:

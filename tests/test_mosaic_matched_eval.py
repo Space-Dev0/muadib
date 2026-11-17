@@ -56,6 +56,21 @@ class MatchedEvaluationTests(unittest.TestCase):
                              for color in ('red', 'blue')), 1)
         self.assertEqual(sum(c[color]['yes'] for c in result['cells_by_color'].values()
                              for color in ('red', 'blue')), 63)
+        for field in ('complexity_drop_bounds', 'imbalance_drop_bounds', 'difference_in_drops_bounds'):
+            self.assertLessEqual(result[field][0], 0.0)
+            self.assertGreaterEqual(result[field][1], 0.0)
+        provenance = json.loads((pack / 'private' / 'provenance.json').read_text())
+        cell = provenance['items'][rows[0]['sample_id']]['cell']
+        brute = []
+        for replacement in (0, 1):
+            rates = {name: 1.0 for name in CELLS}
+            rates[cell] = (15 + replacement) / 16
+            lb, li, hb, hi = (rates[name] for name in CELLS)
+            complexity = (lb - hb + li - hi) / 2
+            imbalance = (lb - li + hb - hi) / 2
+            brute.append((complexity, imbalance, complexity - imbalance))
+        for index, field in enumerate(('complexity_drop_bounds', 'imbalance_drop_bounds', 'difference_in_drops_bounds')):
+            self.assertEqual(result[field], [min(x[index] for x in brute), max(x[index] for x in brute)])
         with self.assertRaisesRegex(ValueError, 'Prediction hash mismatch'):
             score(pack, paths, expected_prediction_sha256='wrong')
         paths[0].write_text(paths[0].read_text().replace('matched-0001', 'matched-0002'))

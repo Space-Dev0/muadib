@@ -92,12 +92,13 @@ class GuidanceReviewPackTests(unittest.TestCase):
             if number == 0:
                 text = text.replace('readiness-001,yes,yes', 'readiness-001,no,unsure')
                 text = text.replace('readiness-002,yes,yes', 'readiness-002,"yes, touching",yes')
+                text = text.replace('readiness-003,yes,yes', 'readiness-003,"maybe, overlap",not sure')
             path.write_text(text)
             files.append(path)
         result = score(pack, files)
         self.assertEqual(result['questions']['target_circle']['yes_no_disagreement'], 1)
-        self.assertEqual(result['questions']['exactly_two_objects']['any_unsure'], 1)
-        self.assertEqual(result['questions']['target_circle']['unanimous_yes'], 7)
+        self.assertEqual(result['questions']['exactly_two_objects']['any_unsure'], 2)
+        self.assertEqual(result['questions']['target_circle']['unanimous_yes'], 6)
         files[0].write_text(files[0].read_text().replace('readiness-001', 'readiness-002'))
         with self.assertRaisesRegex(ValueError, 'duplicate'):
             score(pack, files)

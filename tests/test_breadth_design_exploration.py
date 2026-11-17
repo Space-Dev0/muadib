@@ -2,6 +2,7 @@ import importlib.util
 import itertools
 import unittest
 from pathlib import Path
+import numpy as np
 
 
 class BreadthDesignTests(unittest.TestCase):
@@ -49,6 +50,23 @@ class BreadthDesignTests(unittest.TestCase):
         self.assertAlmostEqual(result['marginal_lift_r'], 0.)
         for value in result['vif'].values():
             self.assertAlmostEqual(value, 1.)
+        equality, target = module.equal_rule_constraints(2)
+        np.testing.assert_allclose(equality @ np.array([.4, .1, .1, .4]), target)
+        self.assertGreater(np.max(np.abs(equality @ np.array([.4, .1, .2, .3]) - target)), 0)
+
+    def test_design_weight_gradient_matches_finite_differences(self):
+        spec = importlib.util.spec_from_file_location('equal_designs', Path('scripts/explore-equal-rule-designs.py'))
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        rng = np.random.default_rng(14)
+        arrays = [rng.normal(size=(80, 6)) + rng.normal(size=6) for _ in range(8)]
+        means = np.stack([a.mean(axis=0) for a in arrays])
+        seconds = np.stack([a.T @ a / len(a) for a in arrays])
+        weights = np.full(8, 1/8); direction = np.zeros(8); direction[0] = 1; direction[-1] = -1
+        value, gradient = module.objective_gradient(weights, [(means, seconds)])
+        eps = 1e-6
+        plus, _ = module.objective_gradient(weights + eps*direction, [(means, seconds)])
+        minus, _ = module.objective_gradient(weights - eps*direction, [(means, seconds)])
+        self.assertAlmostEqual(float(gradient @ direction), (plus-minus)/(2*eps), places=5)
 
 
 if __name__ == '__main__':

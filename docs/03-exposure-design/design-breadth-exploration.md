@@ -155,6 +155,51 @@ population guarantee. The candidate changes the rule-weighted target and does
 not resolve the grammar, role-sensitive breadth, dependence or uncertainty
 issues. Do not claim a Stage 0 gate pass.
 
+After the separate 100,000-scene-per-condition matrix became available, new
+endpoints were fitted to preserve singleton marginals on it and the earlier
+1,000-scene matrix. A local five-feature allocation with 0.05–4.0 bounds
+gave correlation 0.339 and lift VIF 2.173 on the 100,000-scene matrix; on the
+previously inspected 300-scene matrix these were 0.348 and 2.127. Maximum
+singleton deviations on that 300-scene matrix were 0.0192 and 0.0189 against
+the corresponding references. The frozen candidate was not merely reused:
+the endpoints and allocation were refitted after the 100,000-scene results
+were seen. The exploratory output is
+`outputs/design-breadth-multimatrix-100k-82570.json`.
+
+With still wider exploratory allocation bounds of 0.01–6.0 times equal rule
+weight, a correlation-margin refit on those two matrices produced five VIFs
+below 2 and correlations 0.238–0.251 on the two fitting matrices and the
+previously inspected seed-82507 matrix. The effective rule count falls to
+approximately 10.31 of 57, making the change to the research population even
+more substantial. This post-hoc candidate was frozen before a new seed-82512
+measurement in ignored `outputs/design-breadth-margin-100k-wider-82572.json`,
+SHA-256 `6e441ca950ac0f98be8f4a9c4715396172c8347b4d23a00a5ae2dd96a4fff0af`.
+It is not a registered or approved design and does not resolve reference-group
+adjustment, uncertainty, or benchmark validity.
+
+The frozen candidate was then evaluated without refitting on a new seed-82512
+draw with 1,000 scenes per condition. Its five-feature correlation was 0.231
+and largest VIF 1.756; maximum singleton deviations from the corresponding
+references were 0.00975 and 0.01014. Adding the reference-group indicator
+raised the log-breadth VIF to 3.658 and the indicator VIF to 2.914. These are
+exploratory estimates for a population concentrated on about 10 effective
+rules; neither this draw nor the optimization supplies the missing target
+population decision or establishes the full analysis model. The result is in
+ignored `outputs/design-breadth-margin-100k-fresh-82512.json`.
+
+Allowing the rule allocation to differ by reference group, with wider
+0.01–6.0 bounds, gives an exploratory six-feature candidate with correlation
+0.225 and maximum reference-adjusted VIF 1.841 on the already inspected
+seed-82512 matrix. Effective rule counts are only 10.44 and 10.82 in the two
+groups. Their normalized rule distributions have total variation distance
+0.700, so the groups represent very different rule populations; this makes
+interpretation of reference and exposure effects especially problematic.
+The post-hoc candidate and endpoints were frozen in ignored
+`outputs/design-reference-allocation-frozen-82574.json`, SHA-256
+`90561cf2c4011badbbb51421316b592c00788fc0a4dcaba12948859a41987a59`,
+before a further seed-82513 sensitivity draw. No target-population change has
+been approved, and these numbers are not a Stage 0 gate pass.
+
 An alternative optimization aimed at the worst of the two fitting matrices
 returned correlations above 0.3; this local result does not establish that
 better solutions cannot exist. Both exploratory fits and their outputs are in
@@ -222,6 +267,27 @@ Effective rule counts were about 16.0 and 16.1 in the two groups. This remains
 post-hoc, changes the rule population differently by reference, and does not
 show that no better allocation exists. The ignored result is
 `outputs/design-reference-allocation-82560.json`.
+
+A larger 100,000-scenes-per-condition matrix (seed 82511) and additional
+1,000-scenes-per-condition draws were used to explore allocations with the
+reference indicator included. A group-specific allocation achieved maximum
+VIF 1.838 and marginal/lift correlation 0.226 on seed 82513, but represented
+only about 10–11 effective rules per group and had approximately 70% total
+variation between group rule distributions. This changes the target population
+substantially and is not an approved or confirmatory gate result.
+
+To retain equal representation, we also optimized shared design-sampling
+weights, keeping all 57 rules equally weighted in each design and equal mass
+for the two reference groups. On the 100,000-scene matrix, the best reported
+local result had marginal/lift correlation -0.157 but maximum VIF 5.835;
+loosening the design-weight cap did not bring the maximum VIF below 2 in the
+runs examined. A separate optimization allowed rule allocations to differ by
+reference while requiring exactly equal pooled weight for every rule. Its
+maximum VIF was 5.756 on the 100,000-scene matrix and 5.782 on an additional
+1,000-scene draw; marginal/lift correlations were -0.206 and -0.208. These
+are local exploratory optimizations, not proof that equal-rule designs are
+impossible. Their ignored outputs are `outputs/design-equal-rule-82580.json`
+and `outputs/design-reference-equal-overall-82590.json`.
 
 Reproduce from the repository root with the existing ignored reports:
 

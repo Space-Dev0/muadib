@@ -15,6 +15,8 @@ def decision(value):
     """Accept an explicit answer optionally followed by a comma and a note."""
     answer, separator, note = value.partition(',')
     answer = answer.strip().lower()
+    if answer in ('maybe', 'not sure'):
+        answer = 'unsure'
     if answer not in ('yes', 'no', 'unsure') or (separator and not note.strip()):
         raise ValueError('Each response must be yes, no or unsure, optionally followed by a comma and note')
     return answer

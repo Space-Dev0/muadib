@@ -17,11 +17,13 @@ from exposure.measure import load_rules
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--output', type=Path, required=True); args = p.parse_args()
-    report_paths = ['outputs/exposure-57-fresh-82505.json', 'outputs/exposure-57-fresh-82501.json',
-                    'outputs/exposure-57-holdout-81205.json']
-    breadth_paths = ['outputs/breadth-57-fresh-82505.json', 'outputs/breadth-57-fresh-82501.json',
-                     'outputs/breadth-57-holdout-82500.json']
+    p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--reports', nargs=3, default=['outputs/exposure-57-fresh-82505.json',
+                   'outputs/exposure-57-fresh-82501.json', 'outputs/exposure-57-holdout-81205.json'])
+    p.add_argument('--breadths', nargs=3, default=['outputs/breadth-57-fresh-82505.json',
+                   'outputs/breadth-57-fresh-82501.json', 'outputs/breadth-57-holdout-82500.json'])
+    args = p.parse_args()
+    report_paths, breadth_paths = args.reports, args.breadths
     raw = [Path(x).read_bytes() for x in report_paths]
     reports = [json.loads(x) for x in raw]
     breadth_raw = [Path(x).read_bytes() for x in breadth_paths]

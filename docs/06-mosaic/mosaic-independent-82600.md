@@ -58,3 +58,7 @@ SHA-256 `b55919fbb786893e274802c0864006d23f562fc9f6d52aadef53a80a8dcb9214`,
 and the training task remained running.
 On a later check it had reached a verified 60,000-update low-balanced
 checkpoint; the training task and waiting evaluation task were both running.
+On the following check, both low-complexity models had reached 500,000
+updates and the high-balanced model had a verified 250,000-update checkpoint.
+The high-imbalanced cell had not started; training and the waiting evaluation
+task were both running.

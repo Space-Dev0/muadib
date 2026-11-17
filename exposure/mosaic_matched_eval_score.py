@@ -66,6 +66,11 @@ def score(pack, paths, *, expected_prediction_sha256=None, expected_provenance_s
         bounds[cell] = [yes / 16, (yes + unknown) / 16]
     difference = [bounds['low-imbalanced'][0] - bounds['high-balanced'][1],
                   bounds['low-imbalanced'][1] - bounds['high-balanced'][0]]
+    lb, li, hb, hi = (bounds[cell] for cell in CELLS)
+    complexity = [(lb[0] + li[0] - hb[1] - hi[1]) / 2,
+                  (lb[1] + li[1] - hb[0] - hi[0]) / 2]
+    imbalance = [(lb[0] + hb[0] - li[1] - hi[1]) / 2,
+                 (lb[1] + hb[1] - li[0] - hi[0]) / 2]
     predictions_raw = (pack / 'private' / 'predictions.json').read_bytes()
     if expected_prediction_sha256 and sha(predictions_raw) != expected_prediction_sha256:
         raise ValueError('Prediction hash mismatch')
@@ -95,6 +100,7 @@ def score(pack, paths, *, expected_prediction_sha256=None, expected_provenance_s
     return {'schema_version': 1, 'provenance_sha256': sha(meta_raw),
             'prediction_sha256': sha(predictions_raw), 'review_sha256': hashes,
             'per_image': per_image, 'cells_by_color': cells, 'cell_success_bounds': bounds,
+            'complexity_drop_bounds': complexity, 'imbalance_drop_bounds': imbalance,
             'difference_in_drops_bounds': difference, 'checker_comparison': agreement,
             'note': ('Bounds describe these images only, not population confidence intervals. '
                      'One paired training-seed block, unresolved labels and checker abstentions '

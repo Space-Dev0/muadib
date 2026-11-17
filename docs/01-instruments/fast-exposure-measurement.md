@@ -32,6 +32,18 @@ confirmatory preregistration, approval of the reweighted rule population, or
 a resolution of the grammar and breadth-definition issues. The report and
 role-sensitive breadth counts are generated together from the same scenes.
 
+The seed-82511 run completed all 57 conditions, for 5.7 million accepted
+scenes in total and 57,827,027 rejection-sampling attempts. The completed report SHA-256 is
+`aa1f933407b97acf42878f6a0b729b4ea03c0073694bdb72f19038c3e64d06b6`;
+the breadth artifact SHA-256 is
+`69223ee5fe3198db5883cb1e94c0bc57a4d8b0bea94d445ac7f48add90de13d6`.
+Applying the frozen candidate without refitting gave correlation 0.237 and
+five VIFs between 1.462 and 1.889. Maximum estimated singleton deviations
+from the corresponding references were 0.0101 and 0.00749. Adding a shared
+reference indicator increased the largest VIF to 4.887. The result is stored
+in ignored `outputs/design-breadth-margin-fresh-82511.json`; these are
+estimates for a concentrated, unregistered candidate, not a Stage 0 gate pass.
+
 ```sh
 uv run python -m exposure.measure_fast --rules outputs/templates-57.json \
   --samples 100000 --seed 82511 --state outputs/fast-measure-82511.state.json \

@@ -11,8 +11,9 @@ not confirmatory research findings.
 A new bounded, one-block four-cell PilotUNet experiment has started on the GPU
 with user authorization, separate from the stopped 760k continuous run. All
 four cells have reached verified 500,000-update checkpoints. A fixed 64-image
-evaluation and blinded reviewer packs are prepared, but no comparison result is
-available until review; see [evaluation](../06-mosaic/mosaic-matched-eval-82000.md).
+evaluation has been reviewed; its one-block descriptive comparison is in the
+published direction, but checker abstentions and the lack of model-seed
+replication prevent a gate conclusion. See [evaluation](../06-mosaic/mosaic-matched-eval-82000.md).
 A second matched model-seed block has started, with four new 500,000-update
 targets and periodic checkpoints; see [independent block](../06-mosaic/mosaic-independent-82600.md).
 
@@ -86,6 +87,11 @@ A later, locally refitted margin candidate gave correlation 0.248 and maximum
 VIF 1.910 on another 300-scene draw; it still heavily reweights the rule
 population and leaves estimated singleton deviations up to 0.0295. It is not
 an approved or confirmatory gate result.
+On a subsequent fresh 100,000-scenes-per-condition measurement, that frozen
+candidate gave correlation 0.237 and five VIFs below 2, with maximum singleton
+deviations 0.0101 and 0.00749 from the two references. With reference-group
+adjustment its maximum VIF was 4.887; population and grammar concerns remain.
+See [fast measurement](../01-instruments/fast-exposure-measurement.md).
 A separate
 [one-step MOSAIC toy diagnostic](../06-mosaic/mosaic-toy-denoise.md) evaluates known images,
 not generated-image success or replication.

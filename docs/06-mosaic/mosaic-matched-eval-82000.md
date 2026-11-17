@@ -58,3 +58,46 @@ The scorer retains individual votes and counts disagreements and unsure
 answers as unresolved. It reports worst-case bounds for these 64 images, not
 confidence intervals, and compares frozen checker answers only against
 unanimous yes/no decisions. No automatic adjudication is performed.
+
+## Returned reviews
+
+Four completed files were returned. All are byte-identical with SHA-256
+`01aa8b178644c38503c9472f0df0ee2df009dff8478e3075d0b049e34ac0c17a`.
+The user reported the reviews complete; the artifacts do not independently
+establish reviewer identity or independence. All four original ZIP hashes and
+all 64 images inside each ZIP and each extracted reviewer folder matched the
+private manifest. The frozen provenance and checker prediction hashes matched
+the values above. Original review files remain untouched.
+
+The files unanimously marked target-circle presence yes on 59 images, no on
+three, and uncertain on two. `maybe` and `not sure` were interpreted as
+`unsure`; original wording, including the overlap note, is retained in the
+source files. Per-cell target-circle yes/no/unresolved counts were:
+
+| Cell | Yes | No | Unresolved |
+| --- | ---: | ---: | ---: |
+| Low, balanced | 16 | 0 | 0 |
+| Low, imbalanced | 15 | 0 | 1 |
+| High, balanced | 14 | 2 | 0 |
+| High, imbalanced | 14 | 1 | 1 |
+
+For expected object count, unanimous yes/no/unresolved counts were 15/1/0
+and 14/2/0 for the two low cells (exactly two), and 10/6/0 and 12/3/1 for the
+two high cells (exactly three). Count is secondary and was not a model input.
+
+For the prespecified equal-cell target-circle comparison, unresolved answers
+give exact finite-image worst-case bounds of 0.0625–0.125 for the complexity
+drop, −0.03125–0.03125 for the imbalance drop, and 0.0625–0.125 for their
+difference. This descriptive direction is consistent with complexity having
+the larger drop in this one matched block, but these are not confidence
+intervals or independent model-seed replicates. A second block is still
+training; these results alone do not establish a replication or Stage 0 pass.
+
+The frozen standard checker answered 9/64 target-circle questions and the
+experimental variable-count checker answered 46/64; all answered yes and
+matched the unanimous reviewer labels. The standard checker abstained on 55;
+the experimental checker abstained on 18, including all three reviewer-no
+images and both uncertain images. There are no accepted human-negative cases,
+so this sample cannot estimate false-accept rate. Checker abstentions and
+reviewer uncertainty are not negatives. The reproducible scored result is in
+ignored `outputs/mosaic-matched-review-500k-82000/score-v2.json`.
