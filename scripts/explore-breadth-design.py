@@ -79,11 +79,15 @@ def fit_five(means, seconds, initial, *, min_multiple=0.2, max_multiple=2.0):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, help='Optional new machine-readable result path')
+    parser.add_argument('--training-report', default='outputs/exposure-57-pilot.json')
+    parser.add_argument('--holdout-report', default='outputs/exposure-57-holdout-81205.json')
+    parser.add_argument('--training-breadth', default='outputs/breadth-57-pilot-82500.json')
+    parser.add_argument('--holdout-breadth', default='outputs/breadth-57-holdout-82500.json')
     args = parser.parse_args()
-    source_paths = ('outputs/exposure-57-pilot.json', 'outputs/exposure-57-holdout-81205.json')
+    source_paths = (args.training_report, args.holdout_report)
     source_raw = [Path(path).read_bytes() for path in source_paths]
     reports = [json.loads(raw) for raw in source_raw]
-    breadth_paths = ('outputs/breadth-57-pilot-82500.json', 'outputs/breadth-57-holdout-82500.json')
+    breadth_paths = (args.training_breadth, args.holdout_breadth)
     breadth_raw = [Path(path).read_bytes() for path in breadth_paths]
     breadth = [json.loads(raw) for raw in breadth_raw]
     names, values, counts = matrix(reports[0]); rules = load_rules(reports[0]['rules'])

@@ -25,6 +25,27 @@ def key(predicate):
                        **asdict(predicate)}, sort_keys=True, separators=(',', ':'))
 
 
+def scene_event_key(predicate):
+    """A variable-name-invariant singleton event on whole scenes."""
+    if isinstance(predicate, Attribute):
+        value = {'type': 'attribute', 'field': predicate.field, 'value': predicate.value}
+    else:
+        value = {'type': 'relation', 'kind': predicate.kind}
+    return json.dumps(value, sort_keys=True, separators=(',', ':'))
+
+
+def predicate_vocabulary(rules, mode):
+    all_predicates = [p for atoms in rules.values() for p in atoms]
+    if mode == 'role':
+        return sorted(set(all_predicates), key=key)
+    if mode != 'scene':
+        raise ValueError('Unknown breadth mode')
+    representatives = {}
+    for predicate in all_predicates:
+        representatives.setdefault(scene_event_key(predicate), predicate)
+    return [representatives[name] for name in sorted(representatives)]
+
+
 def pair_matrix(scene, predicates):
     """Existential co-satisfaction with shared named-object bindings.
 
@@ -41,15 +62,23 @@ def pair_matrix(scene, predicates):
     return matched
 
 
-def estimate(report):
+def scene_pair_matrix(scene, predicates):
+    """Joint occurrence of independently existential singleton events."""
+    from exposure.rules import satisfies
+    values = np.array([satisfies(scene, (predicate,)) for predicate in predicates], dtype=bool)
+    return values[:, None] & values[None, :]
+
+
+def estimate(report, *, mode='role'):
     rules = load_rules(report['rules'])
     if list(rules) != report['rule_order']:
         raise ValueError('Rule order does not match report')
     samples, seed = report['samples_per_condition'], report['seed']
     if type(samples) is not int or samples < 1 or type(seed) is not int:
         raise ValueError('Invalid report sampling configuration')
-    predicates = sorted({p for ps in rules.values() for p in ps}, key=key)
-    indices = {p: i for i, p in enumerate(predicates)}
+    predicates = predicate_vocabulary(rules, mode)
+    event_key = key if mode == 'role' else scene_event_key
+    indices = {event_key(p): i for i, p in enumerate(predicates)}
     for p in predicates:
         variables = (p.variable,) if isinstance(p, Attribute) else (p.subject, p.object)
         if any(v not in ('a', 'b', 'c') for v in variables):
@@ -63,24 +92,27 @@ def estimate(report):
         counts = np.zeros((len(predicates), len(predicates)), dtype=np.int64)
         for _ in range(samples):
             scene, _ = sample_conditioned(rng, condition, report['max_attempts_per_scene'])
-            counts += pair_matrix(scene, predicates)
+            counts += pair_matrix(scene, predicates) if mode == 'role' else scene_pair_matrix(scene, predicates)
         for rule_name, atoms in rules.items():
             for subset in source_column['predicate_subsets'][rule_name]:
                 selected = subset['predicate_indices']
-                a = indices[atoms[selected[0]]]
-                b = indices[atoms[selected[-1]]]
+                if mode == 'scene' and len(selected) != 1:
+                    continue
+                a = indices[event_key(atoms[selected[0]])]
+                b = indices[event_key(atoms[selected[-1]])]
                 if int(counts[a, b]) != subset['successes']:
                     raise ValueError(f'Regenerated scene counts do not match source: {name}, {rule_name}')
         columns.append(counts.tolist())
-    return {'schema_version': 1, 'source_seed': seed, 'samples_per_condition': samples,
-            'rule_order': list(rules), 'predicate_keys': [key(p) for p in predicates],
+    return {'schema_version': 1, 'mode': mode, 'source_seed': seed, 'samples_per_condition': samples,
+            'rule_order': list(rules), 'predicate_keys': [event_key(p) for p in predicates],
             'counts_by_condition': columns,
-            'note': ('Role-sensitive syntactic partner vocabulary; equal weight per partner event; '
-                     'a scene can contribute multiple partner events. Rule breadth is the geometric '
-                     'mean of atomic breadth. Exploratory, not a validated gate.')}
+            'note': (('Role-sensitive syntactic partner vocabulary and shared bindings. ' if mode == 'role'
+                      else 'Variable-invariant singleton scene events, without shared bindings. ')
+                     + 'Equal weight per partner event; a scene can contribute multiple partners. '
+                     'Rule breadth is the geometric mean of atomic breadth. Exploratory, not a validated gate.')}
 
 
-def rule_log_breadth(matrix, weights, rules, predicates):
+def rule_log_breadth(matrix, weights, rules, predicates, *, mode='role'):
     """Return log geometric-mean effective partner count per rule."""
     weights = np.asarray(weights, dtype=float)
     if (weights.ndim != 1 or len(weights) != len(matrix) or not np.isfinite(weights).all()
@@ -88,7 +120,10 @@ def rule_log_breadth(matrix, weights, rules, predicates):
         raise ValueError('Invalid mixture weights')
     joint = np.einsum('i,ijk->jk', weights, np.asarray(matrix, dtype=float))
     np.fill_diagonal(joint, 0)
-    lookup = {key(p): i for i, p in enumerate(predicates)}
+    if mode not in ('role', 'scene'):
+        raise ValueError('Unknown breadth mode')
+    event_key = key if mode == 'role' else scene_event_key
+    lookup = {event_key(p): i for i, p in enumerate(predicates)}
     entropy = []
     for row in joint:
         total = row.sum()
@@ -98,7 +133,7 @@ def rule_log_breadth(matrix, weights, rules, predicates):
         entropy.append(float(-np.sum(probs * np.log(probs))))
     result = {}
     for name, atoms in rules.items():
-        values = [entropy[lookup[key(p)]] for p in atoms]
+        values = [entropy[lookup[event_key(p)]] for p in atoms]
         result[name] = None if any(x is None for x in values) else math.fsum(values) / len(values)
     return result
 
@@ -106,9 +141,10 @@ def rule_log_breadth(matrix, weights, rules, predicates):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--report', type=Path, required=True); p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--mode', choices=('role', 'scene'), default='role')
     args = p.parse_args()
     try:
-        raw = args.report.read_bytes(); result = estimate(json.loads(raw, object_pairs_hook=unique_object))
+        raw = args.report.read_bytes(); result = estimate(json.loads(raw, object_pairs_hook=unique_object), mode=args.mode)
         result['source_sha256'] = hashlib.sha256(raw).hexdigest()
         with args.output.open('x', encoding='utf-8') as f:
             json.dump(result, f, separators=(',', ':'), allow_nan=False); f.write('\n')

@@ -25,6 +25,14 @@ def _probability(measurement: object, trials: int) -> float:
     return float(value)
 
 
+def _mixture_probability(terms) -> float:
+    """Sum validated nonnegative mixture terms, correcting only roundoff."""
+    value = math.fsum(terms)
+    if not -1e-12 <= value <= 1.0 + 1e-12:
+        raise ValueError('Mixture probability outside [0, 1]')
+    return min(1.0, max(0.0, value))
+
+
 def _log_lift(joint: float, marginals: list[float]) -> float | None:
     """Return log(joint / product(marginals)), or None for empirical zeros."""
     if joint <= 0 or any(value <= 0 for value in marginals):
@@ -102,12 +110,12 @@ def summarize(report: dict, weights: dict) -> dict:
         by_name[condition] = (parsed_measurements, parsed_subsets)
     results = {}
     for name, predicates in rules.items():
-        joint = math.fsum(weights[c] * by_name[c][0][name] for c in names)
-        marginal = [math.fsum(weights[c] * by_name[c][1][name][(i,)] for c in names)
+        joint = _mixture_probability(weights[c] * by_name[c][0][name] for c in names)
+        marginal = [_mixture_probability(weights[c] * by_name[c][1][name][(i,)] for c in names)
                     for i in range(len(predicates))]
         pairs = []
         for i, j in combinations(range(len(predicates)), 2):
-            pair_joint = math.fsum(weights[c] * by_name[c][1][name][(i, j)] for c in names)
+            pair_joint = _mixture_probability(weights[c] * by_name[c][1][name][(i, j)] for c in names)
             pair_marginals = [marginal[i], marginal[j]]
             pairs.append({"predicate_indices": [i, j], "exposure": pair_joint,
                           "log_lift": _log_lift(pair_joint, pair_marginals),

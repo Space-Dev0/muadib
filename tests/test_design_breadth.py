@@ -2,7 +2,7 @@ import random
 import unittest
 import numpy as np
 
-from exposure.design_breadth import estimate, pair_matrix, rule_log_breadth
+from exposure.design_breadth import estimate, pair_matrix, rule_log_breadth, scene_pair_matrix
 from exposure.measure import estimate as measure
 from exposure.rules import Attribute, Relation, SceneObject, satisfies
 
@@ -29,6 +29,9 @@ class BreadthTests(unittest.TestCase):
         source['rules'] = data
         result = estimate(source)
         self.assertEqual(len(result['counts_by_condition']), 2)
+        scene_result = estimate(source, mode='scene')
+        self.assertEqual(scene_result['mode'], 'scene')
+        self.assertEqual(len(scene_result['counts_by_condition']), 2)
         source['columns'][0]['predicate_subsets']['red'][0]['successes'] += 1
         with self.assertRaisesRegex(ValueError, 'do not match source'):
             estimate(source)
@@ -41,6 +44,13 @@ class BreadthTests(unittest.TestCase):
         self.assertAlmostEqual(result['both'], 0.0)
         a[0,0,1] = a[0,1,0] = 0
         self.assertIsNone(rule_log_breadth(a, [1.0], {'p': (p,)}, [p,q])['p'])
+
+    def test_scene_events_are_not_shared_object_conjunctions(self):
+        scene = (SceneObject('red', 'square', 1, 1), SceneObject('blue', 'circle', 2, 2),
+                 SceneObject('green', 'triangle', 3, 3))
+        predicates = (Attribute('a', 'color', 'red'), Attribute('a', 'shape', 'circle'))
+        self.assertFalse(pair_matrix(scene, predicates)[0, 1])
+        self.assertTrue(scene_pair_matrix(scene, predicates)[0, 1])
 
 
 if __name__ == '__main__':

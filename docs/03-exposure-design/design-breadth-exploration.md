@@ -63,12 +63,79 @@ measurement was started to check sensitivity without refitting the weights.
 This is an independent Monte Carlo draw from the same renderer and rules, not
 an independent benchmark or a confirmatory hypothesis test.
 
+That fresh measurement completed and reproduced its own singleton and pair
+counts. Applying the saved candidate without refitting produced marginal/lift
+correlation 0.195 and VIFs 1.239 / 1.685 / 1.616 / 1.564 / 1.257 in the
+feature order above. The full result and input hashes are in ignored
+`outputs/design-breadth-fresh-82501.json`. This supports numerical stability
+for that draw, but 300 scenes per condition remains far below the proposal's
+approximately 100,000, and the concentrated target population, role-sensitive
+breadth, grammar, dependence and uncertainty issues remain unresolved.
+The same fresh draw shows maximum singleton-exposure deviations of 0.0654
+for the uniform-reference group and 0.0484 for the fitted-reference group,
+each measured against its own reference on that draw; the median per-design
+maxima are 0.0239 and 0.0263. Exact equality on the original estimated matrix
+therefore does not carry over exactly to this independent estimate. The
+extended result including these deviations is in ignored
+`outputs/design-breadth-fresh-82501-v2.json`.
+
+Three further draws (seeds 82502–82504, 100 scenes per condition) were also
+evaluated without refitting. Their largest VIFs are 1.735, 1.727 and 1.650,
+and marginal/lift correlations are 0.181, 0.195 and 0.192. Maximum absolute
+singleton deviations from each group's own reference range from 0.0747 to
+0.0927 for uniform and 0.0679 to 0.0751 for fitted. These three small draws
+are sensitivity checks, not confidence intervals; they reuse the same
+renderer and template set. Ignored results are
+`outputs/design-breadth-fresh-82502-v2.json` through `82504-v2.json`.
+
+One draw uncovered a floating-point edge case: a mathematically valid mixture
+of certain events summed to `1.0000000000000002` and was rejected downstream.
+The mixture calculation now clips only tiny roundoff at the probability
+boundary after validating inputs; values outside a `1e-12` tolerance still
+raise an error. A regression test exercises certain rule, singleton and pair
+exposures. The failed draw completed after the fix.
+
+A larger new draw (seed 82505, 1,000 scenes per condition) gave maximum VIF
+1.684 and marginal/lift correlation 0.180 with the same frozen weights. The
+maximum singleton deviations from each group's own reference were 0.0656
+(uniform) and 0.0615 (fitted), with median per-design maxima 0.0241 and
+0.0307. These deviations are estimated on the new matrix; they do not by
+themselves identify the exact population deviations or their uncertainty.
+The result is in ignored `outputs/design-breadth-fresh-82505.json`.
+
+To investigate that deviation, the endpoint designs and role-sensitive
+allocation were refitted using the 1,000-scene matrix (seed 82505). With the
+wider 0.05–4.0 rule-weight bounds, the refit has an effective 16.75 rules.
+On the previously inspected 300-scene seed-82501 matrix it gives marginal/lift
+correlation 0.162, maximum VIF 1.748, and maximum singleton deviations 0.0329
+and 0.0327 for the uniform and fitted groups. This is a post-hoc sensitivity
+comparison, not a fresh blinded validation: the seed-82501 results were seen
+before this refit. Both weight bounds are reached, the proposal's approximate
+100,000 scenes per condition has not been reached, and no approved choice of
+target population or breadth definition is implied. The frozen refit and its
+comparison are stored under ignored `outputs/design-breadth-refit-82505*.json`.
+
+As a definition sensitivity check, `--mode scene` instead collapses variable
+names into nine distinct singleton scene events and counts a partner whenever
+both singleton events hold independently on the same scene. This is invariant
+to variable names, but differs from a shared-object conjunction: a red square
+and a blue circle jointly satisfy the red and circle singleton events without
+forming a red circle. Source singleton counts are verified; within-rule pair
+counts need not match because the meaning differs. With the same frozen
+weights on seed 82501, five VIFs are 1.291 / 1.698 / 1.669 / 1.386 / 1.111
+and marginal/lift correlation is 0.195. This does not decide which breadth
+definition is scientifically appropriate. The ignored sensitivity result is
+`outputs/design-scene-breadth-fresh-82520.json`.
+
 Reproduce from the repository root with the existing ignored reports:
 
 ```sh
 uv run python -m exposure.design_breadth --report outputs/exposure-57-pilot.json --output outputs/breadth-pilot-new.json
 uv run python -m exposure.design_breadth --report outputs/exposure-57-holdout-81205.json --output outputs/breadth-holdout-new.json
 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 uv run python scripts/explore-breadth-design.py --output outputs/design-breadth-exploration-new.json
+uv run python -m exposure.measure --rules outputs/templates-57.json --samples 300 --seed 82501 --include-subsets --output outputs/exposure-fresh-new.json
+uv run python -m exposure.design_breadth --report outputs/exposure-fresh-new.json --output outputs/breadth-fresh-new.json
+PYTHONPATH=. OPENBLAS_NUM_THREADS=1 uv run python scripts/check-frozen-breadth-design.py --frozen outputs/design-breadth-exploration-82500.json --report outputs/exposure-fresh-new.json --breadth outputs/breadth-fresh-new.json --output outputs/design-breadth-fresh-new.json
 ```
 
 The exploration script reads the original generated filenames

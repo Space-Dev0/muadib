@@ -45,6 +45,22 @@ class MixtureTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "--include-subsets"):
             summarize(self.report, self.weights)
 
+    def test_roundoff_at_certain_exposure_is_clamped(self):
+        atoms = [{'type': 'attribute', 'variable': 'a', 'field': 'color', 'value': 'red'},
+                 {'type': 'attribute', 'variable': 'a', 'field': 'shape', 'value': 'circle'}]
+        data = {f'r{i}': atoms for i in range(10)}
+        report = estimate(load_rules(data), samples=2, seed=7, include_subsets=True)
+        report['rules'] = data
+        values = [0.15965424664824548, 0.07745534001855994, 0.1367671936038439,
+                  0.07854315964607994, 0.048559428329787574, 0.12516888466849205,
+                  0.011185625999167349, 0.14057959782930213, 0.17182938488281488,
+                  0.0502571383737067]
+        self.assertGreater(math.fsum(x / math.fsum(values) for x in values), 1.0)
+        result = summarize(report, dict(zip(data, values, strict=True)))['results']['r0']
+        self.assertEqual(result['rule_exposure'], 1.0)
+        self.assertEqual(result['predicate_marginals'], [1.0, 1.0])
+        self.assertEqual(result['pairs'][0]['exposure'], 1.0)
+
     def test_absent_include_subsets_has_actionable_error(self):
         report = dict(self.report)
         report.pop("include_subsets", None)
