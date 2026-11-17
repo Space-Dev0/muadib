@@ -81,19 +81,24 @@ def sync_to_google_slides(
             .execute()
         )
     except HttpError as e:
-        if e.resp.status == 403 and "accessNotConfigured" in str(e):
+        err_msg = str(e)
+        if "SERVICE_DISABLED" in err_msg or "slides.googleapis.com" in err_msg:
             print(
-                "\nERROR: Google Slides API is not enabled in your Google Cloud Project!\n"
-                "Please enable it here:\n"
-                "https://console.cloud.google.com/apis/library/slides.googleapis.com\n",
+                "\n" + "=" * 70 + "\n"
+                "ACTION REQUIRED: Google Slides API is not enabled in your Google Cloud Project!\n\n"
+                "Please open this link in your browser and click 'ENABLE':\n"
+                "https://console.cloud.google.com/apis/library/slides.googleapis.com\n"
+                + "=" * 70 + "\n",
                 file=sys.stderr,
             )
+            sys.exit(1)
         elif e.resp.status == 404:
             print(
                 f"\nERROR: Presentation '{presentation_id}' not found.\n"
                 "Ensure the presentation ID is correct and shared with the Service Account email.\n",
                 file=sys.stderr,
             )
+            sys.exit(1)
         raise
 
     title = pres.get("title", "Untitled Presentation")
