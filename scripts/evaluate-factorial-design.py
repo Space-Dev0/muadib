@@ -38,7 +38,7 @@ def main():
     result={'design_sha256':hashlib.sha256(raw).hexdigest(), 'reports':rows,
             'max_condition_weight':float(weights.max()),
             'effective_conditions':(1 / np.square(weights).sum(axis=1)).tolist(),
-            'note':'Previously inspected draws are sensitivity checks, not independent confirmation; no uncertainty or Stage 0 claim.'}
+            'note':'Interpret each draw using its pre-specification and prior inspection history; no uncertainty or Stage 0 claim.'}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open('x') as out: json.dump(result, out, indent=2, allow_nan=False); out.write('\n')
     print(json.dumps(result, indent=2))
