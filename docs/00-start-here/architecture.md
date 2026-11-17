@@ -1,11 +1,11 @@
 # Architecture
 
-This repository is a staged, CPU-only prototype for studying exposure in
-conditional generative models. It currently evaluates rules on scene
-annotations, renders synthetic scenes, measures rule satisfaction, summarizes
-mixtures, and checks Stage 0 exposure feasibility on an estimated matrix. It
-does not train a model, download an external dataset, or provide CUDA
-acceleration.
+This repository studies exposure in conditional generative models. It evaluates
+rules, renders synthetic scenes, estimates exposure, and explores training
+mixtures. PyTorch pilot trainers support CUDA, and matched pilot checkpoints have
+been evaluated. Rendering and exposure analysis run on CPU; Stage 0 and the
+confirmatory exposure design remain incomplete. No external image dataset is
+used in the current experiment.
 
 ## Modules and interfaces
 
@@ -29,6 +29,7 @@ acceleration.
 | `exposure/checker.py` | Prototype pixel-based object and rule checker with a clean-render audit and per-rule conditional/unconditional detection metrics. |
 | `exposure/checker_perturb.py` | Controlled brightness and blur audits, including rejected detections, coverage, and per-rule metrics. |
 | `exposure/human_audit.py` | Prepares blinded stratified reviews and scores actual human judgments. |
+| `exposure/pilot_train.py` and `exposure/mosaic_pilotunet_warmstart.py` | PyTorch diffusion training, CUDA device support, and checkpointed exploratory model continuations. |
 | `exposure/gaussian_diagnostic.py` | One-dimensional Gaussian-mixture Bayes denoiser and noise-loss reference. |
 | `exposure/design_diagnostics.py` | Exploratory pooled correlation and VIF diagnostics for candidate allocations. |
 | `exposure/design_subspace.py` | SVD analysis of estimated singleton-preserving equality directions. |
@@ -55,13 +56,13 @@ acceleration.
 
 ## Current limits
 
-- No trained model, externally validated image checker, external dataset, CUDA
-  acceleration, or validated exposure design is implemented.
+- Exploratory trained models and CUDA support exist; an externally validated
+  image checker, external dataset, and validated exposure design are still missing.
 - Estimates are finite-sample and descriptive; uncertainty is not propagated,
   and fixed marginals require explicit equality bounds.
 - LP feasibility applies only to the estimated matrix. It is not population
   feasibility, and zero empirical counts are not proof of impossibility.
-- The renderer and all analysis run on the CPU only.
+- Rendering and exposure analysis run on CPU; model training can use CUDA.
 
 ## Test command
 

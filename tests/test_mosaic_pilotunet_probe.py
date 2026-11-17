@@ -10,7 +10,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import torch
+try:
+    import torch
+except ModuleNotFoundError as exc:
+    if exc.name != 'torch':
+        raise
+    raise unittest.SkipTest('optional PyTorch dependency is not installed') from exc
 from PIL import Image
 
 from exposure import mosaic_pilotunet_probe as probe

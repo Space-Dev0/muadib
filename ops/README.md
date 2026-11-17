@@ -36,6 +36,14 @@ uv run --extra train python -m ops.benchmark_pilot_stream --output outputs/cpu-p
 
 ## Resumable checkpoint transfer
 
+A longer localhost run, `extended-local-benchmark.json`, processed 300,000
+scenes per batch size (900,000 total) in 843.04 seconds, approximately 14.1
+minutes of measured transfer time. Batch sizes 2/8/16 gave 1,082.10/1,061.01/
+1,059.87 scenes/s and 9.10/8.92/8.91 Mb/s PNG payload. It used the same seeds
+per size, includes CPU rendering and encoding, and has one sequential trial per
+setting; it does not establish link capacity, GPU idle, training performance,
+or a 15-minute cross-laptop result.
+
 `checkpoint_sync` compresses a stable source with gzip, validates compressed and decompressed SHA-256, resumes interrupted compressed transfer from its partial byte length, and publishes only after validation. Existing destination files are never overwritten. It does not perform delta encoding or automatically resume training. The receiver exits after one success; if its final acknowledgement is lost, the sender must independently confirm the destination. Preserve partial files while resuming.
 
 ```sh

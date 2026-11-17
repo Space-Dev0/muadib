@@ -1,10 +1,11 @@
 # Which Exposure Matters?
 
-This project implements the research proposal in stages. It currently evaluates
-rules on annotations and renders simple synthetic scenes, optionally conditioned
-on a rule. It does not yet train a model, download an external dataset, or
-provide CUDA acceleration. The renderer is a CPU-only prototype, not the
-validated exposure design.
+This project studies how exposure to individual concepts and their combinations
+affects conditional image generation. It includes a CPU synthetic scene renderer,
+exposure measurement and design tools, and exploratory PyTorch diffusion trainers
+that can run on NVIDIA CUDA GPUs. Matched pilot models have been trained and
+reviewed; Stage 0 has not passed and the main exposure hypothesis remains untested.
+The project does not currently use an external image dataset.
 
 ## Quick start
 
@@ -16,9 +17,12 @@ uv run python -m unittest discover -s tests -v
 uv run python -m exposure.render --seed 42 --rule examples/red_left_of_square.json --output outputs/example
 ```
 
-`uv sync` installs dependencies, the second command runs the test suite, and the
-third renders a rule-conditioned scene to `outputs/example.png` and
-`outputs/example.json`. Omit `--rule` to render without a condition.
+`uv sync` installs the core CPU dependencies. The training extra (`uv sync
+--extra train`) installs PyTorch from the configured CUDA wheel index on supported
+platforms. Without PyTorch, training tests are skipped; use a training-capable
+environment for the full suite.
+The rendering command writes `outputs/example.png` and `outputs/example.json`.
+Omit `--rule` to render without a condition.
 
 ## Documentation
 

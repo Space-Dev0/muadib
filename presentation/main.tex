@@ -708,4 +708,32 @@ subject to equality and inequality exposure constraints:
 \end{itemize}
 \vspace{2mm}\captionnote{Prior-work descriptions follow the proposal; consult the original publications for details.}
 \end{frame}
+
+\begin{frame}{Computer Networks: Streaming and Recovery}
+\begin{columns}\column{.52\textwidth}\begin{itemize}
+\item CPU scene producer $\longrightarrow$ TCP stream $\longrightarrow$ opt-in pilot wrapper; tiny CPU parity verified.
+\item Resumable checkpoint transfer verifies file content using SHA-256.
+\item Localhost: 300k scenes per setting; cross-laptop SSH tunnel: 300. GPU idle is unmeasured.
+\end{itemize}\column{.46\textwidth}\includegraphics[width=\textwidth]{assets/localhost-stream.png}\end{columns}
+\end{frame}
+\begin{frame}{Digital Image Processing: Frequency and Segmentation}
+\begin{columns}\column{.56\textwidth}
+\includegraphics[width=\textwidth]{assets/paired-spectral-demo.png}
+\column{.42\textwidth}\small
+\begin{itemize}
+\item Same rendered scene, before and after blur; radial spectrum shows frequency-specific change.
+\item Foreground U-Net, 100 held-out synthetic scenes: IoU 0.943 clean and 0.935 blur-1.
+\item Pixel masks are not object or rule correctness; human-image checker validation remains open.
+\end{itemize}\end{columns}
+\end{frame}
+\begin{frame}{Stage 0 Audit: Findings and Corrections}
+\begin{itemize}
+\item Existing relation singleton is near-tautological ($P\approx0.99927$); a replacement must also change the renderer and pass a held-out audit.
+\item Minimum KL to feasible uniform is a no-op; alternative allocations remain exploratory until validated.
+\item Standard checker answered 95/300 reviewed images; the new segmentation adapter answered 54/300 and needs further work.
+\item $\Gamma_{\log}=\log(\mathrm{RSR})-\sum_p\log c_p$; the original logit arithmetic criticism was retracted.
+\item The 760k review files have identical hashes; reviewer independence cannot be established from them.
+\end{itemize}
+\end{frame}
+
 \end{document}

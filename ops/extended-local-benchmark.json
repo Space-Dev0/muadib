@@ -1,0 +1,37 @@
+{
+  "protocol": "TCP, localhost, producer and consumer threads, PNG + JSON",
+  "platform": "Linux-7.3.3-200.fc44.x86_64-x86_64-with-glibc2.43",
+  "python": "3.14.10",
+  "count_per_batch": 300000,
+  "seed": 90000,
+  "measurements": [
+    {
+      "batch_size": 2,
+      "scenes": 300000,
+      "payload_bytes": 315280929,
+      "elapsed_seconds": 277.23756286000025,
+      "receive_decode_seconds": 277.0334185569627,
+      "scenes_per_second": 1082.1044482759876,
+      "payload_mbps": 9.097783886066289
+    },
+    {
+      "batch_size": 8,
+      "scenes": 300000,
+      "payload_bytes": 315280929,
+      "elapsed_seconds": 282.74907247400006,
+      "receive_decode_seconds": 282.67139118718296,
+      "scenes_per_second": 1061.0114380749603,
+      "payload_mbps": 8.92044458335732
+    },
+    {
+      "batch_size": 16,
+      "scenes": 300000,
+      "payload_bytes": 315280929,
+      "elapsed_seconds": 283.0523724979994,
+      "receive_decode_seconds": 283.01124494308897,
+      "scenes_per_second": 1059.8745290577644,
+      "payload_mbps": 8.910886030527186
+    }
+  ],
+  "limitations": "CPU rendering and PNG encode/decode included; throughput is application payload, not link capacity; no GPU idle, LAN, trainer or training measurement."
+}

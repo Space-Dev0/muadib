@@ -2,8 +2,8 @@
 
 The user requested at least 500,000 updates per matched condition across two
 laptops, with automatic resumption. The assignment is low-balanced and
-low-imbalanced on `DELL@100.95.20.21`, and high-balanced and high-imbalanced on
-`myalt@100.78.202.97`. Each laptop trains its assigned cells sequentially.
+low-imbalanced on the second laptop, and high-balanced and high-imbalanced on
+the original laptop. Each laptop trains its assigned cells sequentially.
 The first laptop's original four-cell task was allowed to keep running, rather
 than interrupted: both low cells had completed 150k and the high cells were
 still in progress when the split was prepared. Its high-cell supervisor waits
