@@ -1,40 +1,376 @@
 \documentclass[aspectratio=169,11pt]{beamer}
 \usetheme{default}
 \usepackage{tikz,graphicx,amsmath,booktabs}
-\usetikzlibrary{positioning,arrows.meta}
-\definecolor{ink}{HTML}{17324D}\definecolor{accent}{HTML}{26749D}\definecolor{pale}{HTML}{EAF3F7}
-\setbeamercolor{normal text}{fg=ink,bg=white}\setbeamercolor{frametitle}{fg=ink}\setbeamercolor{structure}{fg=accent}
-\setbeamertemplate{navigation symbols}{}\setbeamertemplate{footline}[frame number]
-\tikzset{box/.style={draw=accent,fill=pale,rounded corners,align=center,minimum height=11mm,minimum width=25mm},arr/.style={-{Stealth},thick,accent}}
-\newcommand{\smallnote}[1]{{\scriptsize\color{gray}#1}}
+\usetikzlibrary{positioning,arrows.meta,calc}
+
+% Colors
+\definecolor{ink}{HTML}{17324D}
+\definecolor{accent}{HTML}{26749D}
+\definecolor{pale}{HTML}{EAF3F7}
+\definecolor{alertred}{HTML}{C0392B}
+\definecolor{palealert}{HTML}{FDEDEC}
+\definecolor{palegreen}{HTML}{E8F8F5}
+
+% Beamer Theme Settings
+\setbeamercolor{normal text}{fg=ink,bg=white}
+\setbeamercolor{frametitle}{fg=ink,bg=white}
+\setbeamercolor{structure}{fg=accent}
+
+% Block styling
+\setbeamercolor{block title}{fg=white,bg=accent}
+\setbeamercolor{block body}{fg=ink,bg=pale}
+\setbeamercolor{block title alerted}{fg=white,bg=alertred}
+\setbeamercolor{block body alerted}{fg=ink,bg=palealert}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+
+% Navigation and Footline
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{%
+  \hfill{\color{gray!70!black}\scriptsize\insertframenumber\,/\,\inserttotalframenumber}\hspace*{6mm}\vspace*{3.5mm}%
+}
+\setbeamertemplate{itemize item}{\color{accent}\scriptsize$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{accent}\tiny$\triangleright$}
+
+% TikZ styles
+\tikzset{
+  box/.style={draw=accent,fill=pale,rounded corners=4pt,align=center,minimum height=10mm,minimum width=24mm,font=\small},
+  arr/.style={-{Stealth[length=2.5mm]},thick,accent}
+}
+
+\newcommand{\smallnote}[1]{{\par\vspace{1.5mm}\scriptsize\color{gray!80!black}#1\par}}
+
 \begin{document}
-\begin{frame}{Which Exposure Matters?\hfill\small Introduction}
-\large Can an image model combine familiar ideas it rarely sees together?
-\begin{columns}[c]\column{.56\textwidth}\normalsize A diffusion model starts with noise and learns to produce an image matching a condition. We study how the \textbf{composition of training examples} affects this ability.\vspace{2mm}\\
-\scriptsize Kanishak Mittal \texttt{cs24b1017@iiitr.ac.in}\\ Aryan Tripathi \texttt{ad24b1010@iiitr.ac.in}\\ Nikhil Tomar \texttt{cs24b1041@iiitr.ac.in}\\ Vansh Rathore \texttt{cs24b1061@iiitr.ac.in}
-\column{.42\textwidth}\centering\includegraphics[width=.29\textwidth]{assets/noise-3.png} $\rightarrow$ \includegraphics[width=.29\textwidth]{assets/noise-1.png} $\rightarrow$ \includegraphics[width=.29\textwidth]{assets/noise-0.png}\\\smallnote{Illustrative forward-noising images shown in reverse order; not model outputs.}\end{columns}\end{frame}
-\begin{frame}{Literature survey: what is missing?}\begin{itemize}
-\item \textbf{DDPM} learns generation by reversing noise corruption (Ho et al., 2020).
-\item \textbf{Latent diffusion} scales conditional generation in compressed representations (Rombach et al., 2022).
-\item \textbf{Compositional diffusion} combines learned concept models (Liu et al., 2022).
-\item \textbf{MOSAIC} investigates compositional image generation (Jeong et al., 2026).
-\end{itemize}\begin{block}{Our question}How much does \emph{joint training exposure} matter when individual concept frequencies are held similar?\end{block}
-\smallnote{arXiv:2006.11239; arXiv:2112.10752; arXiv:2206.01714; proceedings.mlr.press/v306/jeong26b.html.}\end{frame}
-\begin{frame}{Research hypothesis: parts versus combinations}\centering
-\begin{tikzpicture}[node distance=10mm]\node[box] (a) {red objects}; \node[box,right=of a] (b) {square objects}; \node[box,right=of b,minimum width=40mm] (c) {red left of square};\draw[arr] (a.south) -- ++(0,-.5) -| (c.south); \draw[arr] (b.north) -- ++(0,.5) -| (c.north);\end{tikzpicture}
-\vspace{3mm}\begin{itemize}\item \textbf{H1:} joint exposure affects success even when individual concept frequencies stay similar.\item \textbf{H2:} harder scenes may affect success more than color imbalance in the controlled toy setting.\end{itemize}\smallnote{Research hypotheses, not conclusions. Distinct objects are required for binary relations.}\end{frame}
-\begin{frame}{Methodology: an experiment, not just a benchmark}\centering
-\begin{tikzpicture}[node distance=6mm]\node[box] (a) {Render\\ scenes};\node[box,right=of a] (b) {Measure\\ exposure};\node[box,right=of b] (c) {Train matched\\ models};\node[box,right=of c] (d) {Blind human\\ review};\draw[arr] (a)--(b);\draw[arr] (b)--(c);\draw[arr] (c)--(d);\end{tikzpicture}
-\vspace{4mm}\begin{columns}[T]\column{.52\textwidth}\textbf{Control}: synthetic objects, attributes and relations let us count what examples contain.\column{.46\textwidth}\textbf{Compare}: separate exposure to ingredients from exposure to the full combination.\end{columns}\vspace{3mm}\smallnote{Main rule-exposure study remains in design validation; networking prototype streams scenes over TCP; Localhost: 300k scenes per batch, 1,060--1,082 scenes/s. SSH tunnel: 300 scenes, 582--926 scenes/s; GPU idle unmeasured.}\end{frame}
-\begin{frame}{Model architecture: learning to reverse noise}\centering
-\resizebox{.95\textwidth}{!}{\begin{tikzpicture}[node distance=6mm]\node[box] (x) {noisy image\\$x_t$};\node[box,right=of x] (e) {U-Net\\encoder};\node[box,right=of e] (b) {bottleneck};\node[box,right=of b] (d) {U-Net\\decoder};\node[box,right=of d] (v) {predicted\\velocity};\draw[arr](x)--(e);\draw[arr](e)--(b);\draw[arr](b)--(d);\draw[arr](d)--(v);\draw[arr](e.north) -- ++(0,.5) -| (d.north);\node[above=.1cm of b] {time step + condition};\end{tikzpicture}}
-\vspace{4mm}\[x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\,\epsilon\]\small Forward process adds noise; the network predicts the denoising target. Repeated reverse steps generate an image.\end{frame}
-\begin{frame}{Dataset: a controlled synthetic world}\begin{columns}[c]\column{.52\textwidth}\begin{itemize}\item Simple colored shapes with known object attributes.\item Relations: \emph{left of} and \emph{above}; ground truth from scene metadata.\item Pilot: four cells, 200 fixed scenes per cell.\item Rule study: 57 candidate conditions, still under validation.\end{itemize}\column{.45\textwidth}\centering\includegraphics[width=.75\textwidth]{assets/synthetic-example.png}\\\smallnote{Illustrative rendered scene; not a generated prediction.}\end{columns}\end{frame}
-\begin{frame}{Experimental setup: controlled 2 $\times$ 2 pilot}\centering\begin{tabular}{lcc}\toprule & Balanced & Imbalanced\\\midrule Low complexity & 2 objects; 50:50 & 2 objects; 90:10\\ High complexity & 3 objects; 50:50 & 3 objects; 90:10\\\bottomrule\end{tabular}
-\vspace{4mm}\begin{itemize}\item Four fresh PilotUNet models; 500,000 updates each; same training budget.\item Generate 16 images per cell: red/blue target $\times$ eight paired noise seeds.\item Primary outcome: is the requested-color circle present?\end{itemize}\smallnote{One matched training-seed block; separate second block underway. Object count is secondary, not an input condition.}\end{frame}
-\begin{frame}{Quantitative results: target circle in 64 images}\centering\begin{tabular}{lrrr}\toprule Condition & Yes & No & Unresolved\\\midrule Low / balanced &16&0&0\\ Low / imbalanced &15&0&1\\ High / balanced &14&2&0\\ High / imbalanced &14&1&1\\\bottomrule\end{tabular}\vspace{3mm}\begin{block}{Descriptive contrast in this image set}Complexity drop: 6.25--12.5 percentage points; imbalance drop: $-3.125$ to $3.125$ points.\end{block}\smallnote{Ranges assign uncertain responses both ways; not confidence intervals. Four CSVs were identical, so independent authorship is unverified.}\end{frame}
-\begin{frame}{Qualitative results: looking beyond a score}\begin{columns}\column{.5\textwidth}\centering\includegraphics[width=.47\textwidth]{assets/review-0003.png}\\\textbf{Sample 0003}\\\small Target-circle answer: yes; exactly two objects: yes.\column{.5\textwidth}\centering\includegraphics[width=.47\textwidth]{assets/review-0001.png}\\\textbf{Sample 0001}\\\small Target-circle answer: unsure; object-count answers: no.\end{columns}\vspace{3mm}\smallnote{Generated pilot images selected to show differing review outcomes; not representative performance estimates. No paired ground truth exists for stochastic generation.}\end{frame}
-\begin{frame}{Ablation and failure cases}\begin{itemize}\item The $2\times2$ pilot changes scene complexity and color balance under matched settings; a \textbf{data-factor comparison}, not a U-Net component ablation.\item Experimental checker answered 46 of 64 target-circle questions; it abstained on all three reviewed ``no'' cases and both uncertain cases.\item This sample cannot estimate its false-accept rate. A foreground segmenter reached IoU 0.935 on 100 blurred synthetic scenes; its rule adapter answered 54/300 reviewed images versus 95/300 for baseline.\end{itemize}\begin{alertblock}{Remaining design issue}Legacy relation exposure $\approx0.99927$; min-KL at uniform is a no-op. A replacement design and checker still need validation.\end{alertblock}\end{frame}
-\begin{frame}{Discussion: what do these findings mean?}\begin{columns}[T]\column{.5\textwidth}\textbf{Observed}\begin{itemize}\item Pilot shows how complexity and imbalance can be compared.\item Observed complexity contrast exceeds imbalance contrast for these 64 images.\end{itemize}\column{.48\textwidth}\textbf{Not established}\begin{itemize}\item Generalization across training seeds or datasets.\item Checker validity on failures.\item Whether full-rule exposure independently causes success.\end{itemize}\end{columns}\smallnote{$\Gamma_{\log}=\log\mathrm{RSR}-\sum_p\log c_p$; the earlier logit identity criticism was retracted. Identical CSVs do not prove independent authorship.}\end{frame}
-\begin{frame}{Conclusion and future work}\begin{itemize}\item \textbf{Contribution}: a framework to separate exposure to constituents from exposure to their combinations.\item \textbf{Current status}: exploratory pilot and audit complete; Stage 0 has not passed.\item \textbf{Next}: finish the second model-seed block and review, validate the checker, and resolve design identifiability before testing H1.\end{itemize}\begin{block}{Takeaway}Knowing individual pieces need not guarantee the requested composition; we investigate how training exposure changes that.\end{block}\smallnote{Repository: github.com/Space-Dev0/muadib}\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 1: Introduction
+% -----------------------------------------------------------------------------
+\begin{frame}{Which Exposure Matters?\hfill\small\color{accent}Introduction}
+\vspace{-1mm}
+{\large\textbf{Can an image model combine familiar ideas it rarely sees together?}}\par
+\vspace{3mm}
+
+\begin{columns}[c,onlytextwidth]
+\column{.50\textwidth}
+\normalsize A diffusion model starts from random noise and learns to produce an image matching a condition. We study how the \textbf{composition of training examples} affects this compositional ability.
+
+\vspace{3mm}
+{\scriptsize\color{ink!85}
+\textbf{Authors:}\\
+Kanishak Mittal \texttt{<cs24b1017@iiitr.ac.in>}\\
+Aryan Tripathi \texttt{<ad24b1010@iiitr.ac.in>}\\
+Nikhil Tomar \texttt{<cs24b1041@iiitr.ac.in>}\\
+Vansh Rathore \texttt{<cs24b1061@iiitr.ac.in>}\par
+}
+
+\column{.48\textwidth}
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tikzpicture}[every node/.style={inner sep=0pt}]
+  \node (n3) {\includegraphics[width=0.25\columnwidth]{assets/noise-3.png}};
+  \node[right=2mm of n3] (arr1) {\color{accent}\small$\rightarrow$};
+  \node[right=2mm of arr1] (n1) {\includegraphics[width=0.25\columnwidth]{assets/noise-1.png}};
+  \node[right=2mm of n1] (arr2) {\color{accent}\small$\rightarrow$};
+  \node[right=2mm of arr2] (n0) {\includegraphics[width=0.25\columnwidth]{assets/noise-0.png}};
+\end{tikzpicture}%
+}
+
+\vspace{2mm}
+\smallnote{Illustrative forward-noising images shown in reverse order; not model outputs.}
+\end{columns}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 2: Literature Survey
+% -----------------------------------------------------------------------------
+\begin{frame}{Literature survey: what is missing?}
+\begin{itemize}
+  \setlength{\itemsep}{3pt}
+  \item \textbf{DDPM:} learns generation by reversing noise corruption (Ho et al., 2020).
+  \item \textbf{Latent diffusion:} scales conditional generation in compressed representations (Rombach et al., 2022).
+  \item \textbf{Compositional diffusion:} combines independently learned concept models (Liu et al., 2022).
+  \item \textbf{MOSAIC:} investigates compositional image generation in diffusion (Jeong et al., 2026).
+\end{itemize}
+
+\vspace{3mm}
+\begin{block}{Our core research question}
+  How much does \textbf{joint training exposure} matter when individual concept frequencies are held similar?
+\end{block}
+
+\vfill
+\smallnote{arXiv:2006.11239; arXiv:2112.10752; arXiv:2206.01714; proceedings.mlr.press/v306/jeong26b.html.}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 3: Research Hypotheses
+% -----------------------------------------------------------------------------
+\begin{frame}{Research hypothesis: parts versus combinations}
+\begin{center}
+\begin{tikzpicture}[node distance=8mm]
+  \node[box] (a) {red\\objects};
+  \node[box,below=4mm of a] (b) {square\\objects};
+  \node[box,right=18mm of $(a)!0.5!(b)$,minimum width=38mm,minimum height=14mm] (c) {red left of square\\{\scriptsize(joint combination)}};
+
+  \draw[arr] (a.east) to[out=0,in=160] (c.west);
+  \draw[arr] (b.east) to[out=0,in=200] (c.west);
+\end{tikzpicture}
+\end{center}
+
+\vspace{2mm}
+\begin{itemize}
+  \setlength{\itemsep}{4pt}
+  \item \textbf{H1:} Joint exposure affects success even when individual concept frequencies stay similar.
+  \item \textbf{H2:} Harder scenes may affect success more than color imbalance in the controlled toy setting.
+\end{itemize}
+
+\vfill
+\smallnote{Research hypotheses, not conclusions. Distinct objects are required for binary relations.}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 4: Methodology
+% -----------------------------------------------------------------------------
+\begin{frame}{Methodology: an experiment, not just a benchmark}
+\begin{center}
+\begin{tikzpicture}[node distance=5mm]
+  \node[box] (a) {Render\\ scenes};
+  \node[box,right=of a] (b) {Measure\\ exposure};
+  \node[box,right=of b] (c) {Train matched\\ models};
+  \node[box,right=of c] (d) {Blind human\\ review};
+  \draw[arr] (a)--(b);
+  \draw[arr] (b)--(c);
+  \draw[arr] (c)--(d);
+\end{tikzpicture}
+\end{center}
+
+\vspace{2mm}
+\begin{columns}[T,onlytextwidth]
+\column{.48\textwidth}
+\begin{block}{Control}
+\small Synthetic objects, attributes, and relations let us accurately quantify what training examples contain.
+\end{block}
+
+\column{.48\textwidth}
+\begin{block}{Compare}
+\small Separate exposure to individual ingredients from exposure to the full combination.
+\end{block}
+\end{columns}
+
+\vfill
+\smallnote{Main rule-exposure study in validation; streaming prototype: Localhost 300k scenes, 1,060--1,082 scenes/s; SSH tunnel 582--926 scenes/s.}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 5: Model Architecture
+% -----------------------------------------------------------------------------
+\begin{frame}{Model architecture: learning to reverse noise}
+\begin{center}
+\resizebox{0.92\textwidth}{!}{%
+\begin{tikzpicture}[node distance=5mm]
+  \node[box] (x) {noisy image\\$x_t$};
+  \node[box,right=of x] (e) {U-Net\\encoder};
+  \node[box,right=of e] (b) {bottleneck};
+  \node[box,right=of b] (d) {U-Net\\decoder};
+  \node[box,right=of d] (v) {predicted\\velocity};
+
+  \draw[arr] (x) -- (e);
+  \draw[arr] (e) -- (b);
+  \draw[arr] (b) -- (d);
+  \draw[arr] (d) -- (v);
+
+  % Condition label and skip connection with ample clearance
+  \node[above=3mm of b,font=\scriptsize\color{accent},align=center] (cond) {timestep $t$ + condition};
+  \draw[arr,dashed] (cond) -- (b);
+
+  % High skip connection that doesn't overlap text
+  \draw[arr] (e.north) -- ++(0, 8mm) -| (d.north);
+  \node[above=8mm of b,font=\tiny\color{gray}] {skip connection};
+\end{tikzpicture}%
+}
+\end{center}
+
+\vspace{1mm}
+\[x_t = \sqrt{\bar{\alpha}_t}x_0 + \sqrt{1 - \bar{\alpha}_t}\,\epsilon\]
+
+\centering\small Forward process corrupts with noise; the model predicts denoising targets.\\Repeated reverse steps generate the final image.\par
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 6: Dataset
+% -----------------------------------------------------------------------------
+\begin{frame}{Dataset: a controlled synthetic world}
+\begin{columns}[c,onlytextwidth]
+\column{.52\textwidth}
+\begin{itemize}
+  \setlength{\itemsep}{4pt}
+  \item Simple colored shapes with known object attributes.
+  \item \textbf{Relations:} \emph{left of} and \emph{above}; ground truth verified from scene metadata.
+  \item \textbf{Pilot setup:} four cells, 200 fixed scenes per cell.
+  \item \textbf{Rule study:} 57 candidate conditions, currently under validation.
+\end{itemize}
+
+\column{.45\textwidth}
+\centering
+\begin{tikzpicture}
+  \node[draw=accent!30,fill=white,rounded corners=4pt,inner sep=3pt] {
+    \includegraphics[width=.72\columnwidth]{assets/synthetic-example.png}
+  };
+\end{tikzpicture}
+\smallnote{Illustrative rendered scene; not a generated prediction.}
+\end{columns}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 7: Experimental Setup
+% -----------------------------------------------------------------------------
+\begin{frame}{Experimental setup: controlled 2 $\times$ 2 pilot}
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Complexity} & \textbf{Balanced} & \textbf{Imbalanced} \\
+\midrule
+Low complexity & 2 objects; 50:50 & 2 objects; 90:10 \\
+High complexity & 3 objects; 50:50 & 3 objects; 90:10 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{1mm}
+\begin{itemize}
+  \setlength{\itemsep}{3pt}
+  \item Four fresh \texttt{PilotUNet} models; 500,000 updates each; identical training budgets.
+  \item Generate 16 images per cell: red/blue target $\times$ eight paired noise seeds.
+  \item \textbf{Primary outcome:} is the requested-color circle present in the output?
+\end{itemize}
+
+\vfill
+\smallnote{One matched training-seed block; second block underway. Object count is secondary, not an input condition.}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 8: Quantitative Results
+% -----------------------------------------------------------------------------
+\begin{frame}{Quantitative results: target circle in 64 images}
+\begin{center}
+\renewcommand{\arraystretch}{1.1}
+\small
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Condition} & \textbf{Yes} & \textbf{No} & \textbf{Unresolved} \\
+\midrule
+Low / balanced    & 16 & 0 & 0 \\
+Low / imbalanced  & 15 & 0 & 1 \\
+High / balanced   & 14 & 2 & 0 \\
+High / imbalanced & 14 & 1 & 1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{1mm}
+\begin{block}{Descriptive contrast in this image set}
+\small Complexity drop: 6.25--12.5 percentage points; imbalance drop: $-3.125$ to $3.125$ points.
+\end{block}
+
+\vfill
+\smallnote{Ranges assign uncertain responses both ways; not confidence intervals. Four CSVs were identical; independent authorship unverified.}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 9: Qualitative Results
+% -----------------------------------------------------------------------------
+\begin{frame}{Qualitative results: looking beyond a score}
+\begin{columns}[T,onlytextwidth]
+\column{.48\textwidth}
+\centering
+\includegraphics[width=.46\columnwidth]{assets/review-0003.png}
+
+\vspace{1mm}
+\textbf{Sample 0003}
+\begin{itemize}\footnotesize
+  \item Target circle: \textbf{Yes}
+  \item Exactly two objects: \textbf{Yes}
+\end{itemize}
+
+\column{.48\textwidth}
+\centering
+\includegraphics[width=.46\columnwidth]{assets/review-0001.png}
+
+\vspace{1mm}
+\textbf{Sample 0001}
+\begin{itemize}\footnotesize
+  \item Target circle: \textbf{Unsure}
+  \item Object count answers: \textbf{No}
+\end{itemize}
+\end{columns}
+
+\vfill
+\smallnote{Generated pilot images showing differing review outcomes. No paired ground truth exists for stochastic generation.}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 10: Ablation & Failure Cases
+% -----------------------------------------------------------------------------
+\begin{frame}{Ablation and failure cases}
+\begin{itemize}
+  \setlength{\itemsep}{2pt}
+  \item The $2\times2$ pilot changes scene complexity and color balance under matched settings; a \textbf{data-factor comparison}, not a U-Net component ablation.
+  \item Experimental checker answered 46 of 64 target-circle questions; it abstained on all three reviewed ``no'' cases and both uncertain cases.
+  \item Foreground segmenter reached IoU 0.935 on 100 blurred synthetic scenes; rule adapter answered 54/300 reviewed images vs.\ 95/300 baseline.
+\end{itemize}
+
+\vspace{2mm}
+\begin{alertblock}{Remaining design issue}
+\small Legacy relation exposure $\approx 0.99927$; min-KL at uniform is a no-op. Replacement design and checker still need validation.
+\end{alertblock}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 11: Discussion
+% -----------------------------------------------------------------------------
+\begin{frame}{Discussion: what do these findings mean?}
+\begin{columns}[T,onlytextwidth]
+\column{.48\textwidth}
+\begin{block}{Observed}
+\begin{itemize}\small
+  \setlength{\itemsep}{2pt}
+  \item Pilot demonstrates how complexity and imbalance can be compared.
+  \item Observed complexity contrast exceeds imbalance contrast for these 64 images.
+\end{itemize}
+\end{block}
+
+\column{.48\textwidth}
+\begin{block}{Not established}
+\begin{itemize}\small
+  \setlength{\itemsep}{2pt}
+  \item Generalization across training seeds or datasets.
+  \item Checker validity on failures.
+  \item Whether full-rule exposure independently causes success.
+\end{itemize}
+\end{block}
+\end{columns}
+
+\vfill
+\smallnote{$\Gamma_{\log}=\log\mathrm{RSR}-\sum_p\log c_p$; logit identity criticism retracted. Identical CSVs do not prove independent authorship.}
+\end{frame}
+
+% -----------------------------------------------------------------------------
+% Slide 12: Conclusion
+% -----------------------------------------------------------------------------
+\begin{frame}{Conclusion and future work}
+\begin{itemize}
+  \setlength{\itemsep}{2pt}
+  \item \textbf{Contribution:} A framework to separate exposure to constituents from exposure to combinations.
+  \item \textbf{Current status:} Exploratory pilot and audit complete; Stage 0 has not passed.
+  \item \textbf{Next steps:} Finish second model-seed block, validate checker, resolve design identifiability before testing H1.
+\end{itemize}
+
+\vspace{2mm}
+\begin{block}{Key Takeaway}
+\small Knowing individual pieces need not guarantee the requested composition; we investigate how training exposure changes that.
+\end{block}
+
+\vfill
+\smallnote{Repository: \texttt{github.com/Space-Dev0/muadib}}
+\end{frame}
+
 \end{document}
