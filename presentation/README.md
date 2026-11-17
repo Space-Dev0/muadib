@@ -62,3 +62,7 @@ make clean
 # Display available targets
 make help
 ```
+
+## Submission deck
+
+`submission.pdf` and `submission.tex` contain the 12-slide version ordered according to the supplied research paper and presentation format guide. `submission-notes.md` gives slide-by-slide speaking notes and evidence limitations. Build from the repository root with `tectonic --outdir presentation presentation/submission.tex`.
