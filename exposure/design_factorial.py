@@ -84,40 +84,77 @@ def contrasts(flat, marg, joint, delta_m, delta_l, cross_tolerance=None):
     return np.asarray(values), np.asarray(derivatives)
 
 
-def optimize(marg, joint, *, delta_m=.02, delta_l=.02, min_weight=.001, starts=4, seed=42, maxiter=200, cross_tolerance=.05):
-    marg, joint = np.asarray(marg, float), np.asarray(joint, float)
-    if joint.ndim != 2 or marg.shape != (joint.shape[0], 2, joint.shape[1]): raise ValueError('incompatible matrices')
-    if (not np.isfinite(marg).all() or not np.isfinite(joint).all() or
-            (marg < 0).any() or (joint < 0).any() or (marg > 1).any() or (joint > 1).any()):
-        raise ValueError('probabilities must be finite and in [0,1]')
-    r, n = joint.shape
-    if r < 1 or n < 2 or min_weight < 0 or min_weight * n >= 1 or starts < 1 or delta_m < 0 or delta_l < 0 or cross_tolerance < 0: raise ValueError('invalid optimization settings')
+def optimize(marg, joint, *, delta_m=.02, delta_l=.02, min_weight=.001,
+             max_weight=1., starts=4, seed=42, maxiter=200, cross_tolerance=.05,
+             extra_matrices=()):
+    """Optimize shared weights against one or more empirical matrices.
+
+    Multiple fitting draws are not independent validation. Success indicates
+    only local numerical feasibility for the supplied constraints and matrices.
+    """
+    matrices = [(np.asarray(marg, float), np.asarray(joint, float))]
+    matrices += [(np.asarray(m, float), np.asarray(j, float)) for m, j in extra_matrices]
+    first_m, first_j = matrices[0]
+    if first_j.ndim != 2:
+        raise ValueError('incompatible matrices')
+    r, n = first_j.shape
+    for m, j in matrices:
+        if j.shape != (r, n) or m.shape != (r, 2, n):
+            raise ValueError('incompatible matrices')
+        if (not np.isfinite(m).all() or not np.isfinite(j).all() or
+                (m < 0).any() or (j < 0).any() or (m > 1).any() or (j > 1).any()):
+            raise ValueError('probabilities must be finite and in [0,1]')
+    if (r < 1 or n < 2 or not np.isfinite(min_weight) or not np.isfinite(max_weight)
+            or min_weight < 0 or min_weight * n >= 1 or max_weight <= min_weight
+            or max_weight * n < 1 or starts < 1 or not np.isfinite([delta_m, delta_l, cross_tolerance]).all()
+            or min(delta_m, delta_l, cross_tolerance) < 0):
+        raise ValueError('invalid optimization settings')
     rng = np.random.default_rng(seed)
     eq_jac = np.kron(np.eye(4), np.ones((1, n)))
     eq = {'type': 'eq', 'fun': lambda x: x.reshape(4, n).sum(axis=1) - 1, 'jac': lambda x: eq_jac}
-    ineq = {'type': 'ineq', 'fun': lambda x: contrasts(x, marg, joint, delta_m, delta_l, cross_tolerance)[0],
-            'jac': lambda x: contrasts(x, marg, joint, delta_m, delta_l, cross_tolerance)[1]}
-    candidates=[]
+    def all_contrasts(x):
+        values = [contrasts(x, m, j, delta_m, delta_l, cross_tolerance) for m, j in matrices]
+        return np.concatenate([v[0] for v in values]), np.concatenate([v[1] for v in values], axis=0)
+    def objective(x):
+        scores = [score_gradient(x, m, j) for m, j in matrices]
+        return np.mean([v[0] for v in scores]), np.mean([v[1] for v in scores], axis=0)
+    ineq = {'type': 'ineq', 'fun': lambda x: all_contrasts(x)[0],
+            'jac': lambda x: all_contrasts(x)[1]}
+    candidates = []
     for i in range(starts):
-        initial = min_weight + (1 - n * min_weight) * rng.dirichlet(np.ones(n), size=4)
+        # Blend with uniform so every starting point obeys the upper bound.
+        draw = rng.dirichlet(np.ones(n), size=4)
+        spread = np.max(draw - 1/n)
+        scale = min(0.8, (max_weight - 1/n) / spread) if spread > 0 else 0
+        initial = (1-scale) / n + scale * draw
+        if np.min(initial) < min_weight:
+            initial = np.full((4, n), 1/n)
         try:
-            result = minimize(score_gradient, initial.ravel(), args=(marg, joint), jac=True, method='SLSQP',
-                              bounds=[(min_weight, 1.)] * (4*n), constraints=[eq, ineq],
+            result = minimize(objective, initial.ravel(), jac=True, method='SLSQP',
+                              bounds=[(min_weight, max_weight)] * (4*n), constraints=[eq, ineq],
                               options={'maxiter': maxiter, 'ftol': 1e-9})
-            w = result.x.reshape(4,n); x, _ = features(w,marg,joint)
-            z=x-x.mean(axis=0,keepdims=True); eig=np.linalg.eigvalsh(np.einsum('kri,krj->ij',z,z))
-            cv = contrasts(result.x,marg,joint,delta_m,delta_l,cross_tolerance)[0]
-            err=max(float(np.abs(w.sum(axis=1)-1).max()), max(0.,float(min_weight-w.min())), max(0.,-float(cv.min())))
-            candidates.append({'start':i,'solver_success':bool(result.success),'message':str(result.message),
-                               'iterations':int(result.nit),'max_violation':err,'min_factorial_margin':float(cv.min()),
-                               'information_eigenvalues':eig.tolist(),'weights':w.tolist(),
-                               'feasible': bool(result.success and err <= 1e-7 and eig[0] > 1e-10)})
+            w = result.x.reshape(4, n)
+            eigenvalues = []
+            for fit_m, fit_j in matrices:
+                x, _ = features(w, fit_m, fit_j)
+                z = x - x.mean(axis=0, keepdims=True)
+                eigenvalues.append(np.linalg.eigvalsh(np.einsum('kri,krj->ij', z, z)))
+            eig = eigenvalues[0]
+            cv = all_contrasts(result.x)[0]
+            err = max(float(np.abs(w.sum(axis=1)-1).max()), max(0., float(min_weight-w.min())),
+                      max(0., float(w.max()-max_weight)), max(0., -float(cv.min())))
+            candidates.append({'start':i, 'solver_success':bool(result.success), 'message':str(result.message),
+                               'iterations':int(result.nit), 'max_violation':err, 'min_factorial_margin':float(cv.min()),
+                               'information_eigenvalues':eig.tolist(), 'information_eigenvalues_by_matrix':[e.tolist() for e in eigenvalues], 'mean_logdet_objective':float(-result.fun),
+                               'weights':w.tolist(),
+                               'feasible':bool(result.success and err <= 1e-7 and all(e[0] > 1e-10 for e in eigenvalues))})
         except (ValueError, FloatingPointError, np.linalg.LinAlgError) as exc:
             candidates.append({'start':i,'solver_success':False,'feasible':False,'message':str(exc)})
     valid = [c for c in candidates if c['feasible']]
-    best = max(valid, key=lambda c: np.prod(c['information_eigenvalues'])) if valid else None
+    best = max(valid, key=lambda c: c['mean_logdet_objective']) if valid else None
     return {'candidates':candidates, 'best':best, 'settings':{'delta_m':delta_m,'delta_l':delta_l,
-            'min_weight':min_weight,'starts':starts,'seed':seed,'maxiter':maxiter,'cross_tolerance':cross_tolerance},
+            'min_weight':min_weight,'max_weight':max_weight,'starts':starts,'seed':seed,'maxiter':maxiter,
+            'cross_tolerance':cross_tolerance, 'fitting_matrices':len(matrices)},
             'note':'Exploratory empirical fit. No held-out validation, uncertainty, causal identification or Stage 0 pass.'}
 
 
@@ -127,9 +164,20 @@ def main():
     p.add_argument('--starts',type=int,default=4);p.add_argument('--maxiter',type=int,default=200)
     p.add_argument('--delta-m',type=float,default=.02);p.add_argument('--delta-l',type=float,default=.02)
     p.add_argument('--cross-tolerance',type=float,default=.05)
+    p.add_argument('--max-weight',type=float,default=1.)
+    p.add_argument('--fit-reports',nargs='*',type=Path,default=[])
     args=p.parse_args();raw=args.report.read_bytes(); report=json.loads(raw); order,marg,joint=load_matrix(report,args.rules)
-    result=optimize(marg,joint,starts=args.starts,maxiter=args.maxiter,delta_m=args.delta_m,delta_l=args.delta_l,cross_tolerance=args.cross_tolerance)
-    result.update({'report_sha256':hashlib.sha256(raw).hexdigest(),'rule_names':args.rules,'condition_order':order})
+    extras=[]; hashes=[hashlib.sha256(raw).hexdigest()]; seeds=[report.get('seed')]
+    for path in args.fit_reports:
+        extra_raw=path.read_bytes(); extra_report=json.loads(extra_raw)
+        extra_order,extra_marg,extra_joint=load_matrix(extra_report,args.rules)
+        if extra_order != order or extra_report['rules'] != report['rules']:
+            raise ValueError('fitting report rules or condition order differ')
+        if extra_report.get('seed') in seeds:
+            raise ValueError('fitting report seeds must be distinct')
+        extras.append((extra_marg,extra_joint)); hashes.append(hashlib.sha256(extra_raw).hexdigest()); seeds.append(extra_report.get('seed'))
+    result=optimize(marg,joint,starts=args.starts,maxiter=args.maxiter,delta_m=args.delta_m,delta_l=args.delta_l,cross_tolerance=args.cross_tolerance,max_weight=args.max_weight,extra_matrices=extras)
+    result.update({'report_sha256':hashlib.sha256(raw).hexdigest(),'fitting_report_sha256':hashes,'fitting_seeds':seeds,'rule_names':args.rules,'condition_order':order})
     args.output.parent.mkdir(parents=True,exist_ok=True)
     with args.output.open('x') as out: json.dump(result,out,indent=2,allow_nan=False);out.write('\n')
     print(json.dumps({'feasible':result['best'] is not None,'starts':[{'start':c['start'],'feasible':c['feasible'],'message':c['message'],'max_violation':c.get('max_violation')} for c in result['candidates']]}))

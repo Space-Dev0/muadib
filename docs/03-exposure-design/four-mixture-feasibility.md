@@ -32,3 +32,28 @@ PYTHONPATH=. OPENBLAS_NUM_THREADS=1 uv run --no-sync python scripts/evaluate-fac
 ```
 
 The JSON records the input SHA-256, rule and condition orders, settings, all per-start results, weights, eigenvalues and numerical violations. Never overwrite or reinterpret previous exploratory outputs. Analytic gradients are checked against finite differences in `tests/test_design_factorial.py`.
+
+## Bounded and multi-matrix follow-up
+
+A subsequent exploratory fit imposed an upper bound of 0.10 on each condition weight. Fitting only seed 82511 met the numerical constraints there and reduced the effective-condition concentration: 11.05–12.75 effective conditions per mixture. When evaluated without refitting on the previously inspected 1,000-scene seeds 82512 and 82513, it violated 18 and 15 constraints, respectively; the worst signed margins were -0.01493 and -0.01567. These are sensitivity results rather than untouched holdout evidence.
+
+The optimizer now also accepts multiple fitting matrices, constrains each separately, and maximizes their mean ridge-stabilized log determinant. A three-start fit with cap 0.10 to both seed 82511 and seed 82512 satisfied all specified constraints numerically on those two matrices. Evaluation without refitting on the previously inspected seed 82513 still violated 15 constraints, with worst signed margin -0.01601. The maximum condition weight was 0.10, effective-condition counts were 10.92–12.69, and the unregularized within-rule information matrix's condition number on that draw was 16.08. Its determinant is scale-dependent and cannot establish statistical power. Both the contrast thresholds and the six-rule subset remain exploratory. No uncertainty intervals, novel holdout, or optimized model-training experiment are implied by these results.
+
+Reproduce the follow-up with fresh output paths:
+
+```sh
+OPENBLAS_NUM_THREADS=1 uv run --no-sync python -m exposure.design_factorial \
+  --report outputs/exposure-57-fresh-82511.json \
+  --fit-reports outputs/exposure-57-fresh-82512.json \
+  --rules attr2_rel0_attributes_1 attr2_rel0_attributes_2 attr2_rel0_attributes_3 \
+          attr2_rel0_attributes_4 attr2_rel0_attributes_5 attr2_rel0_attributes_6 \
+  --starts 3 --maxiter 200 --max-weight 0.1 --delta-m 0.02 \
+  --delta-l 0.02 --cross-tolerance 0.05 --output outputs/factorial-two-fit-new.json
+PYTHONPATH=. OPENBLAS_NUM_THREADS=1 uv run --no-sync python scripts/evaluate-factorial-design.py \
+  --design outputs/factorial-two-fit-new.json \
+  --reports outputs/exposure-57-fresh-82511.json outputs/exposure-57-fresh-82512.json \
+            outputs/exposure-57-fresh-82513.json \
+  --output outputs/factorial-two-fit-check-new.json
+```
+
+The original two-matrix fit JSON was SHA-256 `e14e1d337c13eab3766c419b64e6c6b5b59f57eb0d88a6ecaa7e1393102ab755`. The validation CLI checks rule/condition compatibility, but the 82513 draw has been inspected before, so the next research step is a frozen candidate evaluated on genuinely new draws, with uncertainty and sampling-budget constraints.
