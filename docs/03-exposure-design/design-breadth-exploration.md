@@ -137,6 +137,36 @@ and marginal/lift correlation is 0.195. This does not decide which breadth
 definition is scientifically appropriate. The ignored sensitivity result is
 `outputs/design-scene-breadth-fresh-82520.json`.
 
+## Matching singleton constraints on two matrices
+
+An exploratory linear program was built to preserve each reference mixture's
+singleton marginals simultaneously on the seed-82505 (1,000 scenes per
+condition) and seed-82501 (300 scenes) matrices. Endpoints still optimize one
+rule exposure at a time and use a positive weight floor. A role-sensitive
+five-feature allocation with rule-weight bounds 0.05–4.0 times equal weight
+has an effective rule count of 15.32. Both fitted matrices show maximum
+singleton deviations below `1.1e-12`. On the previously inspected independent
+seed-81205 matrix (500 scenes per condition), maximum deviations from the
+corresponding reference are 0.0195 for uniform and 0.0124 for fitted; the
+maximum five-feature VIF is 1.852 and marginal/lift correlation is 0.294.
+The fitting correlation is 0.2996, very close to the 0.3 threshold. The third
+matrix was previously inspected, and these are estimated matrices, not a
+population guarantee. The candidate changes the rule-weighted target and does
+not resolve the grammar, role-sensitive breadth, dependence or uncertainty
+issues. Do not claim a Stage 0 gate pass.
+
+An alternative optimization aimed at the worst of the two fitting matrices
+returned correlations above 0.3; this local result does not establish that
+better solutions cannot exist. Both exploratory fits and their outputs are in
+ignored `outputs/design-breadth-multimatrix-82531.json`.
+
+Before starting an additional seed-82506, 300-scene-per-condition measurement,
+the first allocation and endpoints were saved without refitting in
+`outputs/design-breadth-multimatrix-frozen-82532.json`, SHA-256
+`43fd910aa10e34a01be3eb3b291695d8ad23a1c45fa61b74897cf73ec0a08eff`.
+This additional matrix tests sensitivity to another renderer draw, not an
+independent benchmark or a registered confirmatory analysis.
+
 Reproduce from the repository root with the existing ignored reports:
 
 ```sh
