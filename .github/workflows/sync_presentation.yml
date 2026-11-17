@@ -1,0 +1,78 @@
+name: Compile & Sync Presentation to Google Slides
+
+on:
+  push:
+    paths:
+      - 'presentation/submission.tex'
+      - 'presentation/assets/**'
+      - 'scripts/pdf_to_pptx.py'
+      - 'scripts/upload_to_gslides.py'
+      - '.github/workflows/sync_presentation.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: presentation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system dependencies (Poppler & Tectonic)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
+          # Install Tectonic standalone binary
+          curl --proto '=https' --tlsv1.2 -fsSL https://drop-sh.tectonic-typesetting.net | sh
+          sudo mv tectonic /usr/local/bin/
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install python-pptx pillow google-api-python-client google-auth
+
+      - name: Compile LaTeX to PDF
+        working-directory: presentation
+        run: |
+          echo "Compiling submission.tex with Tectonic..."
+          tectonic submission.tex
+          ls -lh submission.pdf
+
+      - name: Convert PDF to 16:9 PPTX
+        run: |
+          echo "Converting submission.pdf to submission.pptx..."
+          python3 scripts/pdf_to_pptx.py presentation/submission.pdf -o presentation/submission.pptx --dpi 200
+          ls -lh presentation/submission.pptx
+
+      - name: Upload Build Artifacts (PDF & PPTX)
+        uses: actions/upload-artifact@v4
+        with:
+          name: presentation-builds
+          path: |
+            presentation/submission.pdf
+            presentation/submission.pptx
+          retention-days: 14
+
+      - name: Sync to Google Slides / Drive
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GDRIVE_PRESENTATION_ID: ${{ secrets.GDRIVE_PRESENTATION_ID }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          if [ -z "$GCP_SA_KEY" ]; then
+            echo "::error::GCP_SA_KEY secret is not configured in GitHub repository secrets."
+            exit 1
+          fi
+
+          python3 scripts/upload_to_gslides.py presentation/submission.pptx \
+            --title "Which Exposure Matters - Presentation"
