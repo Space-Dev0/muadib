@@ -67,11 +67,26 @@ def _simulate_relation_singletons(samples: int, seed: int) -> dict:
     return {kind: counts[kind] / samples for kind in RELATION_KINDS}
 
 
-def audit(rules: object, *, samples: int = 0, seed: int = 0) -> dict:
+def audit(rules: object, *, samples: int = 0, seed: int = 0, split_manifest: object = None) -> dict:
     """Return a machine-readable benchmark-validity audit."""
     if type(samples) is not int or samples < 0:
         raise ValueError("samples must be a nonnegative integer")
     parsed = load_rules(rules)
+    split_present = False
+    if split_manifest is not None:
+        if not isinstance(split_manifest, dict):
+            raise ValueError("split manifest must be an object")
+        train = split_manifest.get("train")
+        heldout = split_manifest.get("heldout")
+        if (not isinstance(train, list) or not isinstance(heldout, list) or not train or not heldout
+                or any(not isinstance(name, str) for name in train + heldout)
+                or len(set(train)) != len(train) or len(set(heldout)) != len(heldout)
+                or set(train) & set(heldout) or set(train) | set(heldout) != set(parsed)):
+            raise ValueError("split must partition all rule names into nonempty disjoint lists")
+        from exposure.templates import canonical_key
+        if {canonical_key(parsed[name]) for name in train} & {canonical_key(parsed[name]) for name in heldout}:
+            raise ValueError("split has semantically duplicate templates across partitions")
+        split_present = True
     by_cell: dict[tuple[int, int], dict] = {}
     same_object: Counter[tuple[str, str]] = Counter()
     anywhere: Counter[tuple[str, str]] = Counter()
@@ -154,12 +169,12 @@ def audit(rules: object, *, samples: int = 0, seed: int = 0) -> dict:
                        "to the same object."),
             "missing": [list(pair) for pair in missing_same_object],
         })
-    findings.append({
-        "id": "no_held_out_template_split",
-        "severity": "blocking",
-        "detail": ("The rule set carries no split metadata; the same templates are used "
-                   "for training and evaluation."),
-    })
+    if not split_present:
+        findings.append({
+            "id": "no_held_out_template_split",
+            "severity": "blocking",
+            "detail": "A valid template split was not supplied; actual data separation is not established.",
+        })
     return {
         "schema_version": 1,
         "scope": ("Adversarial benchmark-validity audit; not a Stage 0 gate or a "
@@ -191,8 +206,9 @@ def audit(rules: object, *, samples: int = 0, seed: int = 0) -> dict:
             "missing_same_object": [list(pair) for pair in missing_same_object],
         },
         "held_out_split": {
-            "present": False,
-            "detail": "No split metadata is present in the rule mapping.",
+            "present": split_present,
+            "detail": ("Name and semantic partition validated; independent scenes and actual use are not verified."
+                       if split_present else "No split metadata was supplied."),
         },
         "blocking_findings": findings,
         "confirmatory_ready": False,
@@ -206,6 +222,8 @@ def main() -> None:
         description="Audit a rule set for relational composition validity")
     parser.add_argument("--rules", type=Path, required=True,
                         help="JSON mapping of names to predicate lists")
+    parser.add_argument("--split-manifest", type=Path,
+                        help="optional manifest with nonempty train and heldout rule-name lists")
     parser.add_argument("--samples", type=int, default=0,
                         help="optional base-distribution scenes for a saturation check")
     parser.add_argument("--seed", type=int, default=0)
@@ -216,7 +234,9 @@ def main() -> None:
     try:
         rules = json.loads(args.rules.read_text(encoding="utf-8"),
                            object_pairs_hook=unique_object)
-        result = audit(rules, samples=args.samples, seed=args.seed)
+        split = (json.loads(args.split_manifest.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+                 if args.split_manifest else None)
+        result = audit(rules, samples=args.samples, seed=args.seed, split_manifest=split)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n",
                                encoding="utf-8")
