@@ -51,6 +51,19 @@ Jeong et al. (2026) \cite{jeong2026} & MOSAIC multi-object study & Examines imba
 \section{Methodology}
 \subsection{Diffusion in brief}
 For a clean training image $x_0$, a forward process forms $x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\epsilon$, with $\epsilon\sim\mathcal N(0,I)$. A conditional neural network learns a denoising target at many timesteps. At generation time it starts with noise and iteratively reverses the process, conditioned on the requested color. The visual noising sequence in Figure~\ref{fig:noising} gives intuition but is not a sampled DDPM schedule. Our PilotUNet uses a velocity-prediction objective; this is a small pixel-space conditional network, not a pretrained text-to-image model. Figure~\ref{fig:flow} separates training, generation and measurement.
+\paragraph{The denoising optimization.} Let $a_t=\bar\alpha_t$ and let $\tilde c$ be either the requested color or the null condition under training-time condition dropout. The velocity target and the objective used in the pilot are
+\begin{align}
+ v_t &= \sqrt{a_t}\,\epsilon-\sqrt{1-a_t}\,x_0,\\
+ \mathcal L(\theta)&=\mathbb E_{x_0,c,t,\epsilon}
+ \left[\lVert v_\theta(x_t,t,\tilde c)-v_t\rVert_2^2\right].
+\end{align}
+The expectation is approximated by minibatches of training images, uniformly selected timesteps and independent Gaussian noise; the pilot uses a linear noise schedule from $10^{-4}$ to $0.02$ over 1,000 steps; AdamW updates the network parameters. At sampling time the predicted velocity is converted to a predicted noise vector by
+\begin{equation}
+ \hat\epsilon_t=\sqrt{a_t}\,v_\theta(x_t,t,c)
+ +\sqrt{1-a_t}\,x_t.
+\end{equation}
+This conversion is an algebraic identity when the velocity prediction is exact; a low training loss alone does not establish conditional generation success.
+
 \begin{figure*}[t]\centering
 \begin{tikzpicture}[node distance=5mm, box/.style={draw,rounded corners,align=center,minimum height=10mm,minimum width=25mm,fill=blue!5},>=Latex]
 \node[box](data){Controlled scenes\\and conditions}; \node[box,right=of data](noise){Add noise\\at timestep $t$}; \node[box,right=of noise](net){Conditional U-Net\\learns denoising}; \node[box,right=of net](sample){Noise $\rightarrow$ image\\1,000 reverse steps}; \node[box,right=of sample](audit){Human labels +\\checker abstentions};
@@ -63,6 +76,43 @@ Represent a rule $r$ as a conjunction of predicates $p\in r$, such as a color an
 \begin{figure}[t]\centering\includegraphics[width=\columnwidth]{figures/marginals-joint-example.pdf}\caption{Constructed example, not measured data: two distributions have identical marginals but different joint exposure.}\label{fig:joint}\end{figure}
 
 A separate planned outcome, rule satisfaction rate (RSR), is the proportion of generated outputs satisfying $r$. One proposed interaction index is $\Gamma_r=\operatorname{logit}(\mathrm{RSR}_r)-\operatorname{logit}(\prod_{p\in r}c_p)$, where $c_p$ is the corresponding primitive success rate. Under $\mathrm{RSR}_r=\prod_pc_p$, $\Gamma_r=0$. This baseline is a diagnostic, not proof of independence or causality. Rule-level intercepts can make effects of a within-rule constant marginal unidentifiable; pooled correlations alone do not repair that problem.
+\subsection{Constrained mixture optimization}
+For $J$ candidate training conditions, let $\widehat A_{ej}$ be the estimated probability of event $e$ under condition $j$ and let $w_j$ be its mixture weight. The estimates are empirical averages of event indicators over accepted scenes:
+\begin{equation}
+ \widehat A_{ej}=\frac{1}{N_j}\sum_{i=1}^{N_j}
+ \mathbf 1\{e\text{ holds in scene }i\text{ of }j\}.
+\end{equation}
+For specified lower and upper exposure bounds $L_e,U_e$, the implemented feasible set is
+\begin{align}
+ \widehat{\mathcal W}=\{w\in\mathbb R^J:\;&\mathbf 1^\top w=1,\quad w_j\geq w_{\min},\notag\\
+ &L_e\leq\widehat A_{e:}w\leq U_e\quad\forall e\}.
+ \label{eq:feasible}
+\end{align}
+Here $e$ may denote a complete rule, an individual predicate or an indicated predicate pair. Finding any $w\in\widehat{\mathcal W}$ is a linear feasibility problem. When the uniform reference $u_j=1/J$ is feasible, the optional minimum-KL design solves
+\begin{equation}
+ \min_{w\in\widehat{\mathcal W}}D_{\mathrm{KL}}(w\Vert u)
+ =\min_{w\in\widehat{\mathcal W}}\sum_{j=1}^{J}w_j\log(Jw_j),
+\end{equation}
+with $0\log 0=0$. By nonnegativity of KL divergence, $u$ is its unique minimizer when feasible, so this objective alone does not generate an exposure contrast.
+
+To obtain rule-specific extremes, the multi-matrix exploratory procedure fixes each singleton marginal to its reference value on each fitting matrix $\widehat A^{(k)}$ relative to a chosen reference $w^{\mathrm{ref}}$, and solves two linear programs:
+\begin{align}
+ w_r^{-},w_r^{+}&\in\arg\min_{w},\arg\max_{w}
+ \;\widehat A^{(1)}_{r:}w,\quad\text{subject to} \notag\\
+ \mathbf1^\top w&=1,\; w_j\geq w_{\min},\;\;\widehat A^{(k)}_{p:}w=\widehat A^{(k)}_{p:}w^{\mathrm{ref}}
+ \;\;\forall p,k.\label{eq:lp}
+\end{align}
+The constraints preserve empirical singleton rows, not the unknown population probabilities, and the endpoints can concentrate heavily on a few conditions. Optimizing individual rule endpoints does not by itself identify a common causal coefficient or ensure that all desired covariates are decorrelated. The reported candidate and its diagnostics are exploratory.
+
+\paragraph{Exploratory allocation diagnostics.} In a separate local search over rule-allocation weights $q$, one implemented penalty targets both collinearity and marginal--lift correlation on the fitting matrices:
+\begin{align}
+ F(q)=\sum_k\bigg[&\sum_h\big[\mathrm{VIF}_{kh}(q)-1.85\big]_+^2\notag\\
+ &+25\big[|\rho_k(q)|-0.24\big]_+^2\bigg],
+\end{align}
+where $[z]_+=\max(z,0)$, $h$ indexes the specified covariates, and $\rho_k$ is the weighted correlation between log mean marginal and log lift. For a nonsingular weighted covariance matrix $\Sigma_k$, $\mathrm{VIF}_{kh}=(\Sigma_k)_{hh}(\Sigma_k^{-1})_{hh}$. The thresholds 1.85 and 0.24 are optimization margins, not acceptance thresholds; local convergence does not establish a global optimum or generalization. Changing $q$ also changes the population represented by the analysis.
+
+For a proposed outcome model, a coefficient measuring the association of joint lift with success would require an estimable specification and overlap across designs. If the log-marginal exposure is held exactly constant within each rule, its column is a linear combination of rule indicators; a regression containing unrestricted rule intercepts cannot separately identify that effect. This rank deficiency is a design property, not a numerical optimization failure.
+
 \subsection{Estimation and diagnostics}
 A fresh renderer measurement (seed 82511) used 100,000 accepted scenes per condition across 57 rule conditions, totaling 5.7 million accepted scenes and approximately 57.8 million candidate attempts. It estimates the renderer's exposure probabilities, not real-world generalization. We assess mixture constraints, correlation and variance inflation factors (VIFs), including sensitivity to the reference group. A concentrated candidate achieved five VIFs below two and correlation 0.237, but its reference-adjusted maximum VIF was 4.887, the largest estimated marginal deviations were 0.0101 and 0.00749 for the two references, and its rule allocation changed the target population. The five covariates were log mean marginal exposure, log lift, attribute count, relation count, and log breadth; the adjusted analysis also included a reference-group indicator. Equal-rule alternatives tested also failed several VIF thresholds. These exploratory optimizations are not an impossibility proof or a passed design gate.
 \section{Results and Discussion}
@@ -92,12 +142,6 @@ We built and measured the components for a controlled investigation of compositi
 This research studies how training data and evaluation affect the reliability of generative models. Its synthetic findings should not be interpreted as evidence of safety or reliability in consequential domains. Wider use of generated images may amplify existing representational errors; independent audits and domain-specific evaluation remain necessary.
 \section*{AI Disclosure Statement}
 Generative AI assistants contributed to drafting, code and figure preparation, literature discovery, and internal review. The authors remain responsible for checking all claims, citations, artifacts, and the final manuscript.
-\begin{thebibliography}{9}
-\bibitem[Ho et al.(2020)]{ho2020} J. Ho, A. Jain, and P. Abbeel, ``Denoising Diffusion Probabilistic Models,'' NeurIPS, 2020. \url{https://arxiv.org/abs/2006.11239}
-\bibitem[Rombach et al.(2022)]{rombach2022} R. Rombach et al., ``High-Resolution Image Synthesis with Latent Diffusion Models,'' CVPR, 2022. \url{https://arxiv.org/abs/2112.10752}
-\bibitem[Liu et al.(2022)]{liu2022} N. Liu et al., ``Compositional Visual Generation with Composable Diffusion Models,'' ECCV, 2022. \url{https://arxiv.org/abs/2206.01714}
-\bibitem[Liang et al.(2024)]{liang2024} Q. Liang et al., ``How Diffusion Models Learn to Factorize and Compose,'' NeurIPS, 2024. \url{https://doi.org/10.52202/079017-0483}
-\bibitem[Okawa et al.(2023)]{okawa2023} M. Okawa et al., ``Compositional Abilities Emerge Multiplicatively: Exploring Diffusion Models on a Synthetic Task,'' NeurIPS, 2023. \url{https://arxiv.org/abs/2310.09336}
-\bibitem[Huang et al.(2023)]{huang2023} K. Huang et al., ``T2I-CompBench: A Comprehensive Benchmark for Open-world Compositional Text-to-image Generation,'' NeurIPS, 2023. \url{https://arxiv.org/abs/2307.06350v2}
-\bibitem[Jeong et al.(2026)]{jeong2026} Y. Jeong et al., ``When Do Diffusion Models Learn to Generate Multiple Objects?,'' ICML, 2026. \url{https://proceedings.mlr.press/v306/jeong26b.html}
-\end{thebibliography}\end{document}
+\bibliography{references}
+\bibliographystyle{icml2027}
+\end{document}
