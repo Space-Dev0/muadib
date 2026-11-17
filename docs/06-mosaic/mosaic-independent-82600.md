@@ -56,3 +56,5 @@ and started the 1,000-to-10,000 continuation. GPU activity was observed.
 It subsequently reached a verified 20,000-update low-balanced checkpoint,
 SHA-256 `b55919fbb786893e274802c0864006d23f562fc9f6d52aadef53a80a8dcb9214`,
 and the training task remained running.
+On a later check it had reached a verified 60,000-update low-balanced
+checkpoint; the training task and waiting evaluation task were both running.

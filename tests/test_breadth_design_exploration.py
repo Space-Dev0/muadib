@@ -22,6 +22,19 @@ class BreadthDesignTests(unittest.TestCase):
         for feature, value in result['vif'].items():
             self.assertAlmostEqual(weighted['vif'][feature], value)
 
+    def test_reference_indicator_is_included(self):
+        spec = importlib.util.spec_from_file_location('breadth_check',
+                    Path('scripts/check-frozen-breadth-design.py'))
+        module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+        features = ('log_mean_marginal', 'log_lift', 'k_attr', 'k_rel')
+        fields = (*features, 'log_breadth')
+        rows = [dict(zip(fields, values, strict=True)) | {'design': group + '_x'}
+                for values in itertools.product((-1., 1.), repeat=5) for group in ('uniform', 'fitted')]
+        result = module.reference_adjusted_vifs(rows, [1.] * len(rows), features)
+        self.assertIn('reference_group', result)
+        for value in result.values():
+            self.assertAlmostEqual(value, 1.)
+
 
 if __name__ == '__main__':
     unittest.main()

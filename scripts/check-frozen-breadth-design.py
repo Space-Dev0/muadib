@@ -12,6 +12,25 @@ from exposure.design_subspace import diagnose as subspace
 from exposure.measure import load_rules
 
 
+def reference_adjusted_vifs(rows, row_weights, features):
+    names = (*features, 'log_breadth', 'reference_group')
+    values = np.asarray([[row[field] for field in names[:-1]]
+                         + [float(row['design'].startswith('fitted_'))] for row in rows])
+    normalized = np.asarray(row_weights, dtype=float)
+    if not np.isfinite(normalized).all() or np.any(normalized < 0) or normalized.sum() <= 0:
+        raise ValueError('Invalid row weights')
+    normalized = normalized / normalized.sum()
+    centered = values - normalized @ values
+    covariance = (centered * normalized[:, None]).T @ centered
+    scale = np.sqrt(np.diag(covariance))
+    if np.any(scale < 1e-12):
+        raise ValueError('A reference-adjusted feature is constant')
+    correlation = covariance / np.outer(scale, scale)
+    if np.linalg.eigvalsh(correlation).min() <= 1e-10:
+        raise ValueError('Reference-adjusted features are collinear')
+    return dict(zip(names, map(float, np.diag(np.linalg.inv(correlation))), strict=True))
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--frozen', type=Path, required=True); p.add_argument('--report', type=Path, required=True)
@@ -47,7 +66,9 @@ def main():
     module_spec = importlib.util.spec_from_file_location('breadth_exploration', Path(__file__).with_name('explore-breadth-design.py'))
     module = importlib.util.module_from_spec(module_spec); module_spec.loader.exec_module(module)
     weights = frozen['allocations']['wider_five_feature']
-    stats = module.full_statistics(rows, [weights[row['rule']] for row in rows])
+    row_weights = np.asarray([weights[row['rule']] for row in rows], dtype=float)
+    stats = module.full_statistics(rows, row_weights)
+    reference_vifs = reference_adjusted_vifs(rows, row_weights, module.FEATURES)
     by_name = {design['name']: design for design in designs}
     references = {prefix: by_name[prefix + '_reference']['weights'] for prefix in ('uniform', 'fitted')}
     sub = subspace(report, references['uniform'])
@@ -66,7 +87,8 @@ def main():
         deviations[prefix] = {'max_absolute': max(maxima), 'median_max_absolute': float(np.median(maxima))}
     output = {'schema_version': 1, 'input_sha256': [hashlib.sha256(x).hexdigest() for x in raw],
               'seed': report['seed'], 'samples_per_condition': report['samples_per_condition'],
-              'breadth_mode': mode, 'rows': len(rows), 'statistics': stats, 'singleton_deviation_from_own_reference': deviations,
+              'breadth_mode': mode, 'rows': len(rows), 'statistics': stats,
+              'reference_adjusted_vif': reference_vifs, 'singleton_deviation_from_own_reference': deviations,
               'note': ('Frozen exploratory design on a fresh Monte Carlo draw; not an external benchmark, '
                        'not a registered estimand, and not a Stage 0 gate.')}
     with args.output.open('x', encoding='utf-8') as f:

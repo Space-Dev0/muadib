@@ -194,6 +194,25 @@ ignored `outputs/design-breadth-margin-fresh-82507.json`. This further
 supports numerical stability at this Monte Carlo scale, while leaving the
 nonzero constraint deviation, highly reweighted population, 100,000-scene
 measurement target, breadth definition, and grammar limitations unresolved.
+Adding a shared binary reference-group indicator to the five covariates on
+that same draw raises VIFs to 2.374 for log marginal, 2.218 for relation
+count, 4.723 for log breadth, and 2.630 for the indicator (log lift 1.887 and
+attribute count 1.494). This is an additional model specification, not the
+original five-feature gate, but shows that the attractive five-feature values
+do not persist unchanged when accounting for reference group. The extended
+result is in ignored `outputs/design-breadth-margin-fresh-82507-reference.json`.
+
+A further local refit explicitly included the reference indicator in the VIF
+objective on the two fitting matrices. On the already inspected seed-82506
+matrix its reference-adjusted VIFs were 1.630 (log marginal), 2.581 (log
+lift), 1.675 (attributes), 2.254 (relations), 2.681 (log breadth), and 2.053
+(reference indicator); marginal/lift correlation was 0.210. This candidate
+also exceeds the original five-feature VIF threshold for log lift and relation
+count. An independent calculation on the resulting rows reproduced these
+values. This one local optimization is not an impossibility proof, and the
+role-sensitive breadth and concentrated allocation remain exploratory. The
+ignored artifacts are `outputs/design-breadth-reference-margin-82550.json`
+and `outputs/design-breadth-reference-margin-check-82506.json`.
 
 Reproduce from the repository root with the existing ignored reports:
 

@@ -14,7 +14,9 @@ from exposure.measure import load_rules
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', type=Path, required=True); args = parser.parse_args()
+    parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--adjust-reference', action='store_true')
+    args = parser.parse_args()
     source = Path('outputs/design-breadth-multimatrix-82531.json').read_bytes()
     frozen = json.loads(source)
     report_paths = ('outputs/exposure-57-fresh-82505.json', 'outputs/exposure-57-fresh-82501.json',
@@ -39,13 +41,39 @@ def main():
             raise ValueError('Excluded rows')
         array = np.asarray(breadth['counts_by_condition'], dtype=float) / breadth['samples_per_condition']
         by_design = {d['name']: rule_log_breadth(array, [d['weights'][n] for n in names], rules, predicates) for d in designs}
-        rows = [{**row, 'log_breadth': by_design[row['design']][row['rule']]} for row in diag['rows']]
+        rows = [{**row, 'log_breadth': by_design[row['design']][row['rule']],
+                 'reference_group': float(row['design'].startswith('fitted_'))} for row in diag['rows']]
         if any(row['log_breadth'] is None for row in rows):
             raise ValueError('Undefined breadth')
-        moments.append(mod.breadth_moments(rows, names))
+        if args.adjust_reference:
+            features = (*mod.FEATURES, 'log_breadth', 'reference_group')
+            groups = {name: [] for name in names}
+            for row in rows:
+                groups[row['rule']].append([row[f] for f in features])
+            arrays = [np.asarray(groups[name], dtype=float) for name in names]
+            moments.append((np.stack([a.mean(axis=0) for a in arrays]),
+                            np.stack([a.T @ a / len(a) for a in arrays])))
+        else:
+            moments.append(mod.breadth_moments(rows, names))
+    def statistics(moment, weights):
+        if not args.adjust_reference:
+            return mod.weighted_moment_statistics(*moment, weights)
+        means, seconds = moment
+        weights = np.asarray(weights) / np.sum(weights)
+        mean = weights @ means
+        covariance = np.einsum('i,ijk->jk', weights, seconds) - np.outer(mean, mean)
+        scale = np.sqrt(np.diag(covariance))
+        if not np.isfinite(scale).all() or np.any(scale < 1e-12):
+            raise ValueError('Invalid reference-adjusted covariance')
+        correlation = covariance / np.outer(scale, scale)
+        if np.linalg.eigvalsh(correlation).min() <= 1e-10:
+            raise ValueError('Collinear reference-adjusted features')
+        return {'marginal_lift_r': float(correlation[0,1]),
+                'vif': dict(zip((*mod.FEATURES, 'log_breadth', 'reference_group'),
+                                map(float, np.diag(np.linalg.inv(correlation))), strict=True))}
     def objective(weights):
         try:
-            result = [mod.weighted_moment_statistics(*m, weights) for m in moments[:2]]
+            result = [statistics(m, weights) for m in moments[:2]]
             return sum(float(np.sum(np.maximum(np.array(list(x['vif'].values()))-1.85, 0)**2))
                        + 25 * max(abs(x['marginal_lift_r'])-.24, 0)**2 for x in result)
         except (ValueError, np.linalg.LinAlgError):
@@ -60,7 +88,8 @@ def main():
               'frozen_endpoints_sha256':hashlib.sha256(source).hexdigest(),
               'report_sha256':[hashlib.sha256(x).hexdigest() for x in report_raw],
               'objective':float(opt.fun), 'effective_rules':float(1/np.sum(opt.x**2)),
-              'statistics':[mod.weighted_moment_statistics(*m,opt.x) for m in moments],
+              'adjust_reference':args.adjust_reference,
+              'statistics':[statistics(m,opt.x) for m in moments],
               'note':'Exploratory local fit to two estimated matrices; third was previously inspected. Not a gate.'}
     with args.output.open('x',encoding='utf-8') as f:
         json.dump(result,f,indent=2,allow_nan=False); f.write('\n')
