@@ -5,3 +5,5 @@ __pycache__/
 outputs/
 data/
 presentation/*.pptx
+.agents/
+skills-lock.json

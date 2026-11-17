@@ -5,8 +5,18 @@
 \else
   \usepackage[preprint]{icml2027}
 \fi
-\usepackage{fontspec}
-\setmainfont{NimbusRoman-Regular.otf}[Path=/usr/share/fonts/urw-base35/,BoldFont=NimbusRoman-Bold.otf,ItalicFont=NimbusRoman-Italic.otf,BoldItalicFont=NimbusRoman-BoldItalic.otf]
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage{times}
+\else
+  \usepackage{fontspec}
+  \setmainfont{NimbusRoman-Regular.otf}[
+    Path = fonts/,
+    BoldFont = NimbusRoman-Bold.otf,
+    ItalicFont = NimbusRoman-Italic.otf,
+    BoldItalicFont = NimbusRoman-BoldItalic.otf
+  ]
+\fi
 \usepackage{amsmath,amssymb,array,xcolor,url,tikz}
 \usetikzlibrary{arrows.meta,positioning}
 % ICML hides the margin ruler in preprint mode. Keep the supplied ruler

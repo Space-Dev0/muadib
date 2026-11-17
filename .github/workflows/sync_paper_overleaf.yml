@@ -1,0 +1,44 @@
+name: Sync Paper to Overleaf
+
+on:
+  push:
+    paths:
+      - 'paper/**'
+      - 'scripts/sync_to_overleaf.py'
+      - '.github/workflows/sync_paper_overleaf.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: overleaf-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync-to-overleaf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install overleaf-sync
+
+      - name: Sync Paper Directory to Overleaf
+        env:
+          OVERLEAF_COOKIE: ${{ secrets.OVERLEAF_COOKIE }}
+          OVERLEAF_PROJECT_ID: ${{ secrets.OVERLEAF_PROJECT_ID }}
+        run: |
+          if [ -z "$OVERLEAF_COOKIE" ]; then
+            echo "::error::OVERLEAF_COOKIE secret is not configured in GitHub repository secrets."
+            exit 1
+          fi
+
+          python3 scripts/sync_to_overleaf.py \
+            --paper-dir "paper"

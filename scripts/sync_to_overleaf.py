@@ -116,6 +116,8 @@ def sync_paper(
     print(f"Sync complete: {uploaded} uploaded, {failed} failed.")
     print(f"View in Overleaf: https://www.overleaf.com/project/{project_id}")
     print("=" * 50 + "\n")
+    if failed > 0:
+        sys.exit(1)
 
 
 def main():
@@ -125,8 +127,8 @@ def main():
     parser.add_argument(
         "--project-id",
         type=str,
-        default="6afc917c5676c2467e5ab0f2",
-        help="Overleaf Project ID (default: 6afc917c5676c2467e5ab0f2)",
+        default=os.environ.get("OVERLEAF_PROJECT_ID") or "6afc917c5676c2467e5ab0f2",
+        help="Overleaf Project ID (default: 6afc917c5676c2467e5ab0f2 or OVERLEAF_PROJECT_ID env var)",
     )
     parser.add_argument(
         "--cookie",
