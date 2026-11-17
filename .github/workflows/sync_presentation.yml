@@ -64,15 +64,15 @@ jobs:
 
       - name: Convert PDF to 16:9 PPTX
         run: |
-          echo "Converting submission.pdf to submission.pptx..."
-          python3 scripts/pdf_to_pptx.py presentation/submission.pdf -o presentation/submission.pptx --dpi 200
+          echo "Converting submission.pdf to submission.pptx at 400 DPI..."
+          python3 scripts/pdf_to_pptx.py presentation/submission.pdf -o presentation/submission.pptx --dpi 400
           ls -lh presentation/submission.pptx
 
       - name: Render Slide PNG Images
         run: |
           mkdir -p presentation/slides
           rm -f presentation/slides/*.png
-          pdftoppm -png -r 200 presentation/submission.pdf presentation/slides/slide
+          pdftoppm -png -r 400 presentation/submission.pdf presentation/slides/slide
           ls -lh presentation/slides
 
       - name: Commit & Push Slide Assets

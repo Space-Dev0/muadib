@@ -14,7 +14,7 @@ import tempfile
 from pathlib import Path
 
 
-def render_pdf_pdftoppm(pdf_path: Path, output_dir: Path, dpi: int = 200) -> list[Path]:
+def render_pdf_pdftoppm(pdf_path: Path, output_dir: Path, dpi: int = 400) -> list[Path]:
     """Render PDF pages to PNG using pdftoppm (poppler-utils)."""
     prefix = output_dir / "page"
     cmd = [
@@ -33,7 +33,7 @@ def render_pdf_pdftoppm(pdf_path: Path, output_dir: Path, dpi: int = 200) -> lis
     return images
 
 
-def render_pdf_fallback(pdf_path: Path, output_dir: Path, dpi: int = 200) -> list[Path]:
+def render_pdf_fallback(pdf_path: Path, output_dir: Path, dpi: int = 400) -> list[Path]:
     """Fallback rendering using pypdfium2 or pdf2image if pdftoppm is unavailable."""
     try:
         import pypdfium2 as pdfium  # type: ignore
@@ -67,7 +67,7 @@ def render_pdf_fallback(pdf_path: Path, output_dir: Path, dpi: int = 200) -> lis
     )
 
 
-def render_pdf_to_images(pdf_path: Path, output_dir: Path, dpi: int = 200) -> list[Path]:
+def render_pdf_to_images(pdf_path: Path, output_dir: Path, dpi: int = 400) -> list[Path]:
     """Render PDF pages to PNG files."""
     if shutil.which("pdftoppm"):
         return render_pdf_pdftoppm(pdf_path, output_dir, dpi)
@@ -139,8 +139,8 @@ def main():
     parser.add_argument(
         "--dpi",
         type=int,
-        default=200,
-        help="Resolution for page rendering (default: 200 DPI)",
+        default=400,
+        help="Resolution for page rendering (default: 400 DPI)",
     )
     args = parser.parse_args()
 
