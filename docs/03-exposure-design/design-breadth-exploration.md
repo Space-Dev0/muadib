@@ -115,6 +115,16 @@ before this refit. Both weight bounds are reached, the proposal's approximate
 target population or breadth definition is implied. The frozen refit and its
 comparison are stored under ignored `outputs/design-breadth-refit-82505*.json`.
 
+An additional local-optimizer sensitivity sweep on that same 1,000-scene
+matrix tried rule-weight bounds of 0.15–2.5, 0.10–3.0 and 0.075–3.5 times
+equal weight. On the already inspected 300-scene matrix, the first candidate's
+largest VIF was 2.121. The second had largest VIF 1.879 and correlation 0.290,
+with effective rule count 20.94; its correlation is close to the 0.3 limit.
+The third had largest VIF 1.752 and correlation 0.224, with effective rule
+count 17.78. These are additional post-hoc, local-optimizer results, not proof
+of a minimal weight concentration, a fresh validation, or an approved change
+to the target population. Reproduce with the refit command and `--frontier`.
+
 As a definition sensitivity check, `--mode scene` instead collapses variable
 names into nine distinct singleton scene events and counts a partner whenever
 both singleton events hold independently on the same scene. This is invariant
@@ -136,6 +146,7 @@ PYTHONPATH=. OPENBLAS_NUM_THREADS=1 uv run python scripts/explore-breadth-design
 uv run python -m exposure.measure --rules outputs/templates-57.json --samples 300 --seed 82501 --include-subsets --output outputs/exposure-fresh-new.json
 uv run python -m exposure.design_breadth --report outputs/exposure-fresh-new.json --output outputs/breadth-fresh-new.json
 PYTHONPATH=. OPENBLAS_NUM_THREADS=1 uv run python scripts/check-frozen-breadth-design.py --frozen outputs/design-breadth-exploration-82500.json --report outputs/exposure-fresh-new.json --breadth outputs/breadth-fresh-new.json --output outputs/design-breadth-fresh-new.json
+PYTHONPATH=. OPENBLAS_NUM_THREADS=1 uv run python scripts/explore-breadth-design.py --training-report outputs/exposure-57-fresh-82505.json --holdout-report outputs/exposure-57-fresh-82501.json --training-breadth outputs/breadth-57-fresh-82505.json --holdout-breadth outputs/breadth-57-fresh-82501.json --frontier
 ```
 
 The exploration script reads the original generated filenames

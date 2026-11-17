@@ -83,6 +83,7 @@ def main():
     parser.add_argument('--holdout-report', default='outputs/exposure-57-holdout-81205.json')
     parser.add_argument('--training-breadth', default='outputs/breadth-57-pilot-82500.json')
     parser.add_argument('--holdout-breadth', default='outputs/breadth-57-holdout-82500.json')
+    parser.add_argument('--frontier', action='store_true', help='Explore additional rule-weight bounds')
     args = parser.parse_args()
     source_paths = (args.training_report, args.holdout_report)
     source_raw = [Path(path).read_bytes() for path in source_paths]
@@ -138,6 +139,14 @@ def main():
               'objective', wider_objective, 'effective_rules', float(1 / np.sum(wider ** 2)),
               'min_weight_multiple', float(wider.min() * len(wider)),
               'max_weight_multiple', float(wider.max() * len(wider)))
+    if args.frontier:
+        for low, high in ((0.15, 2.5), (0.10, 3.0), (0.075, 3.5)):
+            trial, trial_objective = fit_five(*full_moments[0], new_weights,
+                                              min_multiple=low, max_multiple=high)
+            print('frontier', low, high, 'objective', trial_objective,
+                  'effective_rules', float(1 / np.sum(trial ** 2)),
+                  'pilot', json.dumps(weighted_moment_statistics(*full_moments[0], trial), sort_keys=True),
+                  'holdout', json.dumps(weighted_moment_statistics(*full_moments[1], trial), sort_keys=True))
     if args.output:
         result = {'schema_version': 1,
                   'source_sha256': [hashlib.sha256(raw).hexdigest() for raw in source_raw],

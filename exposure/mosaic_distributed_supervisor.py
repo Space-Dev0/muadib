@@ -20,6 +20,7 @@ CELLS = {'low-balanced': ('low', 'balanced'), 'low-imbalanced': ('low', 'imbalan
 MODULES = ('pilot_train', 'mosaic_pilotunet_probe', 'mosaic_pilotunet_warmstart',
            'mosaic_toy_train', 'velocity_probe', 'identity_eps_finetune', 'measure',
            'render', 'rules', 'mosaic_matched_cell')
+RUN_ID = 81570
 
 
 def digest(path):
@@ -31,7 +32,7 @@ def checkpoint(path, cell, step, expected_hash):
         raise ValueError(f'Checkpoint hash mismatch: {path}')
     cp = load_warmstart_checkpoint(path)
     config = cp['config']
-    expected = {'width': 16, 'timesteps': 1000, 'batch_size': 4, 'seed': 81571,
+    expected = {'width': 16, 'timesteps': 1000, 'batch_size': 4, 'seed': RUN_ID + 1,
                 'lr': 0.0001, 'dropout': 0.1, 'ema_decay': 0.999, 'deterministic': False}
     if (cp['cell'] != list(CELLS[cell]) or cp['report']['cumulative_step'] != step or
             any(config.get(k) != v for k, v in expected.items())):
@@ -66,7 +67,7 @@ def initial_from_report(directory, cell):
     if step != 1000 or digest(path) != snapshot['checkpoint_sha256']:
         raise ValueError(f'Invalid initial checkpoint: {path}')
     cp = load_initial_checkpoint(path)
-    expected = {'seed': 81570, 'width': 16, 'timesteps': 1000, 'batch_size': 4,
+    expected = {'seed': RUN_ID, 'width': 16, 'timesteps': 1000, 'batch_size': 4,
                 'lr': 0.0001, 'dropout': 0.1, 'ema_decay': 0.999, 'deterministic': False}
     if (cp['cell'] != list(CELLS[cell]) or cp['report']['step'] != 1000 or
             any(cp['config'].get(k) != v for k, v in expected.items())):
@@ -82,9 +83,9 @@ def initial_from_report(directory, cell):
 
 
 def latest(workspace, root, cell):
-    source = workspace / 'outputs' / f'mosaic-matched-81570-{cell}-continued'
+    source = workspace / 'outputs' / f'mosaic-matched-{RUN_ID}-{cell}-continued'
     candidates = []
-    initial = workspace / 'outputs' / f'mosaic-matched-81570-{cell}-initial'
+    initial = workspace / 'outputs' / f'mosaic-matched-{RUN_ID}-{cell}-initial'
     for directory in [initial, *(root / cell).glob('initial-*')]:
         if (directory / 'report.json').is_file():
             candidates.append((*initial_from_report(directory, cell), 'warmstart'))
@@ -126,7 +127,7 @@ def predecessor_running(name):
 
 def supervise(workspace, cells, target, predecessor):
     workspace = Path(workspace).resolve(strict=True)
-    root = workspace / 'outputs' / 'mosaic-distributed-81570'
+    root = workspace / 'outputs' / f'mosaic-distributed-{RUN_ID}'
     root.mkdir(parents=True, exist_ok=True)
     marker = root / 'STOP'
     while predecessor_running(predecessor):
@@ -144,10 +145,10 @@ def supervise(workspace, cells, target, predecessor):
                         '--complexity', CELLS[cell][0], '--imbalance', CELLS[cell][1],
                         '--trainer', 'probe', 'bounded', '--dataset',
                         str(workspace / 'outputs' / 'mosaic-data-gpu-feasibility-81300'),
-                        '--output', str(out), '--seed', '81570', '--steps', '1000',
+                        '--output', str(out), '--seed', str(RUN_ID), '--steps', '1000',
                         '--batch-size', '4', '--width', '16', '--timesteps', '1000',
                         '--lr', '0.0001', '--dropout', '0.1', '--ema-decay', '0.999',
-                        '--preview-seeds', '81580', '--device', 'cuda']
+                        '--preview-seeds', str(RUN_ID + 10), '--device', 'cuda']
                 print(f'{cell}: starting new initial run in {out}', flush=True)
                 result = subprocess.run(args, cwd=workspace)
                 if result.returncode:
@@ -166,7 +167,7 @@ def supervise(workspace, cells, target, predecessor):
                     '--output', str(out), '--steps', str(end - step), '--device', 'cuda',
                     '--snapshot-steps', str(end)]
             if mode == 'warmstart':
-                args.extend(['--seed', '81571'])
+                args.extend(['--seed', str(RUN_ID + 1)])
             process = subprocess.Popen(args, cwd=workspace)
             while process.poll() is None:
                 if marker.exists():
@@ -182,21 +183,24 @@ def supervise(workspace, cells, target, predecessor):
 
 
 def main():
+    global RUN_ID
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--workspace', type=Path, required=True)
     parser.add_argument('--cells', choices=CELLS, nargs='+', required=True)
     parser.add_argument('--target', type=int, default=500000)
+    parser.add_argument('--run-id', type=int, default=81570, help='Training seed and unique output namespace')
     parser.add_argument('--wait-task')
     args = parser.parse_args()
-    if os.name != 'nt' or len(set(args.cells)) != len(args.cells) or args.target < 150000:
+    if os.name != 'nt' or len(set(args.cells)) != len(args.cells) or args.target < 150000 or args.run_id < 0:
         parser.error('Requires Windows, distinct cells and target >= 150000')
+    RUN_ID = args.run_id
     # Protect against both scheduled and manually launched supervisors. The
     # process scan also protects against an orphaned training child.
     import msvcrt
     import ctypes
-    root = args.workspace.resolve(strict=True) / 'outputs' / 'mosaic-distributed-81570'
+    root = args.workspace.resolve(strict=True) / 'outputs'
     root.mkdir(parents=True, exist_ok=True)
-    with (root / 'supervisor.lock').open('a+b') as lock:
+    with (root / 'mosaic-training-supervisor.lock').open('a+b') as lock:
         lock.seek(0)
         if not lock.read(1):
             lock.write(b'0')

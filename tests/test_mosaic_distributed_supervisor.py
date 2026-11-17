@@ -40,6 +40,18 @@ class DistributedSupervisorTests(unittest.TestCase):
             root = Path(tmp)
             self.assertIsNone(sup.latest(root, root / 'output', 'high-imbalanced'))
 
+    def test_run_namespace_does_not_use_other_block_checkpoints(self):
+        from exposure import mosaic_distributed_supervisor as sup
+        previous = sup.RUN_ID
+        self.addCleanup(setattr, sup, 'RUN_ID', previous)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp); workspace = root / 'workspace'
+            old = workspace / 'outputs' / 'mosaic-matched-81570-low-balanced-continued'
+            old.mkdir(parents=True)
+            (old / 'report.json').write_text('{}')
+            sup.RUN_ID = 82600
+            self.assertIsNone(sup.latest(workspace, root / 'new-output', 'low-balanced'))
+
 
 if __name__ == '__main__':
     unittest.main()
