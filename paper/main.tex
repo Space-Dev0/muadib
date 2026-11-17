@@ -62,7 +62,7 @@ Jeong et al. (2026) \cite{jeong2026} & MOSAIC multi-object study & Examines imba
 
 \section{Methodology}
 \subsection{Diffusion in brief}
-For a clean training image $x_0$, a forward process forms $x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\epsilon$, with $\epsilon\sim\mathcal N(0,I)$. A conditional neural network learns a denoising target at many timesteps. At generation time it starts with noise and iteratively reverses the process, conditioned on the requested color. The visual noising sequence in Figure~\ref{fig:noising} gives intuition but is not a sampled DDPM schedule. Our PilotUNet uses a velocity-prediction objective; this is a small pixel-space conditional network, not a pretrained text-to-image model. Figure~\ref{fig:flow} separates training, generation and measurement.
+For a clean training image $x_0$, a forward process forms $x_t=\sqrt{\bar\alpha_t}x_0+\sqrt{1-\bar\alpha_t}\epsilon$, with $\epsilon\sim\mathcal N(0,I)$. A conditional neural network learns a denoising target at many timesteps. Velocity prediction follows \cite{salimans2022}, and condition dropout follows classifier-free guidance \cite{ho2022}. At generation time it starts with noise and iteratively reverses the process, conditioned on the requested color. The visual noising sequence in Figure~\ref{fig:noising} gives intuition but is not a sampled DDPM schedule. Our PilotUNet uses a velocity-prediction objective; this is a small pixel-space conditional network, not a pretrained text-to-image model. Figure~\ref{fig:flow} separates training, generation and measurement.
 \paragraph{The denoising optimization.} Let $a_t=\bar\alpha_t$ and let $\tilde c$ be either the requested color or the null condition under training-time condition dropout. The velocity target and the objective used in the pilot are
 \begin{align}
  v_t &= \sqrt{a_t}\,\epsilon-\sqrt{1-a_t}\,x_0,\\
@@ -74,7 +74,7 @@ The expectation is approximated by minibatches of training images, uniformly sel
  \hat\epsilon_t=\sqrt{a_t}\,v_\theta(x_t,t,c)
  +\sqrt{1-a_t}\,x_t.
 \end{equation}
-This conversion is an algebraic identity when the velocity prediction is exact; a low training loss alone does not establish conditional generation success.
+With the convention $\hat v=v_{\varnothing}+g(v_c-v_{\varnothing})$, guidance $g=1$ gives $\hat v=v_c$; it does not amplify the conditional direction. The pilot used condition dropout 0.1, AdamW learning rate $10^{-4}$ and EMA decay 0.999. This conversion is an algebraic identity when the velocity prediction is exact; a low training loss alone does not establish conditional generation success.
 
 \begin{figure*}[t]\centering
 \begin{tikzpicture}[node distance=5mm, box/.style={draw,rounded corners,align=center,minimum height=10mm,minimum width=25mm,fill=blue!5},>=Latex]
@@ -134,6 +134,16 @@ The model feasibility experiment used internally generated 64$\times$64 syntheti
 The four cells form a \emph{data-factor} comparison with matched model initialization and training random streams, not matched scene geometries or an architecture ablation. Attention-block or U-Net-component ablations have not been performed; no component benefit is claimed. The target is whether the requested-color circle appears. Object count is secondary and was not requested as an additional prompt.
 \begin{figure}[t]\centering\includegraphics[width=\columnwidth]{figures/review-counts.pdf}\caption{Target-circle labels in the 64-image fixed evaluation. Four returned files were byte-identical; independent review cannot be inferred from those files.}\label{fig:counts}\end{figure}
 \begin{figure}[t]\centering\includegraphics[width=\columnwidth]{figures/bounds.pdf}\caption{Worst-case finite-image bounds when unresolved labels are assigned either value. These are not confidence intervals.}\label{fig:bounds}\end{figure}
+\begin{table}[t]\centering\small
+\caption{Exact target-circle labels in the fixed 64-image evaluation. U denotes unresolved. The low/imbalanced cell has one unresolved label.}\label{tab:labels}
+\begin{tabular}{lrrr}\toprule
+Cell & Yes & No & U\\\midrule
+Low / balanced & 16 & 0 & 0\\
+Low / imbalanced & 15 & 0 & 1\\
+High / balanced & 14 & 2 & 0\\
+High / imbalanced & 14 & 1 & 1\\\midrule
+Total & 59 & 3 & 2\\\bottomrule
+\end{tabular}\end{table}
 Figure~\ref{fig:colors} breaks down the same finite-image counts by requested color. Figure~\ref{fig:counts} shows 59 yes, three no and two unresolved; ``maybe'' and ``not sure'' remain unresolved. Let $s_{LB},s_{LI},s_{HB},s_{HI}$ be the four equally weighted cell success rates. Define $D_C=(s_{LB}+s_{LI}-s_{HB}-s_{HI})/2$ and $D_I=(s_{LB}+s_{HB}-s_{LI}-s_{HI})/2$; therefore $D_C-D_I=s_{LI}-s_{HB}$, not a third independent contrast. The complexity drop is bounded by 0.0625--0.125, imbalance drop by $-0.03125$--0.03125, and their difference by 0.0625--0.125 (Figure~\ref{fig:bounds}). This direction agrees with a larger complexity drop in this small block, but does not establish the population effect, a reproducible seed-level effect, or the main joint-exposure hypothesis. Noise seeds are not independent model-training replicates.
 \begin{figure}[t]\centering\includegraphics[width=\columnwidth]{figures/review-by-color.pdf}\caption{Requested-color circle labels by cell and color, eight images per bar. These are descriptive counts, not model-seed replication.}\label{fig:colors}\end{figure}
 \subsection{Qualitative analysis and checker coverage}

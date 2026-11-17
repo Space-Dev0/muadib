@@ -17,6 +17,10 @@ cells = ['low-balanced', 'low-imbalanced', 'high-balanced', 'high-imbalanced']
 for name, key, color in [('Yes', 'yes', '#2a8a71'), ('No', 'no', '#bd5a4d'), ('Unresolved', 'unresolved', '#c5a34e')]:
     vals = [sum(data['cells_by_color'][cell][c][key] for c in ('red', 'blue')) for cell in cells]
     ax.barh(y, vals, left=left, label=name, color=color)
+    for row, value, start in zip(y, vals, left):
+        if value:
+            ax.text(start + value / 2, row, str(value), ha='center', va='center',
+                    fontsize=8, color='white' if name != 'Unresolved' else 'black')
     left += vals
 ax.set(yticks=y, yticklabels=labels, xlabel='Reviewed images (16 per cell)', xlim=(0,16))
 ax.invert_yaxis(); ax.legend(ncol=3, loc='lower right'); ax.spines[['top','right']].set_visible(False)
