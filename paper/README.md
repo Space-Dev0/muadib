@@ -1,5 +1,14 @@
 # Preliminary research paper
 
-`main.pdf` is the initial submission; `main.tex` is its LaTeX source. Compile from the repository root with `tectonic --outdir paper paper/main.tex`. The paper reports instrument-development findings, not a completed Stage 0 or a confirmed causal effect.
+`main.pdf` is the named project/preprint version. `anonymous.pdf` uses the ICML 2027 review style and suppresses author names and the repository link; it is a **draft**, not a claim of conference readiness or anonymity certification. `main.tex` is the shared source, with `anonymous.tex` selecting the anonymous version. From this directory, build with:
 
-`generate_figures.py` regenerates the plots with Python, Matplotlib, NumPy and Pillow. It uses the fixed reviewed counts documented in `docs/06-mosaic/mosaic-matched-eval-82000.md` and the four bundled fixed-seed generated images. The finite-image bounds are not confidence intervals. Check citation counts for at least three highly cited papers using one consistent scholarly index before final submission, as requested by the format guide.
+```sh
+tectonic main.tex
+tectonic anonymous.tex
+```
+
+The unmodified `icml2027.sty`, `icml2027.bst`, `algorithm.sty`, `algorithmic.sty` and `fancyhdr.sty` are from the official [ICML 2027 style archive](https://media.icml.cc/Conferences/ICML2027/styles/icml2027.zip), downloaded 17 November 2026; archive SHA-256 `52384a2a4f32e562755e44ced55a58f857f8706425f2f04904190f613531801e`. The ICML author instructions require at most eight main-body pages, anonymous review submissions and other checks. The authors must review current policies, anonymization, research integrity, and final artifacts before any conference submission.
+
+`generate_figures.py` regenerates the plots with Python, Matplotlib, NumPy and Pillow. It reads `review-aggregate.json`, a compact aggregate of the fixed reviewed score documented in `docs/06-mosaic/mosaic-matched-eval-82000.md`, and bundled fixed images. The illustrative joint-exposure and noise figures are constructed examples, not experimental measurements. Finite-image bounds are not confidence intervals.
+
+`REVIEW.md` records a harsh independent review and unresolved research deficiencies. The paper is a preliminary project report, not a completed causal study. The university guide's request to verify citation counts for at least three papers from a consistent scholarly index remains open.

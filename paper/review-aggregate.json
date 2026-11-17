@@ -1,0 +1,90 @@
+{
+  "cells_by_color": {
+    "low-balanced": {
+      "red": {
+        "yes": 8,
+        "no": 0,
+        "unresolved": 0,
+        "total": 8
+      },
+      "blue": {
+        "yes": 8,
+        "no": 0,
+        "unresolved": 0,
+        "total": 8
+      }
+    },
+    "low-imbalanced": {
+      "red": {
+        "yes": 8,
+        "no": 0,
+        "unresolved": 0,
+        "total": 8
+      },
+      "blue": {
+        "yes": 7,
+        "no": 0,
+        "unresolved": 1,
+        "total": 8
+      }
+    },
+    "high-balanced": {
+      "red": {
+        "yes": 7,
+        "no": 1,
+        "unresolved": 0,
+        "total": 8
+      },
+      "blue": {
+        "yes": 7,
+        "no": 1,
+        "unresolved": 0,
+        "total": 8
+      }
+    },
+    "high-imbalanced": {
+      "red": {
+        "yes": 8,
+        "no": 0,
+        "unresolved": 0,
+        "total": 8
+      },
+      "blue": {
+        "yes": 6,
+        "no": 1,
+        "unresolved": 1,
+        "total": 8
+      }
+    }
+  },
+  "checker_comparison": {
+    "standard": {
+      "abstained": 55,
+      "abstained_unresolved": 2,
+      "abstained_yes": 50,
+      "abstained_no": 3,
+      "agree": 9,
+      "tp": 9
+    },
+    "variable_count": {
+      "abstained": 18,
+      "abstained_unresolved": 2,
+      "abstained_yes": 13,
+      "agree": 46,
+      "tp": 46,
+      "abstained_no": 3
+    }
+  },
+  "complexity_drop_bounds": [
+    0.0625,
+    0.125
+  ],
+  "imbalance_drop_bounds": [
+    -0.03125,
+    0.03125
+  ],
+  "difference_in_drops_bounds": [
+    0.0625,
+    0.125
+  ]
+}
