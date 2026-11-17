@@ -59,7 +59,7 @@ This plan responds to the independent review received on 18 November 2026. The r
 
 ### G5 — Resolve memorization and run an exposure intervention only after gates
 
-- [ ] Audit nearest neighbors of the frozen pilot outputs against their actual training data, including calibrated controls and duplicate/near-duplicate checks. Report distances and visual examples; pixel L2 alone is not a complete memorization test.
+- [ ] Extend the initial [pixel nearest-neighbor audit](../06-mosaic/memorization-nearest-neighbors.md) of frozen pilot outputs against their actual training data with calibrated transformed-copy/non-copy controls and robust duplicate/near-duplicate checks. Report distances and visual examples; pixel L2 alone is not a complete memorization test.
 - [ ] Extend and validate the [counterbalanced, geometry-paired scene candidate](../06-mosaic/counterbalanced-pilot-data.md), including systematic distractor-dependence checks, plus independent dataset/model seed blocks. Freeze splits, mixtures, evaluation and stopping rules; run a bounded smoke test before a fully budgeted multi-seed experiment.
 - [ ] Train multi-predicate conditioned models only after G2–G4, then report all allocated comparisons including failures and uncertainty. Five seeds, 500 calibration examples and larger datasets in the review are proposals, not universal guarantees of statistical power; calculate resource and power needs from the chosen estimand.
 - **Acceptance:** predefined held-out outcomes, matched interventions, independent model/dataset replicates and an analysis that estimates the stated contrast. No endpoint-only design, image-level seed count, or checker abstention can substitute for model replication.

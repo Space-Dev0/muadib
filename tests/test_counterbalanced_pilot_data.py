@@ -19,6 +19,13 @@ class CounterbalancedPilotTests(unittest.TestCase):
                 points=[(o['x'],o['y']) for o in pair['high']['objects']]
                 for i,(x,y) in enumerate(points):
                     for a,b in points[i+1:]: self.assertTrue(abs(x-a)>12 or abs(y-b)>12)
+            assignments = {}
+            for r in rows:
+                if r['split'] == 'train' and r['complexity'] == 'high':
+                    target = (r['target']['color'], r['target']['shape'])
+                    distractor = (r['objects'][1]['color'], r['objects'][1]['shape'])
+                    assignments.setdefault(target, set()).add(distractor)
+            self.assertTrue(any(len(v) > 1 for v in assignments.values()))
             for split in ('train','test'):
                 high=[r for r in rows if r['split']==split and r['complexity']=='high']
                 for role in range(3):

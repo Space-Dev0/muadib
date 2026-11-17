@@ -46,12 +46,18 @@ def generate(output: Path, *, seed: int, train_pairs: int, test_pairs: int,
     seen_by_split = {'train': set(), 'test': set()}
     records = []
     for split, count, vocab in [('train', train_pairs, train_vocab), ('test', test_pairs, VOCABULARY)]:
-        targets = list(vocab) * (count // len(vocab)); rng.shuffle(targets)
-        for index, target in enumerate(targets):
-            # Per-target role rotations give exact per-role balance when all
-            # target combinations occur equally often within this split.
-            i = vocab.index(target)
-            labels = (target, vocab[(i + 1) % len(vocab)], vocab[(i + 2) % len(vocab)])
+        jobs = []
+        for _ in range(count // len(vocab)):
+            # Random cyclic permutations preserve exact per-role balance in
+            # each block without imposing one fixed mapping across all blocks.
+            ordering = list(vocab); rng.shuffle(ordering)
+            first, second = rng.sample(range(1, len(vocab)), 2)
+            for i, target in enumerate(ordering):
+                jobs.append((target, ordering[(i + first) % len(vocab)],
+                             ordering[(i + second) % len(vocab)]))
+        rng.shuffle(jobs)
+        for index, labels in enumerate(jobs):
+            target = labels[0]
             for _ in range(1000):
                 selected = rng.sample(GRID, 3)
                 objects = tuple(SceneObject(color, shape, x + rng.randint(-3, 3), y + rng.randint(-3, 3))
