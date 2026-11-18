@@ -1,0 +1,39 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{graphicx,booktabs,amsmath,hyperref}
+\hypersetup{colorlinks=true,urlcolor=blue}
+\title{Which Exposure Matters?\\\large Methodology and Results Brief}
+\author{Kanishak Mittal \and Aryan Tripathi \and Nikhil Tomar \and Vansh Rathore}
+\date{}
+\begin{document}\maketitle\vspace{-1.2cm}
+\section*{Research Question}
+Diffusion models generate an image by learning to reverse a process that adds noise. They may recognize individual ideas such as a color or shape, yet struggle to combine them correctly. We investigate whether the frequency of a complete combination in training examples matters beyond the frequencies of its individual ingredients.
+
+\section*{Methodology}
+\textbf{1. Controlled scenes and exposure.} A renderer produces annotated 64$\times$64 scenes with colored shapes. Rules describe properties and relationships. For rule $r$, a training mixture $w$ determines the estimated exposure of each individual predicate, $m_p$, and their joint exposure, $n_r$. We summarize their relationship using $\ell_r=\log n_r-\sum_{p\in r}\log m_p$. We measured 57 candidate rule conditions using 100,000 accepted scenes each: \textbf{5.7 million accepted scenes} in total.
+
+\textbf{2. Experimental design.} Optimization tools search for mixtures that vary exposure while controlling other variables. We also built a counterbalanced candidate dataset with matched two- and three-object layouts and optional held-out color--shape combinations. These instruments are designed to support a future controlled test of the main question.
+
+\textbf{3. Diffusion feasibility pilot.} Four small conditional U-Net diffusion models were trained on an NVIDIA GPU. The conditions cross two versus three objects with balanced versus imbalanced target colors. Each model used 200 fixed training scenes and 500,000 updates. We then generated 16 samples per condition, for 64 fixed evaluation images. The primary review question was whether the requested-color circle appeared.
+
+\textbf{4. Evaluation instruments.} Human review labels are retained as yes, no, or unresolved. Pixel checkers can also abstain. A separate foreground segmentation model was trained on synthetic scenes; its pixel-level quality is evaluated independently of the rule-checking task.
+
+\section*{Measured Results}
+\begin{table}[h]\centering\small
+\begin{tabular}{lrrr}\toprule
+Pilot condition & Yes & No & Unresolved\\\midrule
+Two objects, balanced & 16 & 0 & 0\\
+Two objects, imbalanced & 15 & 0 & 1\\
+Three objects, balanced & 14 & 2 & 0\\
+Three objects, imbalanced & 14 & 1 & 1\\\bottomrule
+\end{tabular}
+\end{table}
+The 64-image pilot produced \textbf{59 yes labels, 3 no labels, and 2 unresolved labels}. Under all assignments of the unresolved labels, the observed complexity drop is 6.25--12.5 percentage points and the imbalance drop is $-3.125$--3.125 points. These ranges describe this image set; they are not confidence intervals. The four returned review files were identical, so independent authorship is not established by the files.
+
+On \textbf{100 held-out synthetic scenes}, the foreground segmenter achieved pooled pixel IoU of \textbf{0.943} on clean images and \textbf{0.935} after blur. Separately, a balanced 500-scene synthetic checker dataset includes wrong-binding and missing-shape cases. On its 100-scene test split, the experimental checker made 63 decisions and abstained on 37; all accepted decisions agreed with renderer metadata. Pixel IoU, synthetic metadata agreement, and rule accuracy on generated images are different measurements.
+
+\section*{Engineering and Next Step}
+The project includes reproducible manifests, hashes, TCP scene streaming, resumable checksum-verified checkpoint transfer, checker calibration, and CPU design diagnostics. A local streaming experiment processed 900,000 scenes in approximately 14.1 minutes, including rendering and encoding; this is not GPU training throughput.
+
+The main joint-exposure intervention has not yet been tested, and Stage 0 has not passed. The next step is to validate exposure mixtures and checker behavior on independent data before training models for that intervention. Code and detailed protocols: \url{https://github.com/Space-Dev0/muadib}.
+\end{document}

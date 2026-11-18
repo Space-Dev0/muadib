@@ -205,7 +205,8 @@ Vansh Rathore \texttt{<cs24b1061@iiitr.ac.in>}\par
   \item Simple colored shapes with known object attributes.
   \item \textbf{Relations:} \emph{left of} and \emph{above}; ground truth verified from scene metadata.
   \item \textbf{Pilot setup:} four cells, 200 fixed scenes per cell.
-  \item \textbf{Rule study:} 57 candidate conditions, currently under validation.
+  \item \textbf{Exposure matrix:} 57 conditions; 5.7 million accepted scenes.
+  \item \textbf{New data:} paired geometry and held-out color--shape candidates.
 \end{itemize}
 
 \column{.45\textwidth}
@@ -315,7 +316,8 @@ High / imbalanced & 14 & 1 & 1 \\
   \setlength{\itemsep}{2pt}
   \item The $2\times2$ pilot changes scene complexity and color balance under matched settings; a \textbf{data-factor comparison}, not a U-Net component ablation.
   \item Experimental checker answered 46 of 64 target-circle questions; it abstained on all three reviewed ``no'' cases and both uncertain cases.
-  \item Foreground segmenter reached IoU 0.935 on 100 blurred synthetic scenes; rule adapter answered 54/300 reviewed images vs.\ 95/300 baseline.
+  \item Foreground segmenter: IoU \textbf{0.935} on 100 blurred synthetic scenes.
+  \item Balanced 500-scene checker set; test split: 63/100 experimental decisions, with 37 abstentions.
 \end{itemize}
 
 \vspace{2mm}
@@ -359,7 +361,7 @@ High / imbalanced & 14 & 1 & 1 \\
 \begin{frame}{Conclusion and future work}
 \begin{itemize}
   \setlength{\itemsep}{2pt}
-  \item \textbf{Contribution:} A framework to separate exposure to constituents from exposure to combinations.
+  \item \textbf{Built:} exposure measurement, constrained design tools, diffusion pilots, and human-audit workflows.
   \item \textbf{Current status:} Exploratory pilot and audit complete; Stage 0 has not passed.
   \item \textbf{Next steps:} Finish second model-seed block, validate checker, resolve design identifiability before testing H1.
 \end{itemize}
