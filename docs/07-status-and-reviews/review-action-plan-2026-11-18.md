@@ -53,7 +53,7 @@ This plan responds to the independent review received on 18 November 2026. The r
 
 ### G4 — Validate the checker and independent human audit
 
-- [ ] Freeze a candidate detector, define decision/abstain logic and specify a stratified calibration set with absent-target, wrong-binding, overlapping and borderline cases. Separate synthetic and model-generated domains and train/calibration/test seeds.
+- [ ] Extend the [balanced synthetic calibration candidate](../04-checker-and-human-audit/synthetic-calibration-82800.md) with overlapping and genuinely ambiguous cases; freeze any candidate detector and define its decision/abstain logic. Separate synthetic and model-generated domains and train/calibration/test seeds.
 - [ ] Obtain independently attributable blinded reviews on an untouched generated-image test set; record uncertainty and adjudication separately. Report a 2×3 truth-by-output table (yes/no/abstain), class-specific coverage, false accept/reject counts and uncertainty. Compute agreement only when independent attribution is supported. ROC requires a continuous calibrated score; do not require or report one for a hard-decision checker without such a score.
 - **Acceptance:** predeclared per-class coverage/error targets and uncertainty criteria pass on the held-out set; a high selected-only accuracy or synthetic pixel IoU is insufficient.
 
