@@ -62,3 +62,41 @@ On the following check, both low-complexity models had reached 500,000
 updates and the high-balanced model had a verified 250,000-update checkpoint.
 The high-imbalanced cell had not started; training and the waiting evaluation
 task were both running.
+
+## Completed block and review pack
+
+On 19 November, the laptop log recorded all four cells at verified 500,000
+updates. The automatic evaluation produced the reserved 64 images and four
+blinded reviewer archives. The artifacts were copied to the local ignored
+`outputs/mosaic-independent-eval-500k-83000/` and
+`outputs/mosaic-independent-review-500k-83000/` directories. The copied
+protocol, all four report hashes, 64 image and pixel hashes, and all image
+entries in the four archives were checked against the frozen provenance.
+The provenance SHA-256 is
+`9d9c20d5a769a9f379731eb7c3ebc62ae09d9d4be65eced309e6dd45d3b74919`;
+the frozen checker predictions SHA-256 is
+`8bd0300e3598c4736430f46e4c93e6518ee8b3487942c4a10126280d6f39a7da`.
+Hashes verify consistency with the saved artifacts, not independent authorship
+or the truth of human labels.
+
+Each reviewer has a separate local folder, `reviewer-1/` through `reviewer-4/`.
+Open that folder's `review.html` to view all 64 images and questions, and fill
+its `reviews.csv` with `yes`, `no`, or `unsure` for all three questions on
+every row. The HTML is a visual reference; answers are entered into the CSV.
+Count distinct recognizable objects; use `unsure` if the image is ambiguous.
+Each reviewer should work independently and return their own CSV without
+discussing answers until all reviews are complete. The four archives contain
+the same images, as intended; this does not establish independent reviews.
+Keep `private/` and frozen checker predictions away from reviewers.
+
+After the four independently completed files are returned, validate and score
+with `exposure.mosaic_matched_eval_score`, passing both frozen hashes above.
+The second block shares the original training dataset, so it probes model-seed
+sensitivity, not independent dataset sampling. Completion of generation is not
+a passed checker, exposure-design, or Stage 0 gate.
+
+After verifying the completed local copies, the two completed scheduled tasks
+were disabled on the laptop to prevent repeated five-minute launches. The
+checkpoint and evaluation outputs remain in place. The evaluator's last task
+result had reported failure despite its log repeatedly reporting packs ready;
+artifact integrity was checked separately as described above.
