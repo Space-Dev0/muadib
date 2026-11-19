@@ -129,7 +129,7 @@ Vansh Rathore \texttt{<cs24b1061@iiitr.ac.in>}\par
 % -----------------------------------------------------------------------------
 % Slide 4: Methodology
 % -----------------------------------------------------------------------------
-\begin{frame}{Methodology: an experiment, not just a benchmark}
+\begin{frame}{Methodology and computer networking}
 \begin{center}
 \begin{tikzpicture}[node distance=5mm]
   \node[box] (a) {Render\\ scenes};
@@ -145,18 +145,18 @@ Vansh Rathore \texttt{<cs24b1061@iiitr.ac.in>}\par
 \vspace{2mm}
 \begin{columns}[T,onlytextwidth]
 \column{.48\textwidth}
-\begin{block}{Control}
-\small Synthetic objects, attributes, and relations let us accurately quantify what training examples contain.
+\begin{block}{Controlled exposure}
+\small Known scene annotations separate individual concepts from their combination.
 \end{block}
 
 \column{.48\textwidth}
-\begin{block}{Compare}
-\small Separate exposure to individual ingredients from exposure to the full combination.
+\begin{block}{Networked execution}
+\small TCP streams scenes and shards inference jobs. SSH protects traffic; SHA-256 checks transferred content.
 \end{block}
 \end{columns}
 
 \vfill
-\smallnote{Main rule-exposure study in validation; streaming prototype: Localhost 300k scenes, 1,060--1,082 scenes/s; SSH tunnel 582--926 scenes/s.}
+\smallnote{CPU prototype: localhost 300k scenes per setting, 1,060--1,082 scenes/s; cross-laptop SSH tunnel 300 per setting, 582--926 scenes/s. Not GPU or link-capacity measurements.}
 \end{frame}
 
 % -----------------------------------------------------------------------------
@@ -363,7 +363,7 @@ High / imbalanced & 14 & 1 & 1 \\
   \setlength{\itemsep}{2pt}
   \item \textbf{Built:} exposure measurement, constrained design tools, diffusion pilots, and human-audit workflows.
   \item \textbf{Current status:} Exploratory pilot and audit complete; Stage 0 has not passed.
-  \item \textbf{Next steps:} Finish second model-seed block, validate checker, resolve design identifiability before testing H1.
+  \item \textbf{Next steps:} Validate checker, resolve design identifiability, and validate multi-device execution before testing H1.
 \end{itemize}
 
 \vspace{2mm}

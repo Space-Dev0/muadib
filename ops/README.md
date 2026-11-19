@@ -2,6 +2,65 @@
 
 These are experimental protocols, not a completed Stage 0 result. They do not encrypt or authenticate peers: use only over an authenticated tunnel or isolated trusted network. SHA-256 detects corruption, not malicious modification by an attacker. Do not expose prototype ports publicly.
 
+## Image-level inference across hosts
+
+`ops.distributed_inference` distributes independent `(color, seed)` jobs for
+the MOSAIC PilotUNet probe or warmstart checkpoint formats. It is not
+data-parallel training, and does not split one image's diffusion steps. Install
+the same project revision and compatible PyTorch/CUDA runtime on both workers;
+copy the same trusted checkpoint to each and verify its SHA-256. On each
+machine run (choose `probe` instead if appropriate):
+
+```sh
+uv run --extra train python -m ops.distributed_inference worker \
+  --checkpoint PATH_TO_CHECKPOINT --format warmstart --port 53211 --device cuda
+```
+
+From the coordinator, establish a separate SSH local forward to each worker
+and keep those sessions alive:
+
+```sh
+ssh -N -L 53211:127.0.0.1:53211 USER@HOST_A
+ssh -N -L 53212:127.0.0.1:53211 USER@HOST_B
+```
+
+Then run a small fixed-seed test using the SHA-256 printed by the worker and a
+new output directory:
+
+```sh
+uv run python -m ops.distributed_inference run \
+  --worker-port 53211 --worker-port 53212 --checkpoint-sha256 SHA256 \
+  --seed 1 --seed 2 --output outputs/distributed-inference-example
+```
+
+The coordinator retries another endpoint after an error, verifies payload
+digest and PNG dimensions, refuses duplicate jobs and pre-existing output
+directories for new runs, and saves an immutable job plan. Each completed image
+and its metadata are published together in a job directory. After a disconnect,
+repeat the same command with `--resume`: the coordinator checks the plan, PNGs
+and hashes, reuses valid completed jobs and runs only missing jobs. Different
+seeds, colors, job order or checkpoint hashes are rejected on resume. The
+aggregate manifest records timing, worker assignments, image hashes and worker
+runtime/source fingerprints when every job completes. `segment_wall_seconds`
+is only the most recent invocation, not the total across interrupted attempts.
+
+A coordinator lock prevents concurrent resumes. A hard process termination may
+leave `.coordinator.lock` or `.staging-*` directories behind. After verifying no
+coordinator is still running, remove the stale lock before resuming; staging
+directories are ignored and can be inspected and removed manually. Atomic
+renames protect against partial published job directories during normal process
+interruption; power-loss durability is not guaranteed. A lost reply can cause a
+job to be computed twice; no exactly-once execution is claimed. CUDA outputs
+need not match bitwise across devices. Total wall time and per-job round trips
+are not GPU idle measurements, and no speedup has been established. Tests
+cover local sockets and simulated failover, not two physical GPU hosts.
+
+Workers listen only on loopback. TCP and SHA-256 do not authenticate peers;
+use SSH forwards on trusted machines. A matching checkpoint hash is not proof
+that a checkpoint is safe or runtime dependencies are identical. Load only
+trusted checkpoints and compare recorded fingerprints before interpreting
+cross-host comparisons.
+
 ## Unconditional scene streaming
 
 `scene_stream` sends batches of CPU-rendered 64×64 PNG images and JSON annotations. It is separate from the training experiment; the demonstrated distribution is unconditional.
