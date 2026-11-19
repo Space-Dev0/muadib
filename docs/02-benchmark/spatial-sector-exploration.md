@@ -79,3 +79,55 @@ counterbalance endpoint attributes and directions, establish conditional
 sampling support and cost, rerun exposure design and held-out audits, and
 validate the image checker on the resulting generated scenes. Current
 four-mixture held-out violations and checker limitations remain unresolved.
+
+## Versioned conditional-scene pilot
+
+`exposure.sector_benchmark` adds an isolated `bounded-sector-scenes-v1`
+manifest, without changing the historical rule grammar. Its inventory contains
+288 rules: all 12 × 12 ordered endpoint color–shape combinations, each with
+`left` and `above`. For each rule it rejection-samples positive scenes from
+the original base renderer, with distinct train and held-out RNG seeds; exact
+rendered-pixel duplicates are rejected across both splits. This restriction
+makes the two outputs dependent through duplicate filtering, even though the
+underlying pseudorandom streams are separately seeded. The manifest stores
+annotations and pixel hashes; images can be reconstructed with the existing
+renderer. The held-out split is of scenes, not of rule combinations.
+
+An independent reference evaluator based on `atan2`, rather than the
+generator's tangent comparison, checked the declared geometry and endpoint
+binding, the renderer grid, every expected rule/split/scene slot, and
+re-rendered pixel hashes. It found the following for seeds 82910 and 82911,
+with two accepted scenes per rule per split:
+
+| Quantity | Result |
+| --- | ---: |
+| Rules / scenes | 288 / 1,152 |
+| Scenes per split | 576 |
+| Left / above scenes | 576 / 576 |
+| Exact pixel duplicates | 0 |
+| Proposals, mean / median / maximum per accepted scene | 233,145; 202.38 / 145 / 1,315 |
+
+This is an integrity audit of positive examples, not an independent
+implementation of the renderer or evidence of visual dissimilarity between
+splits. The audit's relation evaluator is independently written, but shares
+the rule inventory and renderer code. It does not assess negative examples,
+other complexity levels, checker performance, mixtures, or inference. A
+stored attempt count is checked against the declared budget but the auditor
+does not replay rejected proposals, so proposal counts are self-reported. A
+100,000-accepted-scene matrix for all 288 conditions at the observed mean
+would require roughly 5.8 billion proposals; this is a cost extrapolation,
+not a timed run. A smaller prespecified target set or a separately justified
+sampling design is needed. This pilot does not pass the benchmark or Stage 0
+gates and its semantics are not available in the legacy rule/checker APIs.
+
+```sh
+uv run --no-sync python -m exposure.sector_benchmark --train-seed 82910 \
+  --heldout-seed 82911 --scenes-per-rule 2 --output outputs/sector-benchmark-82910.json
+uv run --no-sync python -m exposure.sector_benchmark_audit \
+  --manifest outputs/sector-benchmark-82910.json --output outputs/sector-benchmark-audit-82910.json
+```
+
+The ignored manifest and audit output have SHA-256
+`b85ecf6884ed6278b56b4c8128182404d3fea9f54ce7922dd20c18c6ce1bff4d`
+and `fff36826f730f8cee0a82843f2711b15386b89b50b1a06df30aaa0fbf32f698f`,
+respectively. Both commands refuse to overwrite an existing output.
