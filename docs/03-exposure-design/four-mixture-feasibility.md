@@ -178,3 +178,46 @@ uncertainty and evaluation reports have SHA-256
 `92042db82bbaa4d2ecf67d745e778505f352f9cf41464c8908285376bf77bddc`,
 `d55d4d24683e1e57ac4543585e468ff346caf84a083fd898b380aff536a3bd69`, and
 `2cec9b25fde327a1c8c78c95fa60955506da31b8ed73b465785e4feb7003ca7b`.
+
+## Stricter-fit candidate and fresh 82921 draw
+
+After inspecting the previous results, we fitted a new six-rule candidate on
+the 82511 and 82917 matrices, using three starts, a 0.10 weight cap, marginal
+and lift contrast thresholds 0.03, and cross-factor tolerance 0.04. These are
+stricter fitting targets than the earlier exploratory 0.02/0.02/0.05 targets;
+they do not change the proposal's overall Stage 0 gate. All three optimizer
+starts reported numerical feasibility on the fitting matrices. The candidate
+SHA-256 is `6c5be465f43221f37c3a3cbe8334768982c6ead54a0dfdd40077149faa5d8be8`.
+
+On the previously inspected seed-82916 draw, the candidate had eight negative
+sample margins under the stricter targets; under the original exploratory
+targets one margin was negative (-0.000107). Before drawing seed 82921 we
+recorded the candidate hash, rule hash, 10,000 accepted scenes per condition,
+and both planned target sets in a local protocol (SHA-256
+`08c401d63324e55836e7662bb8c3a0f9c18eac22c5bd069db4b3a8d6161e5c2a`).
+The fresh same-renderer draw used 5,796,982 proposals for 570,000 accepted
+scenes. At the original targets, all 72 sample margins were nonnegative, but
+simultaneous 95% bounds certified only 31 met and left 41 unresolved. At the
+stricter targets, 11 sample margins were negative; the same bounds certified
+28 met and left 44 unresolved, with none certified violated. The information
+condition number was 17.97. This is a useful candidate, not a passed gate:
+the target rules are a small exploratory subset, the simultaneous bounds do
+not certify all margins, and the checker and benchmark gates remain open.
+
+The new ignored measurement report has SHA-256
+`8313ad4494ae5abc548d2b06f1faa0565842e90e49f8a78997664471fb270354`.
+The original-target and stricter-target uncertainty reports have SHA-256
+`0aaec4c57becb68ac1f36f69d5b65aee1f3b20094265464d0cb8edcde1c05521` and
+`a8c82fa4275e9e9593dfcdff893d5de685bd2f74370d18566a707fd55c32ac8f`.
+Use `exposure.design_factorial_uncertainty` with `--delta-m .02 --delta-l .02
+--cross-tolerance .05` to evaluate the original targets; omit the overrides
+to evaluate the stored stricter fitting targets. Use new output paths.
+
+The candidate can be recreated with `exposure.design_factorial` using
+`--report outputs/exposure-57-fresh-82511.json --fit-reports
+outputs/exposure-57-fresh-82917.json`, rules
+`attr2_rel0_attributes_1` through `attr2_rel0_attributes_6`, and
+`--starts 3 --maxiter 250 --max-weight .1 --delta-m .03 --delta-l .03
+--cross-tolerance .04`. The holdout is generated with
+`exposure.measure_fast --rules outputs/templates-57.json --samples 10000
+--seed 82921`, supplying fresh state and output paths.

@@ -16,6 +16,9 @@ found that both existing checkers abstained on all 200 severe-overlap examples.
 The [larger four-mixture holdout](../03-exposure-design/four-mixture-feasibility.md#larger-frozen-holdout-seed-82917)
 leaves 32 of 72 constraints unresolved under conservative simultaneous bounds;
 four sample-level margins are negative.
+A [new stricter-fit candidate](../03-exposure-design/four-mixture-feasibility.md#stricter-fit-candidate-and-fresh-82921-draw)
+met the earlier exploratory targets in one fresh sample, but 41 of its 72
+population constraints remain unresolved under the same conservative bounds.
 These results do not close the benchmark, checker, or exposure-design gates.
 
 A new bounded, one-block four-cell PilotUNet experiment has started on the GPU
