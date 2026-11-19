@@ -26,9 +26,9 @@ def zero_error_sample_size(target: float, alpha: float = .05) -> int:
         raise ValueError("target and alpha must lie strictly between zero and one")
     n = math.ceil(math.log(alpha) / math.log1p(-target))
     # Correct possible floating-point rounding at the integer boundary.
-    while 1 - alpha ** (1 / n) > target:
+    while -math.expm1(math.log(alpha) / n) > target:
         n += 1
-    while n > 1 and 1 - alpha ** (1 / (n - 1)) <= target:
+    while n > 1 and -math.expm1(math.log(alpha) / (n - 1)) <= target:
         n -= 1
     return n
 

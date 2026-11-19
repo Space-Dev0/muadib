@@ -16,6 +16,9 @@ class CheckerPrecisionTests(unittest.TestCase):
         self.assertGreater(upper_error_bound(1, 183, .025), upper_error_bound(0, 183, .025))
         self.assertEqual(upper_error_bound(5, 5), 1.0)
 
+    def test_small_target_uses_stable_arithmetic(self):
+        self.assertEqual(zero_error_sample_size(1e-8, .05), 299573226)
+
     def test_invalid_inputs(self):
         for errors, accepted in ((0, 0), (-1, 10), (11, 10), (1.5, 10)):
             with self.assertRaises(ValueError):
