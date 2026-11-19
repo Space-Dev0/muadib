@@ -132,6 +132,16 @@ The ignored manifest and audit output have SHA-256
 and `fff36826f730f8cee0a82843f2711b15386b89b50b1a06df30aaa0fbf32f698f`,
 respectively. Both commands refuse to overwrite an existing output.
 
+A second check used seeds 82912/82913 and ten positive scenes per rule per
+split. The same integrity audit checked 5,760 scenes, found zero exact pixel
+duplicates, and reported 1,160,402 proposals (mean 201.46, median 138,
+maximum 1,652 per accepted scene). It exercises the same implementation and
+does not validate the negative distribution or generated-image checker.
+Reproduce with `--train-seed 82912 --heldout-seed 82913 --scenes-per-rule 10`
+and fresh output paths in the commands above. The ignored manifest and audit
+hashes are `f054577e474f7c3a1e0305430c735bda9ba4e0ff9e9f59ee34be08b2af8d32fb`
+and `3c80485a4de6b93e71efae3597cb8ad810833abe71b739bccfb895289a95046c`.
+
 ## Clean synthetic checker adapter
 
 `exposure.sector_checker_audit` evaluates this versioned sector relation on
