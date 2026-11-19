@@ -8,6 +8,15 @@ fingerprint check. Sampling compatibility should be verified separately.
 **Not passed.** The following measurements are instrument-development results,
 not confirmatory research findings.
 
+The exploratory [bounded-sector scene pilot](../02-benchmark/spatial-sector-exploration.md#versioned-conditional-scene-pilot)
+now covers 288 endpoint-bound rules across train and held-out scene splits;
+its positive-scene integrity audit is not a validated benchmark or checker.
+An [overlap stress test](../04-checker-and-human-audit/overlap-stress-82995.md)
+found that both existing checkers abstained on all 200 severe-overlap examples.
+The [four-mixture uncertainty audit](../03-exposure-design/four-mixture-feasibility.md#simultaneous-holdout-uncertainty)
+leaves 52 of 72 constraints unresolved under conservative simultaneous bounds.
+These results do not close the benchmark, checker, or exposure-design gates.
+
 A new bounded, one-block four-cell PilotUNet experiment has started on the GPU
 with user authorization, separate from the stopped 760k continuous run. All
 four cells have reached verified 500,000-update checkpoints. A fixed 64-image

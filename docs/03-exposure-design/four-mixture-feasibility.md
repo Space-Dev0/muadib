@@ -63,3 +63,48 @@ The original two-matrix fit JSON was SHA-256 `e14e1d337c13eab3766c419b64e6c6b5b5
 Before generating seed 82681, we recorded the SHA-256 of the selected two-fitting-matrix design (`e14e1d337c13eab3766c419b64e6c6b5b59f57eb0d88a6ecaa7e1393102ab755`), the seed and 1,000 accepted scenes per condition in the ignored `outputs/factorial-82673-fresh-protocol.json`. Without refitting, the new exposure report (SHA-256 `6b827f08651440c722ab8353be719015aa342e17f2f2e2bfcd0790b7962619e5`) yielded eight factorial/cross-factor constraint violations, worst margin -0.01155, and unregularized information condition number 13.93. The new draw uses the same renderer, is not an external benchmark, and does not quantify Monte Carlo uncertainty. It fails the chosen strict sample-level constraints; no claim about population infeasibility or the full research gate follows. The completed non-refitting check is `outputs/factorial-global-82673-fresh-82681.json` (ignored). A separate reference under simplified iid-object assumptions is documented in `docs/01-instruments/object-count-baseline.md`.
 
 A further candidate was fitted on all three previously inspected matrices (82511, 82512 and 82513), with the same 0.10 weight cap and factorial thresholds. Its SHA-256 `908a8ac581a318cfecfeba2d061d652a1100c34bda6d108cf4b1f77f59ef4dda` and an evaluation protocol for seed 82682 were recorded before generating that new draw. All three local optimizer starts reported feasible fits on the three fitting matrices. On the fresh 82682 renderer draw (1,000 accepted scenes per condition, report SHA-256 `2702240c61951ebc06bc8af6041ed15fc37f71b7200d0e40105d68b62854bb40`), the frozen design had **14 constraint violations**, worst signed margin -0.01081 and information condition number 19.69. It used at most 0.10 weight per condition and had 11.46–15.20 effective conditions per mixture. This is another same-renderer, finite-sample sensitivity test, not evidence that the underlying population is infeasible or that further fitting alone will solve the issue. Protocol, frozen design and results remain in ignored `outputs/` with the `82675`/`82682` identifiers.
+
+## Simultaneous holdout uncertainty
+
+The point violations above are sample estimates, not proof that their
+population margins are negative. We now bound their uncertainty with
+`exposure.design_factorial_uncertainty`. For a frozen weight vector $w$ and
+condition $j$ with $N_j$ independent accepted scenes, a mixture probability is
+$\hat p=\sum_j w_j\hat p_j$. Weighted Hoeffding gives
+$P(|\hat p-p|>t)\le2\exp[-2t^2/(\sum_j w_j^2/N_j)]$. Applying a union bound
+to all four mixtures, six rules, and three events per rule (two singleton
+predicates and the conjunction) gives 72 simultaneous mixture-probability
+intervals at family-wise 95% coverage, conditional on the frozen design and
+the independent-sampling model. The method needs no assumption that the
+predicate outcomes within one scene are independent. Interval arithmetic
+propagates these bounds through the logarithms and the 72 factor/cross-factor
+inequalities; when a probability interval touches zero, the corresponding
+log endpoint is unbounded. This intentionally conservative calculation can
+leave a constraint unresolved even when its empirical margin is negative.
+
+On the frozen 82675 design and the independently seeded 82682 renderer draw,
+**20 of 72 constraints have lower bounds at or above zero, none have upper
+bounds below zero, and 52 remain unresolved** at the stated family-wise 95%
+level. All 14 negative point margins are among the unresolved constraints.
+Thus the strict *sample-level* constraints failed as previously reported;
+the intervals neither establish 14 population violations nor certify the
+design as feasible. The probability radii are 0.0162–0.0186 across mixtures;
+these propagate to wider, asymmetric log-feature intervals. No conclusion
+about the broader rule population, model performance, checker or Stage 0
+follows. The same pseudorandom generator and renderer were used, not an
+external dataset; the sampling model idealizes accepted scenes as independent.
+
+The CLI verifies the original fitting-report hash, matching rule definitions
+and order, distinct fitting/holdout seeds and counts consistent with reported
+probabilities. A different seed cannot itself prove that the design was
+actually frozen before the holdout; consult the protocol above. The result's
+SHA-256 is `1d3577673754f621440bf64af12c2219ab616cd75effb26c6c76ad0cec4e7474`.
+Reproduce with a new output path:
+
+```sh
+OPENBLAS_NUM_THREADS=1 uv run --no-sync python -m exposure.design_factorial_uncertainty \
+  --design outputs/factorial-global-82675.json \
+  --reference-report outputs/exposure-57-fresh-82511.json \
+  --report outputs/exposure-57-fresh-82682.json \
+  --output outputs/factorial-uncertainty-82682-new.json
+```
