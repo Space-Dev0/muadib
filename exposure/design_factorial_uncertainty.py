@@ -91,6 +91,9 @@ def main():
     parser.add_argument('--report', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--alpha', type=float, default=.05)
+    parser.add_argument('--delta-m', type=float, help='Override the recorded marginal contrast threshold')
+    parser.add_argument('--delta-l', type=float, help='Override the recorded lift contrast threshold')
+    parser.add_argument('--cross-tolerance', type=float, help='Override the recorded cross-factor tolerance')
     args = parser.parse_args()
     design_raw, report_raw = args.design.read_bytes(), args.report.read_bytes()
     reference_raw = args.reference_report.read_bytes()
@@ -130,12 +133,16 @@ def main():
                         or not math.isclose(probability, count / size, rel_tol=0, abs_tol=1e-12)):
                     raise ValueError('inconsistent probability, success count, or sample size')
     settings = design['settings']
+    thresholds = {'delta_m': settings['delta_m'] if args.delta_m is None else args.delta_m,
+                  'delta_l': settings['delta_l'] if args.delta_l is None else args.delta_l,
+                  'cross_tolerance': (settings['cross_tolerance'] if args.cross_tolerance is None
+                                      else args.cross_tolerance)}
     result = interval_audit(design['best']['weights'], marg, joint, sizes,
-                            delta_m=settings['delta_m'], delta_l=settings['delta_l'],
-                            cross_tolerance=settings['cross_tolerance'], alpha=args.alpha)
+                            alpha=args.alpha, **thresholds)
     result.update({'design_sha256': hashlib.sha256(design_raw).hexdigest(),
                    'report_sha256': hashlib.sha256(report_raw).hexdigest(), 'seed': report['seed'],
                    'rule_names': design['rule_names'],
+                   'evaluated_thresholds': thresholds,
                    'caution': 'The analyst must verify the design was frozen before this report was generated.'})
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open('x', encoding='utf-8') as output:

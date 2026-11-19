@@ -94,6 +94,17 @@ class FactorialUncertaintyTests(unittest.TestCase):
                                        '--report', str(holdout), '--output', str(root / 'out.json')],
                                       capture_output=True, text=True)
             self.assertEqual(run(report(2)).returncode, 0)
+            result = json.loads((root / 'out.json').read_text())
+            self.assertEqual(result['evaluated_thresholds'],
+                             {'delta_m': .02, 'delta_l': .02, 'cross_tolerance': .05})
+            overridden = subprocess.run(
+                [sys.executable, '-m', 'exposure.design_factorial_uncertainty',
+                 '--design', str(root / 'design.json'), '--reference-report', str(reference),
+                 '--report', str(holdout), '--output', str(root / 'override.json'),
+                 '--delta-m', '.03', '--cross-tolerance', '.04'], capture_output=True, text=True)
+            self.assertEqual(overridden.returncode, 0, overridden.stderr)
+            self.assertEqual(json.loads((root / 'override.json').read_text())['evaluated_thresholds'],
+                             {'delta_m': .03, 'delta_l': .02, 'cross_tolerance': .04})
             self.assertNotEqual(run(report(1)).returncode, 0)
             tampered = report(3)
             tampered['columns'][0]['measurements']['r']['successes'] = 99
