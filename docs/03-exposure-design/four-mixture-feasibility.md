@@ -149,3 +149,32 @@ The ignored measurement, uncertainty and evaluation reports have SHA-256
 `207d9a047d7816edbeea173cdf1c100887b45b4b77a8a7e4e27047d0efca7e55`, and
 `e81bfd65cbb0869dbc42ee4f8dead2ac4a8c28f4e988cdd1039a4213dde99342`.
 Use fresh output paths when reproducing the commands.
+
+## Larger frozen holdout, seed 82917
+
+After the 82916 result, we recorded the same frozen design and rule hashes,
+seed 82917, 100,000 accepted scenes per condition and the same no-refitting
+analysis in `outputs/factorial-82675-holdout-82917-protocol.json` (SHA-256
+`bbf0d89199ab71efcd676e2963bd9da92fe8b4c8eed08dc7f6e9ea6bfd0c987f`).
+The new same-renderer draw contains 5.7 million accepted scenes from
+57,819,265 proposals. This is a sequential exploratory sensitivity check,
+not an external preregistration, and the 82675 design was not refitted.
+
+The 82917 point estimates gave four negative margins out of 72, with worst
+margin -0.0012845. The unregularized information eigenvalues were 0.02558
+and 0.48916 (condition number 19.13). The same conservative simultaneous
+95% analysis certified 40 constraints met, none violated, and 32 unresolved;
+all four negative estimates were unresolved. Probability radii were
+0.00162–0.00186. Thus the chosen sample-level constraints still fail, and
+the uncertainty bounds neither certify all population constraints nor
+establish any population violation. The proposal's benchmark, checker,
+population and identifiability concerns also remain open; this is not a
+Stage 0 pass. Comparisons with earlier draws are descriptive, not an
+independently powered experiment about sample-size effects.
+
+Reproduce the previous section's three commands with seed `82917`, samples
+`100000`, and new 82917 output/state paths. The ignored measurement,
+uncertainty and evaluation reports have SHA-256
+`92042db82bbaa4d2ecf67d745e778505f352f9cf41464c8908285376bf77bddc`,
+`d55d4d24683e1e57ac4543585e468ff346caf84a083fd898b380aff536a3bd69`, and
+`2cec9b25fde327a1c8c78c95fa60955506da31b8ed73b465785e4feb7003ca7b`.
