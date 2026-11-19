@@ -131,3 +131,31 @@ The ignored manifest and audit output have SHA-256
 `b85ecf6884ed6278b56b4c8128182404d3fea9f54ce7922dd20c18c6ce1bff4d`
 and `fff36826f730f8cee0a82843f2711b15386b89b50b1a06df30aaa0fbf32f698f`,
 respectively. Both commands refuse to overwrite an existing output.
+
+## Clean synthetic checker adapter
+
+`exposure.sector_checker_audit` evaluates this versioned sector relation on
+objects returned by the existing standard pixel detector. It checks the
+original scene annotations using the independently written angle evaluator;
+it does not change the legacy rule or checker interfaces. For each held-out
+positive, it constructs a geometry-negative scene with the same three object
+color–shape attributes, drawing fresh grid positions until the sector relation
+is false. These negatives are paired with positives and selected by their
+metadata; they are not representative independent negative samples.
+
+On the 82910 manifest with negative-position seed 82914, all 576 positives
+were answered yes and all 576 negatives no, with no abstentions. This is a
+development result on clean, grid-separated renderer images. It does not
+validate model-generated, blurred, overlapping, or human-ambiguous images;
+does not provide a population error guarantee; and does not close the checker
+or Stage 0 gates. The adapter reuses the angle evaluator for labels and
+detected-object decisions, so it is not an independent end-to-end oracle.
+
+```sh
+uv run --no-sync python -m exposure.sector_checker_audit \
+  --manifest outputs/sector-benchmark-82910.json --seed 82914 \
+  --output outputs/sector-checker-audit-82914-v2.json
+```
+
+The ignored output SHA-256 is
+`b8d8312cfd122bc92e6a2aaf8b33954a0cf5dfa878169b589ee25341b4610e8c`.
