@@ -22,6 +22,8 @@ population constraints remain unresolved under the same conservative bounds.
 A [max-min-margin candidate](../03-exposure-design/four-mixture-feasibility.md#max-min-margin-candidate-and-fresh-82924-draw)
 has improved sample margins and conditioning on a separate fresh draw, but 25
 of 72 population constraints remain unresolved and the six-rule scope is limited.
+An exploratory extension to all 13 two-predicate rules failed numerical
+fitting constraints in four local starts; this is not an infeasibility proof.
 These results do not close the benchmark, checker, or exposure-design gates.
 
 A new bounded, one-block four-cell PilotUNet experiment has started on the GPU

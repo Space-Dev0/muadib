@@ -266,3 +266,19 @@ outputs/exposure-57-fresh-82511.json --fit-report
 outputs/exposure-57-fresh-82917.json --output NEW_PATH`. Measure a fresh
 10,000-scene draw with `exposure.measure_fast` and use
 `exposure.design_factorial_uncertainty` to evaluate the frozen weights.
+
+### Expanded two-predicate sensitivity
+
+The 57-rule inventory contains 13 two-predicate rules: the six attribute-only
+rules above and seven attribute-plus-relation rules. Reusing the six-rule
+solution as initialization, the same max-min fit on all 13 rules and the
+same two fitting matrices converged with a **negative** worst margin
+(-0.0007178), so the tool correctly reported it infeasible. Three additional
+local starts, initialized from the 82920 optimizer's three candidates,
+returned margins -0.0007178, -0.0007180, and -0.0007179. Solver constraint
+residuals were below 2e-10. This is a local numerical finding on estimated
+matrices, not a global infeasibility proof; it also does not cover rules with
+three or more predicates. No new independent holdout was evaluated for this
+infeasible fit. The ignored initial and fit artifacts have SHA-256
+`6b0212762158037c857924920a9fd7e4a83b677bfc009848cfebaa608c308755`
+and `cec17110615d2d0304eed12b385564ca4346dc1c6b40081cd108131fe5c5535b`.
