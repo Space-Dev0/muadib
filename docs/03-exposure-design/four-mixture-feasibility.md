@@ -108,3 +108,44 @@ OPENBLAS_NUM_THREADS=1 uv run --no-sync python -m exposure.design_factorial_unce
   --report outputs/exposure-57-fresh-82682.json \
   --output outputs/factorial-uncertainty-82682-new.json
 ```
+
+## Larger frozen holdout, seed 82916
+
+Before drawing this sample we recorded the frozen 82675 design hash, rule-file
+hash, seed 82916, 10,000 accepted scenes per condition and the no-refitting
+analysis in `outputs/factorial-82675-holdout-82916-protocol.json` (SHA-256
+`70f6b1940a6681e714bb2a7da8ce5ba698c58e2542f7ccf61b2d69c8f54b55f3`).
+The 57-condition draw contains 570,000 accepted scenes from 5,784,375
+proposals. It is a fresh draw from the same renderer following several earlier
+exploratory checks, not external preregistration or an external dataset.
+
+Without refitting, three of the 72 sample-level factorial/cross-factor
+constraints were negative; the worst margin was -0.002612. The within-rule
+information matrix eigenvalues were 0.02567 and 0.49446, condition number
+19.26. The simultaneous weighted-Hoeffding audit certified 33 constraints
+met, none violated, and left 39 unresolved at the stated family-wise 95%
+level; all three negative point estimates are unresolved, and probability
+radii were 0.00512–0.00589. Relative to the earlier
+1,000-per-condition draw this is more precise, but the draws differ, and
+neither the point-violation counts nor these conservative intervals prove a
+population-level comparison. The gate remains open.
+
+```sh
+uv run --no-sync python -m exposure.measure_fast --rules outputs/templates-57.json \
+  --samples 10000 --seed 82916 --state outputs/fast-measure-82916.state.json \
+  --output outputs/exposure-57-fresh-82916.json
+OPENBLAS_NUM_THREADS=1 uv run --no-sync python -m exposure.design_factorial_uncertainty \
+  --design outputs/factorial-global-82675.json \
+  --reference-report outputs/exposure-57-fresh-82511.json \
+  --report outputs/exposure-57-fresh-82916.json \
+  --output outputs/factorial-uncertainty-82916.json
+PYTHONPATH=. OPENBLAS_NUM_THREADS=1 uv run --no-sync python scripts/evaluate-factorial-design.py \
+  --design outputs/factorial-global-82675.json --reports outputs/exposure-57-fresh-82916.json \
+  --output outputs/factorial-evaluation-82916.json
+```
+
+The ignored measurement, uncertainty and evaluation reports have SHA-256
+`6ef2e9e6ce8dc1495b78ad89262172d4920f828b0898b826d0ba20a095a6d182`,
+`207d9a047d7816edbeea173cdf1c100887b45b4b77a8a7e4e27047d0efca7e55`, and
+`e81bfd65cbb0869dbc42ee4f8dead2ac4a8c28f4e988cdd1039a4213dde99342`.
+Use fresh output paths when reproducing the commands.

@@ -13,8 +13,9 @@ now covers 288 endpoint-bound rules across train and held-out scene splits;
 its positive-scene integrity audit is not a validated benchmark or checker.
 An [overlap stress test](../04-checker-and-human-audit/overlap-stress-82995.md)
 found that both existing checkers abstained on all 200 severe-overlap examples.
-The [four-mixture uncertainty audit](../03-exposure-design/four-mixture-feasibility.md#simultaneous-holdout-uncertainty)
-leaves 52 of 72 constraints unresolved under conservative simultaneous bounds.
+The [larger four-mixture holdout](../03-exposure-design/four-mixture-feasibility.md#larger-frozen-holdout-seed-82916)
+leaves 39 of 72 constraints unresolved under conservative simultaneous bounds;
+three sample-level margins are negative.
 These results do not close the benchmark, checker, or exposure-design gates.
 
 A new bounded, one-block four-cell PilotUNet experiment has started on the GPU
