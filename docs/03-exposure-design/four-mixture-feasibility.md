@@ -221,3 +221,48 @@ outputs/exposure-57-fresh-82917.json`, rules
 --cross-tolerance .04`. The holdout is generated with
 `exposure.measure_fast --rules outputs/templates-57.json --samples 10000
 --seed 82921`, supplying fresh state and output paths.
+
+## Max-min margin candidate and fresh 82924 draw
+
+`exposure.design_factorial_margin` explores a different objective: maximize
+the smallest of the 72 constraint margins across all supplied fitting
+matrices, subject to four shared simplex weights between 0.001 and 0.1. It
+uses SLSQP from one feasible initial design. Numerical success is a local
+result, not a proof of global optimality, statistical power, or Stage 0
+passage. Positive unregularized information rank is checked separately for
+each fitting matrix.
+
+Using the 82920 design as initialization and seeds 82511 and 82917 as fitting
+matrices, the local fit reported minimum fitting margin 0.021916 and maximum
+numerical violation below 3e-11. Seeds 82916 and 82921 were previously
+inspected and gave nonnegative sample margins; these are sensitivity checks,
+not untouched holdouts. Before drawing seed 82924, we recorded the fitted
+candidate hash, rule hash, 10,000 accepted scenes per condition and the
+original 0.02/0.02/0.05 thresholds in a local protocol (SHA-256
+`2162ce38a92bd903717542f1c71edd214886ef538296aeedc8a1542cb5d8866e`).
+On the fresh draw all 72 point margins were nonnegative, the minimum was
+0.021005, and the information condition number was 3.33. The simultaneous
+95% bounds certified 47 constraints met, none violated, and 25 unresolved.
+The six-rule subset and remaining benchmark/checker gates prevent a Stage 0
+pass; the draw uses the same renderer after multiple exploratory decisions.
+
+The frozen v2 candidate hash was
+`5c467b2afec30822dc93ba3f5978d2bfe764a97623e75ff6f795c2bd4e87e0d1`.
+Its inherited `candidates`, `starts`, `seed` and `maxiter` metadata describe
+the initial design rather than the max-min fit and must not be interpreted
+as results of this fit. The implementation was corrected to remove that stale
+metadata and record its own source hash; a post-draw rerun produced exactly
+the same weights (maximum absolute difference zero). The original frozen v2
+artifact, not the later rerun, was used for the 82924 evaluation. The ignored
+measurement, uncertainty and evaluation reports have SHA-256
+`433f22e96158e1123adb98e67d8f66f8732b2bea03709d0df2609d6598e885ed`,
+`6b650b204793e9c285f380805c9e57d9805a6908a7e18a98e745ebbbfb2f1d86`, and
+`24bd39df2004abc35bcc76b6cb4339b0423df3c07ca99dc3ae0083a3b7a1104c`.
+
+To reproduce the corrected fit, run `uv run --no-sync python -m
+exposure.design_factorial_margin --initial-design
+outputs/factorial-robust-82920.json --fit-report
+outputs/exposure-57-fresh-82511.json --fit-report
+outputs/exposure-57-fresh-82917.json --output NEW_PATH`. Measure a fresh
+10,000-scene draw with `exposure.measure_fast` and use
+`exposure.design_factorial_uncertainty` to evaluate the frozen weights.

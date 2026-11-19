@@ -19,6 +19,9 @@ four sample-level margins are negative.
 A [new stricter-fit candidate](../03-exposure-design/four-mixture-feasibility.md#stricter-fit-candidate-and-fresh-82921-draw)
 met the earlier exploratory targets in one fresh sample, but 41 of its 72
 population constraints remain unresolved under the same conservative bounds.
+A [max-min-margin candidate](../03-exposure-design/four-mixture-feasibility.md#max-min-margin-candidate-and-fresh-82924-draw)
+has improved sample margins and conditioning on a separate fresh draw, but 25
+of 72 population constraints remain unresolved and the six-rule scope is limited.
 These results do not close the benchmark, checker, or exposure-design gates.
 
 A new bounded, one-block four-cell PilotUNet experiment has started on the GPU
