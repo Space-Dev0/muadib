@@ -17,8 +17,9 @@ replication prevent a gate conclusion. See [evaluation](../06-mosaic/mosaic-matc
 A second matched model-seed block has completed all four 500,000-update
 checkpoints and generated 64 fixed-seed images. Returned reviews have been
 scored; the complexity drop was zero in this block, while the complexity drop
-minus the imbalance drop was 0.0625. Review files are byte-identical, and the
-checker and exposure-design gates remain open; see [independent block](../06-mosaic/mosaic-independent-82600.md).
+minus the imbalance drop was 0.0625. The user confirmed independent reviews;
+the byte-identical files cannot independently verify attribution. The checker
+and exposure-design gates remain open; see [independent block](../06-mosaic/mosaic-independent-82600.md).
 
 The single-cell PilotUNet trainer was stopped at a verified 760,000-update
 checkpoint. Its exploratory previews appear clearer, but they do not establish

@@ -103,13 +103,12 @@ artifact integrity was checked separately as described above.
 
 ## Returned reviews and descriptive results
 
-The user reported the reviews complete. All four CSVs contain 64 complete
+The user confirmed that the reviews were independently completed. All four CSVs contain 64 complete
 rows and have the same SHA-256
 `cfa42d9125121da82df70b8247fe5172329b053572bda5b1534fa7b5ebab6ac8`.
 Each of the 256 images in the extracted reviewer folders matched the frozen
 provenance; the scorer also verified the pinned provenance and prediction
-hashes. The artifacts cannot establish reviewer identities or independence.
-Identical files do not by themselves prove whether reviews were independent.
+hashes. The files contain no identifying metadata and cannot independently verify reviewer identities or independence; the independence statement is based on the user’s confirmation. Identical files do not by themselves prove whether reviews were independent.
 
 For requested-color circle presence, counts are:
 
