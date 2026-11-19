@@ -50,3 +50,12 @@ measurements include producer rendering and encoding, not GPU training or raw
 link bandwidth. These are single, sub-second sequential trials, so their
 ordering is not a reliable batch-size comparison. Raw records are in
 `ops/tunnel-second-laptop-82993.jsonl`; no private host address is included.
+
+A separate SSH-tunneled checkpoint transfer to that laptop sent the same
+4,379,345-byte checkpoint (3,983,694 gzip bytes). The sender deliberately
+closed the first connection after 50,000 compressed bytes and reported resume
+offsets `[0, 50000]`. The receiver independently reported SHA-256
+`6ff581062b3410c31f72d0ce244db38dc2ca2f90c19614500299666458e77d93`
+after publication, matching the source. This demonstrates one planned
+interruption and byte-level recovery; it does not establish resilience to
+power loss, adversarial peers, or every network failure mode.

@@ -1,0 +1,10 @@
+{
+  "experiment": "ssh-tunneled checkpoint transfer with one intentional disconnect",
+  "source_sha256": "6ff581062b3410c31f72d0ce244db38dc2ca2f90c19614500299666458e77d93",
+  "destination_sha256": "6ff581062b3410c31f72d0ce244db38dc2ca2f90c19614500299666458e77d93",
+  "bytes": 4379345,
+  "compressed_bytes": 3983694,
+  "simulated_drop_after_compressed_bytes": 50000,
+  "resume_offsets": [0, 50000],
+  "note": "One controlled failure over an SSH tunnel; no power-loss or adversarial-peer guarantee."
+}

@@ -116,3 +116,9 @@ uv run python -m ops.checkpoint_sync send --host 127.0.0.1 --port 53122 --file o
 ```
 
 The receiver requires hard-link support on its destination filesystem. A matching existing destination is accepted after size and hash verification; a different destination is rejected. Local tests cover actual interrupted byte-level resume, exact recovery, refusal to overwrite and corruption rejection. They do not establish unattended service resilience or security on an untrusted network.
+
+An SSH-tunneled cross-laptop trial also resumed a 3,983,694-byte compressed
+checkpoint at offset 50,000 after a deliberate disconnect. The published
+4,379,345-byte checkpoint matched the source SHA-256; see
+`checkpoint-tunnel-82994.json`. This is one controlled interruption, not a
+test of arbitrary failures or automatic training restart.
