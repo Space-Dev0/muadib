@@ -29,12 +29,17 @@ def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def prepare(pack: Path, output: Path, *, seed: int = 82940) -> dict:
+def prepare(pack: Path, output: Path, *, seed: int = 82940,
+            exclude: tuple[str, ...] = (), gpu_fit: bool = False) -> dict:
     """Freeze image order and integrity, without including human decisions."""
     raw = (pack / 'private' / 'provenance.json').read_bytes()
     provenance = json.loads(raw)
+    if len(set(exclude)) != len(exclude) or set(exclude) - set(provenance['items']):
+        raise ValueError('excluded IDs must be unique review images')
     items = []
     for identifier, meta in provenance['items'].items():
+        if identifier in exclude:
+            continue
         if Path(identifier).name != identifier or meta['color'] not in ('red', 'blue'):
             raise ValueError('invalid image identifier or color')
         data = (pack / 'private' / 'images' / (identifier + '.png')).read_bytes()
@@ -44,10 +49,16 @@ def prepare(pack: Path, output: Path, *, seed: int = 82940) -> dict:
             if image.mode != 'RGB' or image.size != (64, 64) or sha(image.tobytes()) != meta['pixel_sha256']:
                 raise ValueError('invalid image pixels')
         items.append({'id': identifier, 'color': meta['color'], 'image_sha256': sha(data)})
+    if not items:
+        raise ValueError('no review images remain')
     random.Random(seed).shuffle(items)
-    plan = {'schema': 1, 'provenance_sha256': sha(raw), 'seed': seed,
+    options = {'temperature': 0, 'seed': 42, 'num_predict': 64, 'num_ctx': 2048,
+               'num_batch': 64}
+    if gpu_fit:
+        options.update({'num_ctx': 1024, 'num_batch': 16, 'num_gpu': 99})
+    plan = {'schema': 1, 'provenance_sha256': sha(raw), 'seed': seed, 'excluded': list(exclude),
             'prompt': PROMPT, 'schema_format': SCHEMA, 'resize': 'nearest 64 to 256',
-            'options': {'temperature': 0, 'seed': 42, 'num_predict': 64, 'num_ctx': 2048},
+            'options': options,
             'items': items, 'code_sha256': sha(Path(__file__).read_bytes())}
     output.mkdir(parents=True, exist_ok=False)
     (output / 'results').mkdir()
@@ -162,10 +173,13 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--url', default='http://127.0.0.1:11435')
     parser.add_argument('--model', default='qwen2.5vl:3b')
+    parser.add_argument('--exclude', action='append', default=[], help='Exclude a previously inspected image when preparing')
+    parser.add_argument('--gpu-fit', action='store_true', help='Prepare smaller GPU-offload inference settings')
     args = parser.parse_args()
     try:
         if args.action == 'prepare':
-            print(json.dumps({'images': len(prepare(args.pack, args.output)['items'])}))
+            print(json.dumps({'images': len(prepare(args.pack, args.output,
+                                                   exclude=tuple(args.exclude), gpu_fit=args.gpu_fit)['items'])}))
         elif args.action == 'run':
             run(args.pack, args.output, url=args.url, model=args.model)
         else:
