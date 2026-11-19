@@ -19,6 +19,12 @@ there is no GPU-idle measurement. Cross-device equality is not implied.
 The ignored local manifests have SHA-256
 `ec819322a2e41f5f660803b78fa4119f8ee33107feb0ea7e9ed82b34cb87fe1f`
 and `09043b031e504f2acc66154df106858ea37deb0edd6c047b219855a88716afa9`.
+These first runs used the initial coordinator before resume support was added.
+The revised coordinator then generated another red/blue pair (seed 82992)
+through the same worker; a subsequent `--resume` verified and reused both
+images without requesting them again. Unit tests exercise interrupted-job
+recovery, a changed plan, and altered output. This live check does not itself
+simulate a network failure midway through a job.
 
 The same laptop also completed a separate three-update CUDA training smoke
 on a newly generated 20-scenes-per-cell synthetic dataset (seed 82990),
@@ -35,3 +41,12 @@ is being provisioned; a completed two-worker GPU run and any speed comparison
 must be documented separately after verification. A valid performance study
 needs frozen jobs and model, independently repeated and interleaved single- and
 two-worker runs, warmup, provenance checks and clear compute/network timing.
+
+While provisioning, the new laptop received a separate CPU-rendered stream
+over an SSH remote forward. For 300 scenes per setting, seed 82993, batches
+2, 8 and 16 yielded respectively 555.6, 827.4 and 513.8 scenes/s (4.73, 7.05
+and 4.38 Mb/s of PNG payload). The receiver timed decoding and waiting; the
+measurements include producer rendering and encoding, not GPU training or raw
+link bandwidth. These are single, sub-second sequential trials, so their
+ordering is not a reliable batch-size comparison. Raw records are in
+`ops/tunnel-second-laptop-82993.jsonl`; no private host address is included.

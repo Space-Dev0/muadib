@@ -76,6 +76,11 @@ Start the producer in one terminal, then the receiver in another. On the receive
 
 `tunnel-benchmark.jsonl` records one short real inter-machine run in the direction **Linux producer → Windows laptop receiver**, using SSH remote port forwarding over the existing private connection; 300 scenes, seeds 90000–90299, per batch size. Results are 582.0/801.1/925.7 scenes/s and 4.91/6.76/7.81 Mb/s PNG payload for batches 2/8/16 respectively. The receiver's `host` field is loopback on its side of the SSH tunnel, not the remote machine address. These are three individual sub-second trials, not the requested 15-minute LAN benchmark, no error bars or evidence of stable differences. The producer uses the unconditional renderer; no model or GPU participated.
 
+`tunnel-second-laptop-82993.jsonl` records a separate 300-scene-per-setting
+trial to the newly added Windows laptop, seed 82993: 555.6/827.4/513.8
+scenes/s for batches 2/8/16. These single sequential trials are too short to
+rank configurations and do not measure GPU utilization or physical bandwidth.
+
 ## Opt-in conditional pilot adapter
 
 `conditional_stream` is request-driven: the trainer chooses each rule and seed, and the producer returns the image, object annotations, rejection attempts and PNG hash. The consumer checks rule-definition order/hash, server Python/Pillow and renderer/rule/measurement source hashes, image checksum, dimensions, and rule satisfaction of returned annotations. Matching these versions is a strict prerequisite; different Python versions are rejected. Checksums and source fingerprints do not authenticate the peer, prove pixel/annotation correspondence against a malicious sender, or verify every dependency.
