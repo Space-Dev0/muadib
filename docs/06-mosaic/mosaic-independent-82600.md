@@ -100,3 +100,45 @@ were disabled on the laptop to prevent repeated five-minute launches. The
 checkpoint and evaluation outputs remain in place. The evaluator's last task
 result had reported failure despite its log repeatedly reporting packs ready;
 artifact integrity was checked separately as described above.
+
+## Returned reviews and descriptive results
+
+The user reported the reviews complete. All four CSVs contain 64 complete
+rows and have the same SHA-256
+`cfa42d9125121da82df70b8247fe5172329b053572bda5b1534fa7b5ebab6ac8`.
+Each of the 256 images in the extracted reviewer folders matched the frozen
+provenance; the scorer also verified the pinned provenance and prediction
+hashes. The artifacts cannot establish reviewer identities or independence.
+Identical files do not by themselves prove whether reviews were independent.
+
+For requested-color circle presence, counts are:
+
+| Cell | Yes | No | Unresolved |
+| --- | ---: | ---: | ---: |
+| Low / balanced | 13 | 3 | 0 |
+| Low / imbalanced | 16 | 0 | 0 |
+| High / balanced | 15 | 1 | 0 |
+| High / imbalanced | 14 | 2 | 0 |
+
+There are 58 yes and six no labels. For the secondary expected-object-count
+question, yes/no counts in the same cell order are 13/3, 14/2, 10/6 and 10/6.
+Object count was not an input condition. The equal-cell descriptive complexity
+drop is 0.0; the imbalance drop is -0.0625; their difference is 0.0625. There
+are no unresolved target-circle answers in this block, so these finite-image
+bounds collapse to those values. They are not confidence intervals.
+
+The first block's complexity drop was 0.0625–0.125, while this block's is
+zero. In both blocks the complexity drop was numerically larger than the
+imbalance drop, but two small training-seed blocks share one dataset and have
+different generated-noise seeds. These observations do not establish a
+population effect, a full MOSAIC replication, or a passed gate.
+
+The standard checker answered 8/64 (7 true-positive and 1 true-negative
+relative to the submitted labels) and abstained on 56. The experimental
+variable-count checker answered 43/64 (41 true-positive and 2 true-negative)
+and abstained on 21. All accepted answers agreed with those labels, but four
+of six human-negative cases were abstained by the experimental checker. Its
+two accepted negative cases are too few to validate a false-accept rate, and
+coverage remains selective. The ignored scored artifact is
+`outputs/mosaic-independent-review-500k-83000/score.json`, SHA-256
+`3a629ab61e261c773060bc67d34209e901872712ced5bb9bcbbd8f47b616dcae`.

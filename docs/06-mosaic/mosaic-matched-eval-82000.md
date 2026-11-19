@@ -90,8 +90,10 @@ give exact finite-image worst-case bounds of 0.0625–0.125 for the complexity
 drop, −0.03125–0.03125 for the imbalance drop, and 0.0625–0.125 for their
 difference. This descriptive direction is consistent with complexity having
 the larger drop in this one matched block, but these are not confidence
-intervals or independent model-seed replicates. A second block is still
-training; these results alone do not establish a replication or Stage 0 pass.
+intervals or independent model-seed replicates. A second block is complete and reviewed; its complexity drop was zero, while
+its complexity-minus-imbalance contrast was positive. The two blocks share one
+dataset and do not establish a replication or Stage 0 pass; see
+[second block](mosaic-independent-82600.md).
 
 The frozen standard checker answered 9/64 target-circle questions and the
 experimental variable-count checker answered 46/64; all answered yes and
