@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "jobs": [
+    {
+      "job": {
+        "checkpoint_sha256": "6ff581062b3410c31f72d0ce244db38dc2ca2f90c19614500299666458e77d93",
+        "color": "red",
+        "seed": 82990
+      },
+      "file": "red-82990/image.png",
+      "sha256": "6f743fbb53d486c60bc3f4aa5b90f5ee1d02311c8594420771d5301c2a3a23cd",
+      "bytes": 1181,
+      "roundtrip_seconds": 12.169625558999542,
+      "worker_index": 0,
+      "failed_attempts": 0,
+      "runtime": {
+        "python": "3.13.6",
+        "torch": "2.9.1+cu128",
+        "cuda_runtime": "12.8",
+        "pillow": "13.0.0",
+        "device": "cuda",
+        "checkpoint_format": "warmstart",
+        "device_name": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+        "source_sha256": {
+          "mosaic_pilotunet_probe.py": "ccdea07446f7acbe268a59fdc77bb36c649d35ffbbfc1ecd9e7e5562be9d60c6",
+          "mosaic_pilotunet_warmstart.py": "6350135a7a6fbb7f5e7150658510051389d8d35d714f0b7fe093919fa616bec5",
+          "pilot_train.py": "42a3e570cb5a8f8f45f86f2bf546ee2bbaebc49aa31ce9f8cfcc03426398064b"
+        },
+        "worker_source_sha256": "e92a35e0c19973b9d81218c132738e4749cb85e1664e90ad8fc5107b0ce9b7b7"
+      }
+    },
+    {
+      "job": {
+        "checkpoint_sha256": "6ff581062b3410c31f72d0ce244db38dc2ca2f90c19614500299666458e77d93",
+        "color": "blue",
+        "seed": 82990
+      },
+      "file": "blue-82990/image.png",
+      "sha256": "dbd26ca1f995099ace7b38fe22ef95ac97f3299aae719ac95df8c31c04461aa7",
+      "bytes": 1308,
+      "roundtrip_seconds": 9.043983047005895,
+      "worker_index": 1,
+      "failed_attempts": 0,
+      "runtime": {
+        "python": "3.13.0",
+        "torch": "2.9.1+cu128",
+        "cuda_runtime": "12.8",
+        "pillow": "13.0.0",
+        "device": "cuda",
+        "checkpoint_format": "warmstart",
+        "device_name": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+        "source_sha256": {
+          "mosaic_pilotunet_probe.py": "ccdea07446f7acbe268a59fdc77bb36c649d35ffbbfc1ecd9e7e5562be9d60c6",
+          "mosaic_pilotunet_warmstart.py": "6350135a7a6fbb7f5e7150658510051389d8d35d714f0b7fe093919fa616bec5",
+          "pilot_train.py": "42a3e570cb5a8f8f45f86f2bf546ee2bbaebc49aa31ce9f8cfcc03426398064b"
+        },
+        "worker_source_sha256": "e92a35e0c19973b9d81218c132738e4749cb85e1664e90ad8fc5107b0ce9b7b7"
+      }
+    }
+  ],
+  "workers": 2,
+  "segment_wall_seconds": 12.17037234899908,
+  "reused_jobs": 0,
+  "note": "Segment time excludes earlier attempts; image-level sharding. Cross-device bitwise reproducibility is not guaranteed."
+}

@@ -36,11 +36,24 @@ research gate. Some generic strings in the trainer's smoke report describe its
 usual 200-image, 1,000-timestep configuration; the explicit configuration
 and generated dataset above are the settings actually used here.
 
-The new Windows laptop reported the same GPU model. Its isolated environment
-is being provisioned; a completed two-worker GPU run and any speed comparison
-must be documented separately after verification. A valid performance study
-needs frozen jobs and model, independently repeated and interleaved single- and
-two-worker runs, warmup, provenance checks and clear compute/network timing.
+The new Windows laptop reported the same GPU model and completed a separate
+three-update CUDA smoke test on the same small dataset, with model seed 82992.
+It used Python 3.13.0; the original laptop used Python 3.13.6. Both used
+PyTorch 2.9.1+cu128 and Pillow 13.0.0. These short runs verify independent
+training plumbing, not synchronized training or model quality.
+
+For a two-worker inference check, both laptops loaded the checkpoint named
+above and used fixed seed 82990. The original laptop generated the red image;
+the new laptop generated the blue image. The coordinator recorded both worker
+indices, no failed attempts, and matching sampler/source hashes. Both PNG
+hashes matched the prior single-worker run. The two-job segment took 12.17 s;
+its ignored manifest has SHA-256
+`ceeeccaa8a5bd759c9676d6ef04fd200d0fd470a7d67a3345b0de469a71f1b9c`.
+This is a tiny functional demonstration, not a speedup estimate: the earlier
+single-worker timings had different warmup and workload conditions. A valid
+performance study needs independently repeated and interleaved single- and
+two-worker runs, warmup, provenance checks and separate compute/network timing.
+Matching these two PNGs does not guarantee cross-device bitwise reproducibility.
 
 While provisioning, the new laptop received a separate CPU-rendered stream
 over an SSH remote forward. For 300 scenes per setting, seed 82993, batches
