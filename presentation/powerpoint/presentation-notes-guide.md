@@ -4,7 +4,7 @@ This deck follows the supplied presentation format. Distinguish the proposed joi
 
 ## Slide 1 — Introduction
 
-Our project asks whether a model can combine familiar concepts and how seeing those combinations in training affects generation. A model might have seen many red objects and many squares but few red squares. We construct a controlled synthetic environment to measure the difference between seeing parts and seeing their combination. The project connects digital image processing, computational optimization and computer networks.
+A diffusion model learns to generate images by reversing a gradual noise-corruption process. At generation time it starts from random noise and repeatedly applies learned denoising steps, guided by a condition. Our project asks whether it can combine familiar concepts and how seeing those combinations in training affects generation. A model might have seen many red objects and many squares but few red squares. We construct a controlled synthetic environment to measure the difference between seeing parts and seeing their combination. The project connects digital image processing, computational optimization and computer networks.
 
 ## Slide 2 — Literature survey
 

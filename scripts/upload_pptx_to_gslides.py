@@ -72,6 +72,8 @@ def main():
     parser.add_argument('--presentation-id', default=os.environ.get('GDRIVE_PRESENTATION_ID'))
     parser.add_argument('--credentials')
     parser.add_argument('--expected-slides', type=int, default=12)
+    parser.add_argument('--slide1-thumbnail', type=Path,
+                        help='Save the introduction thumbnail for layout inspection')
     parser.add_argument('--slide3-thumbnail', type=Path,
                         help='Save a Google-rendered thumbnail for layout inspection')
     parser.add_argument('--slide4-thumbnail', type=Path,
@@ -95,7 +97,7 @@ def main():
     update_presentation(drive, media, args.presentation_id, count)
     slides_service = build('slides', 'v1', credentials=credentials)
     slides = verify_presentation(slides_service, args.presentation_id, count)
-    for index, output in ((2, args.slide3_thumbnail), (3, args.slide4_thumbnail),
+    for index, output in ((0, args.slide1_thumbnail), (2, args.slide3_thumbnail), (3, args.slide4_thumbnail),
                           (8, args.slide9_thumbnail)):
         if not output:
             continue

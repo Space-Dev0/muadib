@@ -37,7 +37,8 @@ jobs:
           test -n "$GDRIVE_PRESENTATION_ID" || { echo '::error::GDRIVE_PRESENTATION_ID is not configured.'; exit 1; }
           python -m scripts.upload_pptx_to_gslides \
             --pptx presentation/powerpoint/which-exposure-matters-submission-guide.pptx \
-            --expected-slides 12 --slide3-thumbnail "$RUNNER_TEMP/slide-03.png" \
+            --expected-slides 12 --slide1-thumbnail "$RUNNER_TEMP/slide-01.png" \
+            --slide3-thumbnail "$RUNNER_TEMP/slide-03.png" \
             --slide4-thumbnail "$RUNNER_TEMP/slide-04.png" \
             --slide9-thumbnail "$RUNNER_TEMP/slide-09.png"
       - name: Save Google Slides layout preview
@@ -45,6 +46,7 @@ jobs:
         with:
           name: google-slides-hypothesis-previews
           path: |
+            ${{ runner.temp }}/slide-01.png
             ${{ runner.temp }}/slide-03.png
             ${{ runner.temp }}/slide-04.png
             ${{ runner.temp }}/slide-09.png
