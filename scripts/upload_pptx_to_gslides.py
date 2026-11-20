@@ -50,13 +50,18 @@ def verify_presentation(slides_service, presentation_id: str, expected_slides: i
     if len(slides) != expected_slides or not text_shapes:
         raise RuntimeError(f'Converted deck has {len(slides)} slides and {text_shapes} text shapes; '
                            f'expected {expected_slides} slides and editable text')
-    # The third slide's two co-occurrence tables are essential evidence.
+    # The methodology slide's two co-occurrence tables are essential evidence.
     if expected_slides == 12:
-        tables = [element['table'] for element in slides[2].get('pageElements', [])
+        tables = [element['table'] for element in slides[3].get('pageElements', [])
                   if 'table' in element]
         if len(tables) < 2:
-            raise RuntimeError(f'Converted slide 3 has {len(tables)} tables; expected two')
-        print(f'Verified {len(tables)} editable comparison tables on slide 3')
+            raise RuntimeError(f'Converted slide 4 has {len(tables)} tables; expected two')
+        print(f'Verified {len(tables)} editable comparison tables on slide 4')
+        images = [element['image'] for element in slides[8].get('pageElements', [])
+                  if 'image' in element]
+        if len(images) < 2:
+            raise RuntimeError(f'Converted qualitative slide has {len(images)} images; expected two')
+        print(f'Verified {len(images)} qualitative images on slide 9')
     print(f'Verified {len(slides)} slides and {text_shapes} editable text shapes')
     return slides
 
@@ -69,6 +74,8 @@ def main():
     parser.add_argument('--expected-slides', type=int, default=12)
     parser.add_argument('--slide3-thumbnail', type=Path,
                         help='Save a Google-rendered thumbnail for layout inspection')
+    parser.add_argument('--slide4-thumbnail', type=Path,
+                        help='Save the methodology-slide thumbnail for layout inspection')
     parser.add_argument('--slide9-thumbnail', type=Path,
                         help='Save the hypothesis-slide thumbnail for layout inspection')
     args = parser.parse_args()
@@ -88,7 +95,8 @@ def main():
     update_presentation(drive, media, args.presentation_id, count)
     slides_service = build('slides', 'v1', credentials=credentials)
     slides = verify_presentation(slides_service, args.presentation_id, count)
-    for index, output in ((2, args.slide3_thumbnail), (8, args.slide9_thumbnail)):
+    for index, output in ((2, args.slide3_thumbnail), (3, args.slide4_thumbnail),
+                          (8, args.slide9_thumbnail)):
         if not output:
             continue
         thumbnail = slides_service.presentations().pages().getThumbnail(

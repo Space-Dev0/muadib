@@ -36,10 +36,15 @@ class PowerPointImportTests(unittest.TestCase):
         slide = {'pageElements': [{'shape': {'text': {'textElements': [
             {'textRun': {'content': 'Editable text'}}]}}}]}
         slides = [slide.copy() for _ in range(12)]
-        slides[2] = {'pageElements': slide['pageElements'] + [{'table': {}}, {'table': {}}]}
+        slides[3] = {'pageElements': slide['pageElements'] + [{'table': {}}, {'table': {}}]}
+        slides[8] = {'pageElements': slide['pageElements'] + [{'image': {}}, {'image': {}}]}
         service.presentations().get().execute.return_value = {'slides': slides}
         verify_presentation(service, 'deck', 12)
-        slides[2] = slide
+        slides[8] = slide
+        with self.assertRaisesRegex(RuntimeError, 'qualitative slide'):
+            verify_presentation(service, 'deck', 12)
+        slides[8] = {'pageElements': slide['pageElements'] + [{'image': {}}, {'image': {}}]}
+        slides[3] = slide
         with self.assertRaisesRegex(RuntimeError, 'expected two'):
             verify_presentation(service, 'deck', 12)
         service.presentations().get().execute.return_value = {'slides': [{}] * 12}
