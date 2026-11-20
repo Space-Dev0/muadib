@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'presentation/powerpoint/which-exposure-matters-submission-visible.pptx'
+      - 'presentation/powerpoint/which-exposure-matters-submission-hypotheses.pptx'
       - 'scripts/upload_pptx_to_gslides.py'
       - 'scripts/upload_to_gslides.py'
       - '.github/workflows/sync_presentation.yml'
@@ -36,5 +36,11 @@ jobs:
           test -n "$GCP_SA_KEY" || { echo '::error::GCP_SA_KEY is not configured.'; exit 1; }
           test -n "$GDRIVE_PRESENTATION_ID" || { echo '::error::GDRIVE_PRESENTATION_ID is not configured.'; exit 1; }
           python -m scripts.upload_pptx_to_gslides \
-            --pptx presentation/powerpoint/which-exposure-matters-submission-visible.pptx \
-            --expected-slides 12
+            --pptx presentation/powerpoint/which-exposure-matters-submission-hypotheses.pptx \
+            --expected-slides 12 --slide3-thumbnail "$RUNNER_TEMP/slide-03.png"
+      - name: Save Google Slides layout preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: google-slides-slide-03-preview
+          path: ${{ runner.temp }}/slide-03.png
+          retention-days: 7

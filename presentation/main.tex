@@ -425,13 +425,15 @@ Repeated inference
 \end{frame}
 
 \begin{frame}{Our main hypotheses}
-\begin{itemize}
-\item \textbf{Complexity scaling:} Multi-predicate rules suffer larger negative composition gaps.
-\item \textbf{Joint exposure benefit:} Higher joint training exposure directly improves rule success.
-\item \textbf{Pairwise transfer:} Seeing pairs helps models generalize to unseen full combinations.
+\begin{itemize}\small
+\item \textbf{H1:} Composition gaps are negative, increasingly so for relational complexity.
+\item \textbf{H2:} At fixed marginals, lift predicts the gap, especially for relational rules.
+\item \textbf{H3:} Pairwise support helps zero-shot generation of a held-out rule.
+\item \textbf{H4:} Greater predicate context breadth reduces N50 at matched frequency.
+\item \textbf{H5:} Update-transfer features improve out-of-run prediction and predict ablation effects.
+\item \textbf{H6:} Excess loss concentrates in noise bands and, for relations, gaps and boundaries.
 \end{itemize}
-\vspace{2mm}
-\small These hypotheses define the core empirical questions our study tests.
+\small These are proposed hypotheses, not established results.
 \end{frame}
 
 \begin{frame}{A separate question: how much is enough?}

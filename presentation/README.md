@@ -70,7 +70,7 @@ make help
 ## Google Slides sync
 
 The Google Slides workflow uses
-`powerpoint/which-exposure-matters-submission-visible.pptx` as its source,
+`powerpoint/which-exposure-matters-submission-hypotheses.pptx` as its source,
 not the LaTeX deck. Push changes to that file on the default branch or run
 **Sync PowerPoint to Google Slides** manually from that branch. It uploads the
 PPTX directly with the Drive API, which converts and replaces the contents of
@@ -84,5 +84,5 @@ Google converts supported PPTX objects to editable Slides objects; conversion
 may change some formatting. LaTeX-rendered equation graphics remain images.
 Every upload replaces the target presentation's existing contents, so edits
 made directly in Google Slides can be overwritten. The PPTX and
-`powerpoint/presentation-notes-math.md` are the authoritative source and
+`powerpoint/presentation-notes-hypotheses.md` are the authoritative source and
 presenter notes. Keep a backup if the Google presentation has independent edits.

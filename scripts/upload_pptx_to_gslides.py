@@ -3,6 +3,7 @@
 import argparse
 import os
 from pathlib import Path
+from urllib.request import urlopen
 import xml.etree.ElementTree as ET
 from zipfile import BadZipFile, ZipFile
 
@@ -57,6 +58,7 @@ def verify_presentation(slides_service, presentation_id: str, expected_slides: i
             raise RuntimeError(f'Converted slide 3 has {len(tables)} tables; expected two')
         print(f'Verified {len(tables)} editable comparison tables on slide 3')
     print(f'Verified {len(slides)} slides and {text_shapes} editable text shapes')
+    return slides
 
 
 def main():
@@ -65,6 +67,8 @@ def main():
     parser.add_argument('--presentation-id', default=os.environ.get('GDRIVE_PRESENTATION_ID'))
     parser.add_argument('--credentials')
     parser.add_argument('--expected-slides', type=int, default=12)
+    parser.add_argument('--slide3-thumbnail', type=Path,
+                        help='Save a Google-rendered thumbnail for layout inspection')
     args = parser.parse_args()
     if not args.presentation_id:
         parser.error('Pass --presentation-id or set GDRIVE_PRESENTATION_ID')
@@ -80,7 +84,18 @@ def main():
     drive = build('drive', 'v3', credentials=credentials)
     media = MediaFileUpload(str(args.pptx), mimetype=PPTX_MIME, resumable=False)
     update_presentation(drive, media, args.presentation_id, count)
-    verify_presentation(build('slides', 'v1', credentials=credentials), args.presentation_id, count)
+    slides_service = build('slides', 'v1', credentials=credentials)
+    slides = verify_presentation(slides_service, args.presentation_id, count)
+    if args.slide3_thumbnail:
+        thumbnail = slides_service.presentations().pages().getThumbnail(
+            presentationId=args.presentation_id, pageObjectId=slides[2]['objectId'],
+            thumbnailProperties_mimeType='PNG', thumbnailProperties_thumbnailSize='LARGE',
+        ).execute()
+        with urlopen(thumbnail['contentUrl'], timeout=30) as response:
+            image = response.read()
+        if not image.startswith(b'\x89PNG\r\n\x1a\n'):
+            raise RuntimeError('Google Slides returned an invalid thumbnail')
+        args.slide3_thumbnail.write_bytes(image)
 
 
 if __name__ == '__main__':

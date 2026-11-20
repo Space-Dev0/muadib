@@ -36,7 +36,7 @@ This guide provides quick presenter bullet notes keyed frame-by-frame (1–63) t
 32. **Reference:** Multiplying constituent success rates creates a simple independence reference. It is an empirical benchmark, not a physical law.
 33. **Composition gap:** Compare observed rule success to the reference. A negative gap indicates difficulty coordinating familiar concepts.
 34. **Zero gap:** The gap is zero when observed success equals the product reference. The proposal uses logit scale; drafts also explore log scale.
-35. **Hypotheses:** State three falsifiable hypotheses: complexity scaling, joint exposure benefits, and pairwise transfer.
+35. **Hypotheses:** Explain H1 composition costs, H2 lift, H3 pairwise support, H4 breadth, H5 update transfer, and H6 noise bands and spatial loss. These remain untested.
 36. **N50:** Explain N50 as the exposure threshold where accuracy crosses 50%, measuring compositional sample efficiency.
 37. **Learning curve:** Walk through the sigmoidal learning curve. Bracketing the threshold is required to avoid unsafe extrapolation.
 38. **Model optimization:** Explain AdamW weight decay decoupling and Exponential Moving Average (EMA) shadow weights for stable sampling.

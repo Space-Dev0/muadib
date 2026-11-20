@@ -518,15 +518,12 @@ e o_2$).
 ## Slide 35: Our main hypotheses
 
 ### Presentation Notes
-- **Three Falsifiable Hypotheses:**
-  1. *Complexity scaling:* Rules with more predicates exhibit larger negative composition gaps.
-  2. *Joint exposure benefit:* Increasing joint training exposure directly improves rule satisfaction.
-  3. *Pairwise transfer:* Intermediate exposure to pairs aids zero-shot generalization to full unseen rules.
+- **Six proposed hypotheses:** H1 predicts larger composition costs for relational complexity; H2 predicts a lift–gap association at fixed marginals, stronger for relations; H3 predicts that pairwise support helps zero-shot held-out rules; H4 predicts that broader contexts lower N50 at matched frequency; H5 tests whether update-transfer features improve out-of-run prediction and predict ablation directions; H6 predicts concentrated loss in noise bands and relational boundaries/gaps.
 - **Scientific Stance:** These are hypotheses to test and falsify, not pre-ordained conclusions.
 
 ### Probable Audience Questions
 1. **Q:** *What happens if Hypothesis 2 fails?*
-   **A:** If increasing joint exposure does not improve performance, it would demonstrate that diffusion architectures are bottlenecked by architectural capacity or attention mechanisms rather than data distribution.
+   **A:** A null result would not by itself identify an alternative cause. Check design power, exposure variation, evaluation reliability, and model capacity before drawing conclusions.
 
 ---
 
