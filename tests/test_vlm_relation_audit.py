@@ -38,6 +38,11 @@ class RelationAuditTests(unittest.TestCase):
                 plan = prepare(source, output)
                 self.assertEqual(len(plan['items']), 150)
                 self.assertNotIn('truth', json.dumps(plan))
+                low_memory = prepare(source, root / 'low-memory', low_memory=True)
+                self.assertEqual(low_memory['items'], plan['items'])
+                self.assertEqual(low_memory['options']['num_batch'], 1)
+                self.assertEqual(low_memory['options']['num_thread'], 1)
+                self.assertEqual(low_memory['options']['num_ctx'], 512)
                 calls = []
                 def fake_request(url, payload=None):
                     calls.append(payload)
