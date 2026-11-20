@@ -4,7 +4,7 @@ This deck follows the supplied presentation format. Distinguish the proposed joi
 
 ## Slide 1 — Introduction
 
-A diffusion model learns to generate images by reversing a gradual noise-corruption process. At generation time it starts from random noise and repeatedly applies learned denoising steps, guided by a condition. Our project asks whether it can combine familiar concepts and how seeing those combinations in training affects generation. A model might have seen many red objects and many squares but few red squares. We construct a controlled synthetic environment to measure the difference between seeing parts and seeing their combination. The project connects digital image processing, computational optimization and computer networks.
+A diffusion model learns to generate images by reversing a gradual noise-corruption process. At generation time it starts from random noise and repeatedly applies learned denoising steps, guided by a condition. The pictures show illustrative linear blends of a clean render and fixed noise, not model outputs or the actual diffusion schedule. Our project asks whether it can combine familiar concepts and how seeing those combinations in training affects generation. A model might have seen many red objects and many squares but few red squares. We construct a controlled synthetic environment to measure the difference between seeing parts and seeing their combination. The project connects digital image processing, computational optimization and computer networks.
 
 ## Slide 2 — Literature survey
 
@@ -38,7 +38,7 @@ Across the 64 images, the recorded review labels are 59 yes, three no and two un
 
 ## Slide 9 — Qualitative results
 
-Show the two selected generated samples on the left: sample 0003 received a yes for target circle presence, while sample 0001 was uncertain. These are selected examples, not a random gallery or paired pixel reconstructions. On the right, the images are illustrative linear blends of a clean render and fixed noise, shown from noisy to clean. They are not model-generated intermediate images and do not depict the actual diffusion schedule. Explain that training adds scheduled noise and learns a velocity target, while generation begins from noise and repeatedly applies conditioned reverse steps.
+Show the two selected generated samples on the left: sample 0003 received a yes for target circle presence, while sample 0001 was uncertain. These are selected examples, not a random gallery or paired pixel reconstructions. On the right, explain the evaluation: four 500,000-update pilot models produced 64 images. The returned labels were 59 yes, three no and two unresolved. The experimental checker answered 46 of 64 and abstained on every one of the three human-negative examples. These exploratory pilot results do not test the central joint-exposure hypotheses.
 
 ## Slide 10 — Ablation and failure cases
 

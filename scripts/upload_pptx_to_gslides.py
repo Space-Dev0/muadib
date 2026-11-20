@@ -60,11 +60,16 @@ def verify_presentation(slides_service, presentation_id: str, expected_slides: i
         if not any('image' in element for element in slides[4].get('pageElements', [])):
             raise RuntimeError('Converted slide 5 is missing the LaTeX equation image')
         print('Verified the LaTeX equation image on slide 5')
+        cover_images = [element['image'] for element in slides[0].get('pageElements', [])
+                        if 'image' in element]
+        if len(cover_images) < 3:
+            raise RuntimeError(f'Converted title slide has {len(cover_images)} images; expected three')
+        print(f'Verified {len(cover_images)} diffusion illustrations on the title slide')
         images = [element['image'] for element in slides[8].get('pageElements', [])
                   if 'image' in element]
-        if len(images) < 5:
-            raise RuntimeError(f'Converted slide 9 has {len(images)} images; expected five')
-        print(f'Verified {len(images)} sample and diffusion images on slide 9')
+        if len(images) < 2:
+            raise RuntimeError(f'Converted slide 9 has {len(images)} images; expected two')
+        print(f'Verified {len(images)} qualitative images on slide 9')
     print(f'Verified {len(slides)} slides and {text_shapes} editable text shapes')
     return slides
 
