@@ -26,6 +26,15 @@ An exploratory extension to all 13 two-predicate rules failed numerical
 fitting constraints in four local starts; this is not an infeasibility proof.
 These results do not close the benchmark, checker, or exposure-design gates.
 
+An exploratory [local vision-model comparison](../04-checker-and-human-audit/local-vlm-evaluation.md)
+used the returned human reviews. A post-hoc Qwen object-inventory ablation
+matched 275 resolved judgments across limited circle, red and square questions,
+including 24 negatives; two additional labels were unresolved. This is not an
+independent error-rate certification or relation-checker validation. Earlier
+direct-model variants either falsely accepted negatives or abstained on them.
+On 150 relation questions, Moondream disagreed with 84 of 147 resolved human
+judgments; three were unresolved. A separate Qwen relation audit is running.
+
 A new bounded, one-block four-cell PilotUNet experiment has started on the GPU
 with user authorization, separate from the stopped 760k continuous run. All
 four cells have reached verified 500,000-update checkpoints. A fixed 64-image

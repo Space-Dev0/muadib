@@ -96,25 +96,44 @@ are `5e0c5041cb369c96fd782f45a2564b8d8d0c11ea710157e75fe5553a5745415a`
 and `a358ce6d1ce3b7d4141568da5b34ba34e20a3e394744a655ab1f02dad4fa2dc3`.
 
 A further blind inventory run on all 150 red-object and square-object
-questions from the earlier 800k pilot is in progress. It uses the same
+questions from the earlier 800k pilot has completed. It uses the same
 post-hoc object-list ablation, with a frozen prompt and no target or human
 label sent to the model. It excludes the 150 relation questions because this
 inventory has no spatial coordinates. Most of these 150 images have only one
 reviewer; their labels are not an independent consensus. This is another
 exploratory check, not a pass of the model-checker or Stage 0 gates.
 
-The comparison uses the four completed independent-review files from the
-second 64-image matched-seed block. The scorer rechecks their provenance and
-CSV hashes and reports the full truth-by-output table, including abstentions
-and human-unresolved cases. Only six cases were human-negative in this block;
-even perfect agreement cannot by itself establish a 2% false-accept rate.
-The small sample and shared training dataset also cannot establish general
-validity, inter-model uncertainty, or performance on other rules and image
-distributions. If this candidate performs well, a separately frozen larger
-evaluation remains necessary before trusting it on new research outcomes.
+| Human label | Red question: model yes / no / unsure | Square question: model yes / no / unsure |
+| --- | --- | --- |
+| Yes | 66 / 0 / 0 | 68 / 0 / 0 |
+| No | 0 / 9 / 0 | 0 / 7 / 0 |
 
-The protocol can be reproduced with a locally forwarded Ollama port and fresh
-output paths:
+The ablation matched all 150 saved judgments. Of these, 130 images had one
+reviewer and 20 had four unanimous reviewers. The original, non-adjudicated
+judgments were used; model responses did not change them. Across this set and
+the two circle-question blocks, the ablation matched 275 human-resolved
+answers, including 24 negatives; two additional human-unresolved answers have
+no correctness label. These are different questions, diffusion checkpoints, seeds and review
+designs; the aggregate is descriptive and does not justify treating the 24
+negatives as a single iid sample. Model selection and the uncertainty-flag
+ablation were informed by the earlier blocks, and this 800k pilot had already
+been used in checker development. A frozen evaluation with sufficient negative
+examples, clearly defined uncertainty and relation coverage is still required.
+
+The ignored 150-image protocol, plan and score hashes are
+`44edbcf8288657c5c0e57b8f26bc815fae55841146aa0b5273de1e4a73b7ae09`,
+`b683e80342bcd26e11aaa61047af337b47d18868237dd2c9b3b137b6efc2da00`, and
+`9209d8f3821ea435a72aba91c922f7e0b2efead8ab7f21648df0b9d31af59754`.
+The source archives, human CSVs and image hashes are checked again during
+scoring. The scoring rule's source hash and plan were recorded before model
+inference.
+
+The second 64-image block uses four independent-review files; its scorer
+rechecks provenance and CSV hashes and includes abstentions and unresolved
+cases. Only six cases were human-negative, too few to establish a 2% error
+rate. A separate, larger frozen evaluation is necessary before relying on the
+candidate for new research outcomes. To reproduce it with a locally forwarded
+Ollama port and fresh output paths:
 
 ```sh
 uv run --no-sync python -m exposure.vlm_audit prepare \
@@ -125,3 +144,32 @@ uv run --no-sync python -m exposure.vlm_audit run \
 uv run --no-sync python -m exposure.vlm_audit score \
   --pack outputs/mosaic-independent-review-500k-83000 --output outputs/vlm-audit-new
 ```
+
+## Spatial-relation audit
+
+`exposure.vlm_relation_audit` freezes all 150 previously reviewed relation
+questions: 75 red-left-of-square and 75 blue-above-circle. Its prompts specify
+two distinct objects and strict center ordering, matching the legacy rule
+semantics. Model requests contain the image and rule but no human labels.
+Source review archives, CSVs and image hashes are verified before scoring;
+most images were reviewed by one person. Responses and the model digest are
+preserved, and unresolved human judgments remain separate.
+
+The Moondream 1.8B fallback answered 4/47 human-positive red-left cases yes
+and 43 no; it answered one of 26 human-negative red-left cases yes and 25 no.
+For blue-above-circle it answered all 40 human-positive cases no and all 34
+human-negative cases no. Three remaining human labels were unresolved. Thus
+the model disagreed with 84 of 147 resolved labels: 83 false negatives and
+one false positive. It cannot replace the checker for these relation questions.
+Its ignored plan and score SHA-256 values are
+`c92d407b8ba716a09f5b34d9441a8678d8006dc307e9f7e63e225d9f0b60ff38` and
+`34e8f4887d67c12e5edac11c223b2f1aa41dafcfd5485408faa4e3f1aa0800e3`.
+
+Qwen initially failed to load for this run because available laptop memory
+was below Ollama's estimate. A low-memory preflight using a newly rendered
+synthetic image succeeded without closing other applications. A separately
+frozen 150-image Qwen relation run is now in progress with batch 1 and one
+CPU thread. Its plan SHA-256 is
+`30c886b63f8367ceaf8c644c0cbc301c7c22b31aa5dd86bcb91652f8d3daac3e`.
+It is a new configuration and must be scored independently; this preflight
+does not establish relation accuracy.
