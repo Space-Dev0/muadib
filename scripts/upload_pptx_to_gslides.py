@@ -69,6 +69,8 @@ def main():
     parser.add_argument('--expected-slides', type=int, default=12)
     parser.add_argument('--slide3-thumbnail', type=Path,
                         help='Save a Google-rendered thumbnail for layout inspection')
+    parser.add_argument('--slide9-thumbnail', type=Path,
+                        help='Save the hypothesis-slide thumbnail for layout inspection')
     args = parser.parse_args()
     if not args.presentation_id:
         parser.error('Pass --presentation-id or set GDRIVE_PRESENTATION_ID')
@@ -86,16 +88,18 @@ def main():
     update_presentation(drive, media, args.presentation_id, count)
     slides_service = build('slides', 'v1', credentials=credentials)
     slides = verify_presentation(slides_service, args.presentation_id, count)
-    if args.slide3_thumbnail:
+    for index, output in ((2, args.slide3_thumbnail), (8, args.slide9_thumbnail)):
+        if not output:
+            continue
         thumbnail = slides_service.presentations().pages().getThumbnail(
-            presentationId=args.presentation_id, pageObjectId=slides[2]['objectId'],
+            presentationId=args.presentation_id, pageObjectId=slides[index]['objectId'],
             thumbnailProperties_mimeType='PNG', thumbnailProperties_thumbnailSize='LARGE',
         ).execute()
         with urlopen(thumbnail['contentUrl'], timeout=30) as response:
             image = response.read()
         if not image.startswith(b'\x89PNG\r\n\x1a\n'):
             raise RuntimeError('Google Slides returned an invalid thumbnail')
-        args.slide3_thumbnail.write_bytes(image)
+        output.write_bytes(image)
 
 
 if __name__ == '__main__':
