@@ -57,6 +57,9 @@ def verify_presentation(slides_service, presentation_id: str, expected_slides: i
         if len(tables) < 2:
             raise RuntimeError(f'Converted slide 4 has {len(tables)} tables; expected two')
         print(f'Verified {len(tables)} editable comparison tables on slide 4')
+        if not any('image' in element for element in slides[4].get('pageElements', [])):
+            raise RuntimeError('Converted slide 5 is missing the LaTeX equation image')
+        print('Verified the LaTeX equation image on slide 5')
         images = [element['image'] for element in slides[8].get('pageElements', [])
                   if 'image' in element]
         if len(images) < 5:
