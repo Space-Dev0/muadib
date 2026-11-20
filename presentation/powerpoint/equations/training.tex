@@ -1,0 +1,11 @@
+\documentclass[border=3pt]{standalone}
+\usepackage{amsmath,amssymb,xcolor}
+\color[HTML]{17324D}
+\begin{document}
+$\displaystyle\begin{gathered}
+g_t=\nabla_{\theta}\mathcal L_t(\theta_t),\qquad
+\theta_{t+1}^{\mathrm{SGD}}=\theta_t-\eta\,g_t,\\[3pt]
+\theta_{t+1}^{\mathrm{AdamW}}=(1-\eta\lambda)\theta_t-\eta\frac{\widehat m_t}{\sqrt{\widehat v_t}+\epsilon},\quad
+\widehat m_t=\frac{m_t}{1-\beta_1^t},\quad \widehat v_t=\frac{v_t}{1-\beta_2^t}.
+\end{gathered}$
+\end{document}

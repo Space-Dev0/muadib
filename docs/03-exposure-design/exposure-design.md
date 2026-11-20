@@ -152,6 +152,15 @@ where `n` is the number of conditioning templates. A zero weight contributes a
 zero KL term. The default `--objective feasible` preserves the existing
 zero-objective LP behavior.
 
+The objective is convex on the simplex and its unique unconstrained minimum is
+zero at uniform weights. If uniform satisfies the exposure and weight-floor
+constraints, it is also the unique constrained optimum: a near-zero numerical
+result is expected and does not produce a low-versus-high exposure contrast.
+If the constraints exclude uniform, the feasible optimum is generally positive.
+Contrast-seeking alternatives are separate exploratory design problems; the
+four-mixture max–min formulation is not the same convex KL problem and its
+local numerical result does not establish Stage 0 passage.
+
 The LP feasibility solve always runs first. Only an LP infeasible status
 returns `status: "infeasible"`; LP failures are raised as errors. If the LP is
 feasible, its solution initializes `scipy.optimize.minimize` with SLSQP. SLSQP

@@ -115,7 +115,7 @@ Here $e$ may denote a complete rule, an individual predicate or an indicated pre
  \min_{w\in\widehat{\mathcal W}}D_{\mathrm{KL}}(w\Vert u)
  =\min_{w\in\widehat{\mathcal W}}\sum_{j=1}^{J}w_j\log(Jw_j),
 \end{equation}
-with $0\log 0=0$. By nonnegativity of KL divergence, $u$ is its unique minimizer when feasible, so this objective alone does not generate an exposure contrast.
+with $0\log 0=0$. The objective is convex and the feasible set is defined by linear constraints. By nonnegativity of KL divergence, $u$ is its unique minimizer with value zero when feasible, so this objective alone does not generate an exposure contrast. If the constraints exclude $u$, the feasible minimum is positive. The later contrast-seeking max--min mixture design is a separate exploratory problem; it is not a demonstrated solution of this convex baseline or a passed design gate.
 
 To obtain rule-specific extremes, the multi-matrix exploratory procedure fixes each singleton marginal to its reference value on each fitting matrix $\widehat A^{(k)}$ relative to a chosen reference $w^{\mathrm{ref}}$, and solves two linear programs:
 \begin{align}

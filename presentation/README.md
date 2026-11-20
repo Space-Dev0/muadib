@@ -14,7 +14,7 @@ This directory contains the Beamer slide deck and accompanying presenter materia
   - Optimization dynamics (AdamW weight decay, Exponential Moving Average shadow weights, and DDPM vs. DDIM sampling schedules)
   - Synthetic scene environment, vocabulary, spatial relations, distinct object semantics, and exposure levels
   - Formal metrics (empirical exposure, log lift, multiplicative composition reference, logit/log composition gaps, N50 sample efficiency)
-  - Dataset mixture optimization (formulating exposure design as constrained convex optimization $\min D_{\text{KL}}(w \| u)$ via SLSQP)
+  - Dataset mixture optimization (the convex minimum-KL baseline, its zero optimum when uniform is feasible, and exploratory contrast-seeking designs)
   - Automated pixel checkers, false accept/reject/abstention dynamics, and blinded human review protocols
   - Current obstacles (checker boundary sensitivity, relational baseline saturation, and design multicollinearity)
   - Stage 0 validation gates, future workflow, and theoretical implications
@@ -70,19 +70,19 @@ make help
 ## Google Slides sync
 
 The Google Slides workflow uses
-`powerpoint/which-exposure-matters-submission-courses.pptx` as its source,
+`powerpoint/which-exposure-matters-submission-math.pptx` as its source,
 not the LaTeX deck. Push changes to that file on the default branch or run
-**Sync PowerPoint to Google Slides** manually from that branch. The workflow
-renders the PPTX using LibreOffice and Poppler, publishes the slide PNGs in
-`presentation/slides/`, then replaces every slide in the presentation identified
-by the `GDRIVE_PRESENTATION_ID` repository secret. The `GCP_SA_KEY` secret must
-contain a service-account key and the target deck must be shared with that
-account. The repository and committed PNG URLs must be publicly accessible.
+**Sync PowerPoint to Google Slides** manually from that branch. It uploads the
+PPTX directly with the Drive API, which converts and replaces the contents of
+the presentation identified by `GDRIVE_PRESENTATION_ID` while keeping its
+URL. `GCP_SA_KEY` must contain a service-account key; Drive API must be enabled
+and the target must be shared with that account. The workflow checks that the
+source contains 12 slides and that the target is a Google presentation before
+uploading.
 
-The replacement keeps the Google presentation URL but deletes its previous
-slides, their slide objects, and their speaker notes. The new Google slides are
-flat background images; individual PPTX objects and speaker notes are not
-editable in Google Slides. The PowerPoint and
-`powerpoint/presentation-notes-courses.md` remain the editable source and
-presenter notes. Make any needed backup of the Google presentation before
-running the workflow.
+Google converts supported PPTX objects to editable Slides objects; conversion
+may change some formatting. LaTeX-rendered equation graphics remain images.
+Every upload replaces the target presentation's existing contents, so edits
+made directly in Google Slides can be overwritten. The PPTX and
+`powerpoint/presentation-notes-math.md` are the authoritative source and
+presenter notes. Keep a backup if the Google presentation has independent edits.

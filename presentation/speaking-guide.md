@@ -43,7 +43,7 @@ This guide provides quick presenter bullet notes keyed frame-by-frame (1–63) t
 39. **Inference optimization:** Contrast stochastic DDPM ancestral sampling with deterministic DDIM / ODE accelerated samplers.
 40. **Fair comparison:** The goal is to vary joint exposure while holding individual marginal concept exposures matched.
 41. **Exposure matrix:** Map requested conditioning prompts (columns) to realized visual events (rows) via Monte Carlo annotation sampling.
-42. **Exposure design optimization:** Frame mixture selection as convex optimization: $\min D_{\text{KL}}(w \| u)$ subject to marginal and joint exposure bounds.
+42. **Exposure design optimization:** The constrained minimum-KL problem is convex; if uniform is feasible, its unique optimum is uniform with KL zero. It is a baseline, not a contrast generator. The alternative max–min fit is exploratory.
 43. **Controlled comparison:** Compare models trained on Mixture A (low joint) vs. Mixture B (high joint) to test whether co-occurrence drives learning.
 44. **Checker:** An automated program detects objects and evaluates spatial rules from raw pixels without human grading fatigue.
 45. **Errors and abstentions:** Explain false accepts, false rejects, and abstentions relative to gold-standard labels.

@@ -146,6 +146,9 @@ class DesignTests(unittest.TestCase):
         entry["min"] = 0.6
         result = solve(report, {"constraints": [entry]}, objective="min-kl")
         self.assertAlmostEqual(result["weights"]["red"], 0.6, places=5)
+        expected_kl = 0.6 * math.log(4 * 0.6) + 0.4 * math.log(4 * 0.4 / 3)
+        self.assertAlmostEqual(result["kl_to_uniform"], expected_kl, places=6)
+        self.assertGreater(result["kl_to_uniform"], 0)
         for name in ("square", "red_left_of_square", "blue_above_circle"):
             self.assertAlmostEqual(result["weights"][name], 0.4 / 3, places=5)
         self.assertLessEqual(result["max_violation"], 1e-7)

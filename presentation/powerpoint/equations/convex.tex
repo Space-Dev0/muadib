@@ -1,0 +1,10 @@
+\documentclass[border=3pt]{standalone}
+\usepackage{amsmath,amssymb,xcolor}
+\color[HTML]{17324D}
+\begin{document}
+$\displaystyle
+\begin{gathered}
+\min_{w}\ D_{\mathrm{KL}}(w\Vert u)=\sum_{j=1}^{J}w_j\log\!\left(\frac{w_j}{u_j}\right),\quad u_j=\frac1J,\\[3pt]
+\text{subject to }\mathbf1^\top w=1,\quad w_j\geq w_{\min},\quad L_e\leq \widehat A_{e:}w\leq U_e.
+\end{gathered}$
+\end{document}

@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""Replace an existing Google Slides presentation with an editable PPTX import."""
+import argparse
+import os
+from pathlib import Path
+import xml.etree.ElementTree as ET
+from zipfile import BadZipFile, ZipFile
+
+from scripts.upload_to_gslides import get_credentials
+
+PPTX_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+SLIDES_MIME = 'application/vnd.google-apps.presentation'
+
+
+def slide_count(path: Path) -> int:
+    """Reject missing, corrupt, or empty presentations before touching the target."""
+    try:
+        with ZipFile(path) as archive:
+            root = ET.fromstring(archive.read('ppt/presentation.xml'))
+    except (OSError, BadZipFile, KeyError, ET.ParseError) as exc:
+        raise ValueError(f'Invalid PowerPoint file: {path}') from exc
+    return len(root.findall('.//{http://schemas.openxmlformats.org/presentationml/2006/main}sldId'))
+
+
+def update_presentation(drive, media, presentation_id: str, expected_slides: int):
+    """Update the existing Google file's contents while retaining its ID and sharing."""
+    target = drive.files().get(fileId=presentation_id, fields='id,name,mimeType',
+                               supportsAllDrives=True).execute()
+    if target.get('mimeType') != SLIDES_MIME:
+        raise ValueError('Target must be an existing Google Slides presentation')
+    result = drive.files().update(fileId=presentation_id, media_body=media,
+                                  fields='id,name,mimeType,webViewLink',
+                                  supportsAllDrives=True).execute()
+    if result.get('id') != presentation_id or result.get('mimeType') != SLIDES_MIME:
+        raise RuntimeError('Drive returned an unexpected updated file')
+    print(f'Updated Google Slides: {result.get("name", "presentation")} ({expected_slides} source slides)')
+    print(result.get('webViewLink') or f'https://docs.google.com/presentation/d/{presentation_id}/edit')
+
+
+def verify_presentation(slides_service, presentation_id: str, expected_slides: int):
+    """Verify the conversion kept the page count and some editable text."""
+    presentation = slides_service.presentations().get(presentationId=presentation_id).execute()
+    slides = presentation.get('slides', [])
+    text_shapes = sum(
+        1 for slide in slides for element in slide.get('pageElements', [])
+        if any(item.get('textRun', {}).get('content', '').strip()
+               for item in element.get('shape', {}).get('text', {}).get('textElements', []))
+    )
+    if len(slides) != expected_slides or not text_shapes:
+        raise RuntimeError(f'Converted deck has {len(slides)} slides and {text_shapes} text shapes; '
+                           f'expected {expected_slides} slides and editable text')
+    print(f'Verified {len(slides)} slides and {text_shapes} editable text shapes')
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--pptx', type=Path, required=True)
+    parser.add_argument('--presentation-id', default=os.environ.get('GDRIVE_PRESENTATION_ID'))
+    parser.add_argument('--credentials')
+    parser.add_argument('--expected-slides', type=int, default=12)
+    args = parser.parse_args()
+    if not args.presentation_id:
+        parser.error('Pass --presentation-id or set GDRIVE_PRESENTATION_ID')
+    try:
+        count = slide_count(args.pptx)
+    except ValueError as exc:
+        parser.error(str(exc))
+    if count != args.expected_slides or count == 0:
+        parser.error(f'Expected {args.expected_slides} slides, found {count}')
+    from googleapiclient.discovery import build
+    from googleapiclient.http import MediaFileUpload
+    credentials = get_credentials(args.credentials)
+    drive = build('drive', 'v3', credentials=credentials)
+    media = MediaFileUpload(str(args.pptx), mimetype=PPTX_MIME, resumable=False)
+    update_presentation(drive, media, args.presentation_id, count)
+    verify_presentation(build('slides', 'v1', credentials=credentials), args.presentation_id, count)
+
+
+if __name__ == '__main__':
+    main()

@@ -622,7 +622,7 @@ e o_2$).
   subject to:
   $$\mathbf{M}_{\text{marginal}} w = b_{\text{matched}}, \quad l \le \mathbf{M}_{\text{joint}} w \le u, \quad w \in \Delta^{K-1}$$
 - **Solver:** Solved using Sequential Least Squares Programming (SLSQP).
-- **Objective:** Minimum KL divergence ensures the mixture remains as uniform and diverse as possible while satisfying strict exposure constraints.
+- **Interpretation:** KL is nonnegative and equals zero only when $w=u$. If uniform satisfies the constraints, it is the unique optimum and creates no contrast. If it is infeasible, the optimum can be positive. This central baseline does not by itself design low/high exposure interventions; the separate max–min candidate remains exploratory.
 
 ### Probable Audience Questions
 1. **Q:** *What happens if the constraints are infeasible?*
@@ -636,11 +636,11 @@ e o_2$).
 - **Experimental Setup:**
   - Mixture A: Matched basic concepts, Low Joint Exposure.
   - Mixture B: Matched basic concepts, High Joint Exposure.
-- **Causal Inference:** Because marginals are identical, any performance difference between models trained on A vs. B can be causally attributed to joint exposure.
+- **Interpretation:** Matching marginals is one design requirement, not sufficient on its own for a causal claim. Geometry, other exposures, training seeds, and the checker also require control and validation.
 
 ### Probable Audience Questions
 1. **Q:** *How large is the joint exposure separation between Mixture A and B in your current designs?*
-   **A:** In exploratory designs, we achieved a separation of approximately 15% joint exposure while keeping marginals within 2% tolerance.
+   **A:** The current candidates are exploratory; report the relevant measured exposure margins and their uncertainty rather than claiming a general separation. The design gate has not passed.
 
 ---
 

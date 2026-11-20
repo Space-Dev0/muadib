@@ -509,7 +509,7 @@ To smooth parameter updates, an \textbf{Exponential Moving Average (EMA)} shadow
 \vspace{-2mm}
 subject to equality and inequality exposure constraints:
 \[\mathbf{M}_{\text{marginal}} w = b_{\text{matched}}, \quad l \le \mathbf{M}_{\text{joint}} w \le u, \quad \sum w_k = 1, \; w_k \ge 0\]
-\small Solving this via SLSQP produces the maximally uniform mixture that cleanly separates joint exposure.
+\small This is convex. If uniform $u$ is feasible, $w^*=u$ and $D_{\rm KL}(w^*\Vert u)=0$: the baseline alone creates no exposure contrast. If uniform is infeasible, the feasible minimizer generally has positive KL. A separate exploratory max--min design seeks contrasts; it has not passed validation.
 \end{frame}
 
 \begin{frame}{A controlled comparison}
@@ -518,7 +518,7 @@ subject to equality and inequality exposure constraints:
 \column{.48\textwidth}\textbf{Mixture B}\begin{itemize}\item Concepts matched\item Higher joint exposure\end{itemize}
 \end{columns}
 \vspace{4mm}
-\normalsize Comparing models trained on Mixtures A and B reveals whether joint co-occurrence drives compositional learning when individual concept frequencies remain strictly matched.
+\normalsize A validated comparison of models trained on Mixtures A and B could test the role of joint exposure. The current design and checker gates remain open, so this comparison is not yet an established result.
 \end{frame}
 
 \begin{frame}{Why do we need a checker?}
