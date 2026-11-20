@@ -59,9 +59,9 @@ def verify_presentation(slides_service, presentation_id: str, expected_slides: i
         print(f'Verified {len(tables)} editable comparison tables on slide 4')
         images = [element['image'] for element in slides[8].get('pageElements', [])
                   if 'image' in element]
-        if len(images) < 2:
-            raise RuntimeError(f'Converted qualitative slide has {len(images)} images; expected two')
-        print(f'Verified {len(images)} qualitative images on slide 9')
+        if len(images) < 5:
+            raise RuntimeError(f'Converted slide 9 has {len(images)} images; expected five')
+        print(f'Verified {len(images)} sample and diffusion images on slide 9')
     print(f'Verified {len(slides)} slides and {text_shapes} editable text shapes')
     return slides
 
@@ -78,6 +78,8 @@ def main():
                         help='Save a Google-rendered thumbnail for layout inspection')
     parser.add_argument('--slide4-thumbnail', type=Path,
                         help='Save the methodology-slide thumbnail for layout inspection')
+    parser.add_argument('--slide5-thumbnail', type=Path,
+                        help='Save the architecture-slide thumbnail for layout inspection')
     parser.add_argument('--slide9-thumbnail', type=Path,
                         help='Save the hypothesis-slide thumbnail for layout inspection')
     args = parser.parse_args()
@@ -98,6 +100,7 @@ def main():
     slides_service = build('slides', 'v1', credentials=credentials)
     slides = verify_presentation(slides_service, args.presentation_id, count)
     for index, output in ((0, args.slide1_thumbnail), (2, args.slide3_thumbnail), (3, args.slide4_thumbnail),
+                          (4, args.slide5_thumbnail),
                           (8, args.slide9_thumbnail)):
         if not output:
             continue

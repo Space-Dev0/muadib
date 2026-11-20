@@ -40,6 +40,7 @@ jobs:
             --expected-slides 12 --slide1-thumbnail "$RUNNER_TEMP/slide-01.png" \
             --slide3-thumbnail "$RUNNER_TEMP/slide-03.png" \
             --slide4-thumbnail "$RUNNER_TEMP/slide-04.png" \
+            --slide5-thumbnail "$RUNNER_TEMP/slide-05.png" \
             --slide9-thumbnail "$RUNNER_TEMP/slide-09.png"
       - name: Save Google Slides layout preview
         uses: actions/upload-artifact@v4
@@ -49,5 +50,6 @@ jobs:
             ${{ runner.temp }}/slide-01.png
             ${{ runner.temp }}/slide-03.png
             ${{ runner.temp }}/slide-04.png
+            ${{ runner.temp }}/slide-05.png
             ${{ runner.temp }}/slide-09.png
           retention-days: 7

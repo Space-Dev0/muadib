@@ -22,7 +22,7 @@ The convex baseline minimizes KL(w || u) over nonnegative mixture weights summin
 
 ## Slide 5 — Model architecture
 
-PilotUNet is a time- and condition-aware image U-Net. The encoder extracts spatial features from a noisy image, a bottleneck incorporates the timestep and color condition, and the decoder predicts the velocity target while skip connections retain spatial information. During training x_t combines x_0 and Gaussian noise through a schedule. Velocity v_t is another parameterization of the denoising target. During sampling, start from noise and perform reverse steps using EMA weights. The diagram is schematic; the implementation uses cross-attention at 16×16.
+PilotUNet is a time- and condition-aware image U-Net. For the pilot, its base width is 16. The encoder maps a 64×64 noisy image through 32×32 and 16×16 spatial features. Timestep embeddings enter residual blocks, and the 16×16 bottleneck uses four-head cross-attention over the condition tokens. The decoder predicts the velocity target while skip connections retain spatial information. During training x_t combines x_0 and Gaussian noise through a schedule. Velocity v_t is another parameterization of the denoising target. During sampling, start from noise and perform reverse steps using EMA weights. The diagram is schematic; the implementation uses cross-attention at 16×16.
 
 ## Slide 6 — Dataset
 
@@ -38,7 +38,7 @@ Across the 64 images, the recorded review labels are 59 yes, three no and two un
 
 ## Slide 9 — Qualitative results
 
-Show two selected generated images. Sample 0003 received a yes for target circle presence. Sample 0001 was uncertain. These are illustrative selected examples, not a random representative gallery. A stochastic generated image does not have a unique paired pixel target, so compare conditions and use predicate judgments rather than calling the clean training image a ground-truth reconstruction.
+Show the two selected generated samples on the left: sample 0003 received a yes for target circle presence, while sample 0001 was uncertain. These are selected examples, not a random gallery or paired pixel reconstructions. On the right, the images are illustrative linear blends of a clean render and fixed noise, shown from noisy to clean. They are not model-generated intermediate images and do not depict the actual diffusion schedule. Explain that training adds scheduled noise and learns a velocity target, while generation begins from noise and repeatedly applies conditioned reverse steps.
 
 ## Slide 10 — Ablation and failure cases
 
