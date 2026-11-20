@@ -1,23 +1,49 @@
 #!/usr/bin/env python3
 """Upload or sync presentation slides directly to Google Slides using the Google Slides API.
 
-By updating slide backgrounds via Google Slides API, this workflow:
+By replacing slides with rendered PowerPoint pages, this workflow:
 - Avoids the Google Drive Service Account "storage quota exceeded" error.
 - Updates the exact existing Google Slides presentation in-place (URL never changes).
-- Sets slide images directly into slide backgrounds for seamless display.
+- Keeps the presentation URL but removes its old slides and their contents.
+
+The resulting Google Slides pages are images. Text, shapes, animations and
+speaker notes from the PowerPoint are not individually editable there.
 """
 
 import argparse
-import glob
 import json
 import os
 import sys
+import uuid
 from pathlib import Path
 
 SCOPES = [
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/presentations",
 ]
+
+
+def replacement_requests(old_slides, image_urls, run_id=None):
+    """Build one atomic replacement, creating pages before deleting old ones."""
+    if not image_urls:
+        raise ValueError("Refusing to replace a presentation with zero slides")
+    run_id = run_id or uuid.uuid4().hex
+    requests = []
+    for i, url in enumerate(image_urls):
+        slide_id = f"sync_{run_id}_{i:03d}"
+        requests.extend([
+            {"createSlide": {"objectId": slide_id,
+                             "slideLayoutReference": {"predefinedLayout": "BLANK"}}},
+            {"updatePageProperties": {
+                "objectId": slide_id,
+                "pageProperties": {"pageBackgroundFill": {
+                    "stretchedPictureFill": {"contentUrl": url}}},
+                "fields": "pageBackgroundFill",
+            }},
+        ])
+    requests.extend({"deleteObject": {"objectId": slide["objectId"]}}
+                    for slide in old_slides)
+    return requests
 
 
 def get_credentials(credentials_path: str | None = None):
@@ -64,7 +90,6 @@ def sync_to_google_slides(
     image_urls: list[str],
 ):
     """Sync slide images into an existing Google Slides deck via the Slides API."""
-    import time
     from googleapiclient.discovery import build
     from googleapiclient.errors import HttpError
 
@@ -106,57 +131,13 @@ def sync_to_google_slides(
     print(f"Connected to '{title}'. Current deck has {len(old_slides)} slide(s).")
     print(f"Preparing to sync {len(image_urls)} new slide(s)...")
 
-    requests = []
-    ts = int(time.time())
-
-    # Map existing slide IDs or schedule creations
-    slide_ids = []
-    for i in range(len(image_urls)):
-        if i < len(old_slides):
-            # Reuse existing slide object ID
-            slide_ids.append(old_slides[i]["objectId"])
-        else:
-            # Create additional slides if the new deck is longer
-            new_id = f"slide_{ts}_{i:03d}"
-            slide_ids.append(new_id)
-            requests.append(
-                {
-                    "createSlide": {
-                        "objectId": new_id,
-                        "insertionIndex": i,
-                        "slideLayoutReference": {"predefinedLayout": "BLANK"},
-                    }
-                }
-            )
-
-    # Set background image on every slide
-    for i, (slide_id, img_url) in enumerate(zip(slide_ids, image_urls)):
-        print(f"  Slide {i + 1:02d}: setting background to {img_url}")
-        requests.append(
-            {
-                "updatePageProperties": {
-                    "objectId": slide_id,
-                    "pageProperties": {
-                        "pageBackgroundFill": {
-                            "stretchedPictureFill": {
-                                "contentUrl": img_url,
-                            }
-                        }
-                    },
-                    "fields": "pageBackgroundFill",
-                }
-            }
-        )
-
-    # If the old deck had more slides than the new one, delete the excess slides
-    if len(old_slides) > len(image_urls):
-        for old_slide in old_slides[len(image_urls) :]:
-            print(f"  Deleting excess old slide: {old_slide['objectId']}")
-            requests.append({"deleteObject": {"objectId": old_slide["objectId"]}})
-
-    print("Submitting atomic batchUpdate to Google Slides...")
+    requests = replacement_requests(old_slides, image_urls)
+    body = {"requests": requests}
+    if pres.get("revisionId"):
+        body["writeControl"] = {"requiredRevisionId": pres["revisionId"]}
+    print("Replacing all old slides in one batchUpdate...")
     slides_service.presentations().batchUpdate(
-        presentationId=presentation_id, body={"requests": requests}
+        presentationId=presentation_id, body=body
     ).execute()
 
     view_link = f"https://docs.google.com/presentation/d/{presentation_id}/edit"

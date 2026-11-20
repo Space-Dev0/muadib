@@ -66,3 +66,23 @@ make help
 ## Submission deck
 
 `submission.pdf` and `submission.tex` contain the 12-slide version ordered according to the supplied research paper and presentation format guide. `submission-notes.md` gives slide-by-slide speaking notes and evidence limitations. Build from the repository root with `tectonic --outdir presentation presentation/submission.tex`.
+
+## Google Slides sync
+
+The Google Slides workflow uses
+`powerpoint/which-exposure-matters-submission-courses.pptx` as its source,
+not the LaTeX deck. Push changes to that file on the default branch or run
+**Sync PowerPoint to Google Slides** manually from that branch. The workflow
+renders the PPTX using LibreOffice and Poppler, publishes the slide PNGs in
+`presentation/slides/`, then replaces every slide in the presentation identified
+by the `GDRIVE_PRESENTATION_ID` repository secret. The `GCP_SA_KEY` secret must
+contain a service-account key and the target deck must be shared with that
+account. The repository and committed PNG URLs must be publicly accessible.
+
+The replacement keeps the Google presentation URL but deletes its previous
+slides, their slide objects, and their speaker notes. The new Google slides are
+flat background images; individual PPTX objects and speaker notes are not
+editable in Google Slides. The PowerPoint and
+`powerpoint/presentation-notes-courses.md` remain the editable source and
+presenter notes. Make any needed backup of the Google presentation before
+running the workflow.

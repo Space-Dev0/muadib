@@ -1,117 +1,99 @@
-name: Compile & Sync Presentation to Google Slides
+name: Sync PowerPoint to Google Slides
 
 on:
   push:
+    branches: [main]
     paths:
-      - 'presentation/submission.tex'
-      - 'presentation/assets/**'
-      - 'scripts/pdf_to_pptx.py'
+      - 'presentation/powerpoint/which-exposure-matters-submission-courses.pptx'
       - 'scripts/upload_to_gslides.py'
       - '.github/workflows/sync_presentation.yml'
   workflow_dispatch:
 
+# Only one run may replace the target deck at a time, regardless of branch.
 concurrency:
-  group: presentation-${{ github.ref }}
-  cancel-in-progress: true
+  group: google-slides-submission
+  cancel-in-progress: false
 
 jobs:
-  build-and-sync:
+  render-and-sync:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
-
-      - name: Install Poppler (pdftoppm)
+          python-version: '3.11'
+      - name: Install rendering and Google API dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y poppler-utils
-
-      - name: Cache Tectonic packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/Tectonic
-          key: ${{ runner.os }}-tectonic-${{ hashFiles('presentation/*.tex') }}
-          restore-keys: |
-            ${{ runner.os }}-tectonic-
-
-      - name: Setup Tectonic
-        uses: wtfjoke/setup-tectonic@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Python dependencies
+          sudo apt-get install -y libreoffice-impress poppler-utils
+          python -m pip install google-api-python-client google-auth
+      - name: Render PowerPoint to slide images
         run: |
-          pip install --upgrade pip
-          pip install python-pptx pillow google-api-python-client google-auth
-
-      - name: Compile LaTeX to PDF
-        working-directory: presentation
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/presentation-pdf" presentation/slides
+          libreoffice -env:UserInstallation="file://$RUNNER_TEMP/lo-profile" --headless \
+            --convert-to pdf --outdir "$RUNNER_TEMP/presentation-pdf" \
+            presentation/powerpoint/which-exposure-matters-submission-courses.pptx
+          pdf="$RUNNER_TEMP/presentation-pdf/which-exposure-matters-submission-courses.pdf"
+          test -s "$pdf"
+          pages=$(pdfinfo "$pdf" | awk '/^Pages:/ {print $2}')
+          test "$pages" -ge 1
+          rm -f presentation/slides/slide-*.png
+          pdftoppm -png -r 200 "$pdf" presentation/slides/slide
+          images=$(find presentation/slides -maxdepth 1 -name 'slide-*.png' | wc -l)
+          test "$pages" -eq "$images"
+      - name: Publish slide images
+        id: publish
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          echo "Compiling submission.tex with Tectonic..."
-          tectonic submission.tex
-          ls -lh submission.pdf
-
-      - name: Convert PDF to 16:9 PPTX
-        run: |
-          echo "Converting submission.pdf to submission.pptx at 400 DPI..."
-          python3 scripts/pdf_to_pptx.py presentation/submission.pdf -o presentation/submission.pptx --dpi 400
-          ls -lh presentation/submission.pptx
-
-      - name: Render Slide PNG Images
-        run: |
-          mkdir -p presentation/slides
-          rm -f presentation/slides/*.png
-          pdftoppm -png -r 400 presentation/submission.pdf presentation/slides/slide
-          ls -lh presentation/slides
-
-      - name: Commit & Push Slide Assets
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add presentation/slides/*.png presentation/submission.pdf
-          if git diff --staged --quiet; then
-            echo "No slide assets changed."
-          else
-            git commit -m "Auto-update presentation build & slide assets [skip ci]"
-            git push origin main
+          set -euo pipefail
+          git fetch origin "$DEFAULT_BRANCH"
+          if [ "$(git rev-parse FETCH_HEAD)" != "$GITHUB_SHA" ]; then
+            echo '::error::The default branch has advanced; rerun against its latest commit.'
+            exit 1
           fi
-
-      - name: Upload Build Artifacts (PDF & PPTX)
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add -A presentation/slides
+          if ! git diff --cached --quiet; then
+            git commit -m 'docs: render PowerPoint slides for Google Slides'
+            git push origin "HEAD:refs/heads/$DEFAULT_BRANCH"
+          fi
+          echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Verify public image URLs
+        env:
+          IMAGE_REVISION: ${{ steps.publish.outputs.revision }}
+        run: |
+          set -euo pipefail
+          for image in presentation/slides/slide-*.png; do
+            curl --fail --silent --show-error --retry 6 --retry-delay 5 --retry-all-errors \
+              --output /dev/null "https://raw.githubusercontent.com/$GITHUB_REPOSITORY/$IMAGE_REVISION/$image"
+          done
+      - name: Upload source and rendered PDF
         uses: actions/upload-artifact@v4
         with:
-          name: presentation-builds
+          name: presentation-powerpoint-and-pdf
           path: |
-            presentation/submission.pdf
-            presentation/submission.pptx
+            presentation/powerpoint/which-exposure-matters-submission-courses.pptx
+            ${{ runner.temp }}/presentation-pdf/*.pdf
           retention-days: 14
-
-      - name: Sync to Google Slides Deck
+      - name: Replace target Google Slides pages
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
           GDRIVE_PRESENTATION_ID: ${{ secrets.GDRIVE_PRESENTATION_ID }}
+          IMAGE_REVISION: ${{ steps.publish.outputs.revision }}
         run: |
-          if [ -z "$GCP_SA_KEY" ]; then
-            echo "::error::GCP_SA_KEY secret is not configured in GitHub repository secrets."
-            exit 1
-          fi
-          if [ -z "$GDRIVE_PRESENTATION_ID" ]; then
-            echo "::error::GDRIVE_PRESENTATION_ID secret is not configured in GitHub repository secrets."
-            exit 1
-          fi
-
-          python3 scripts/upload_to_gslides.py \
+          set -euo pipefail
+          test -n "$GCP_SA_KEY" || { echo '::error::GCP_SA_KEY is not configured.'; exit 1; }
+          test -n "$GDRIVE_PRESENTATION_ID" || { echo '::error::GDRIVE_PRESENTATION_ID is not configured.'; exit 1; }
+          python scripts/upload_to_gslides.py \
             --presentation-id "$GDRIVE_PRESENTATION_ID" \
             --slides-dir presentation/slides \
-            --base-url "https://raw.githubusercontent.com/${{ github.repository }}/main/presentation/slides" \
-            --version-tag "${{ github.sha }}"
+            --base-url "https://raw.githubusercontent.com/$GITHUB_REPOSITORY/$IMAGE_REVISION/presentation/slides" \
+            --version-tag "$IMAGE_REVISION"
