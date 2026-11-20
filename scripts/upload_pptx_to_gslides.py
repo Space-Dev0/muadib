@@ -49,6 +49,13 @@ def verify_presentation(slides_service, presentation_id: str, expected_slides: i
     if len(slides) != expected_slides or not text_shapes:
         raise RuntimeError(f'Converted deck has {len(slides)} slides and {text_shapes} text shapes; '
                            f'expected {expected_slides} slides and editable text')
+    # The third slide's two co-occurrence tables are essential evidence.
+    if expected_slides == 12:
+        tables = [element['table'] for element in slides[2].get('pageElements', [])
+                  if 'table' in element]
+        if len(tables) < 2:
+            raise RuntimeError(f'Converted slide 3 has {len(tables)} tables; expected two')
+        print(f'Verified {len(tables)} editable comparison tables on slide 3')
     print(f'Verified {len(slides)} slides and {text_shapes} editable text shapes')
 
 

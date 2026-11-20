@@ -35,8 +35,13 @@ class PowerPointImportTests(unittest.TestCase):
         service = MagicMock()
         slide = {'pageElements': [{'shape': {'text': {'textElements': [
             {'textRun': {'content': 'Editable text'}}]}}}]}
-        service.presentations().get().execute.return_value = {'slides': [slide] * 12}
+        slides = [slide.copy() for _ in range(12)]
+        slides[2] = {'pageElements': slide['pageElements'] + [{'table': {}}, {'table': {}}]}
+        service.presentations().get().execute.return_value = {'slides': slides}
         verify_presentation(service, 'deck', 12)
+        slides[2] = slide
+        with self.assertRaisesRegex(RuntimeError, 'expected two'):
+            verify_presentation(service, 'deck', 12)
         service.presentations().get().execute.return_value = {'slides': [{}] * 12}
         with self.assertRaisesRegex(RuntimeError, 'editable text'):
             verify_presentation(service, 'deck', 12)
