@@ -48,9 +48,11 @@ Show the two selected generated samples on the left: sample 0003 received a yes 
 
 No attention-block or U-Net-component ablation has been completed; a factor comparison is not a component ablation.
 
-## Slide 11 — Discussion: novelty and networking
+## Slide 11 — Networked experimentation pipeline
 
-The proposed research novelty is controlled variation of full-rule exposure while accounting for constituent exposure; the outcome experiment has not yet been run. The networking prototype is an engineering contribution combining established methods, not a new networking algorithm. A CPU producer streams rendered PNG scenes and JSON annotations over TCP through an SSH tunnel. A separate gzip checkpoint protocol resumes after an intentional 50,000-byte drop and verifies the bytes with SHA-256. Two GPU laptops each generated one inference image; this is task-parallel inference, not synchronized distributed training or proof of speedup. The localhost 1,060–1,082 scenes/s numbers include rendering and encoding; GPU idle time and raw link capacity were not established.
+Our networked pipeline separates CPU scene generation from consumption: it carries 64×64 PNG images and JSON annotations over TCP, with SSH tunneling between laptops. The longer localhost benchmark measured 1,082, 1,061 and 1,060 scenes per second for batches 2, 8 and 16; three short cross-laptop trials measured 582, 801 and 926 scenes per second, respectively. These measurements include rendering and encoding; they are not raw network capacity or GPU-training throughput.
+
+A separate checkpoint protocol uses gzip compression, byte-offset resume and SHA-256 validation before publishing. In a controlled cross-laptop test, a transfer resumed after a deliberate disconnection at 50,000 bytes and passed integrity verification. Two GPU workers also loaded the same verified checkpoint and generated one independent image each. This demonstrates task-parallel inference; it does not establish a speedup or synchronized distributed training. The proposed research novelty is the controlled joint-exposure intervention, distinct from the networking engineering.
 
 ## Slide 12 — Conclusion and future work
 
