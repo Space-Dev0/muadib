@@ -36,7 +36,7 @@ The project renderer produces colored shapes with known object attributes and co
 
 ## Slide 8 — Experimental setup and training
 
-Cross two vs. three objects with 50:50 vs. 90:10 target color balance. For each cell train a separate width-16 PilotUNet on 200 fixed 64×64 images, batch size 4, for 500,000 updates. Each step samples image, timestep and Gaussian noise, constructs a noised image, predicts velocity and minimizes mean-squared error using AdamW at learning rate 1e-4. An EMA model is used for evaluation. Generate red and blue targets with eight paired noise seeds, producing 16 images per cell. One model-training seed block does not provide independent dataset replication; noise seeds are not training seeds.
+Cross two vs. three objects with 50:50 vs. 90:10 target color balance. For each cell train a separate width-16 PilotUNet on 200 fixed 64×64 images, batch size 4, for 500,000 updates. Each step samples image, timestep and Gaussian noise, constructs a noised image, predicts velocity and minimizes mean-squared error using AdamW at learning rate 1e-4. After each optimization update k, EMA weights follow θ̄(k+1) = ρ θ̄(k) + (1 − ρ) θ(k+1), with ρ = 0.999. During sampling the EMA velocity prediction is converted to predicted noise at each diffusion timestep t. Generate red and blue targets with eight paired noise seeds, producing 16 images per cell. One model-training seed block does not provide independent dataset replication; noise seeds are not training seeds.
 
 ## Slide 9 — Quantitative results
 

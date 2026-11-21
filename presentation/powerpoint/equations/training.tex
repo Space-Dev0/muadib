@@ -6,6 +6,8 @@ $\displaystyle\begin{gathered}
 g_t=\nabla_{\theta}\mathcal L_t(\theta_t),\qquad
 \theta_{t+1}^{\mathrm{SGD}}=\theta_t-\eta\,g_t,\\[3pt]
 \theta_{t+1}^{\mathrm{AdamW}}=(1-\eta\lambda)\theta_t-\eta\frac{\widehat m_t}{\sqrt{\widehat v_t}+\epsilon},\quad
-\widehat m_t=\frac{m_t}{1-\beta_1^t},\quad \widehat v_t=\frac{v_t}{1-\beta_2^t}.
+\widehat m_t=\frac{m_t}{1-\beta_1^t},\quad \widehat v_t=\frac{v_t}{1-\beta_2^t},\\[3pt]
+\bar\theta_{k+1}=\rho\bar\theta_k+(1-\rho)\theta_{k+1},\quad \rho=0.999,\qquad
+\hat\epsilon_t=\sqrt{\bar\alpha_t}\,v_{\bar\theta}(x_t,t,c)+\sqrt{1-\bar\alpha_t}\,x_t.
 \end{gathered}$
 \end{document}
