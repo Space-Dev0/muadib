@@ -160,8 +160,8 @@ def main():
     parser.add_argument(
         "--slides-dir",
         type=Path,
-        default=Path("presentation/slides"),
-        help="Directory containing rendered slide-*.png images",
+        default=None,
+        help="Directory containing rendered slide-*.png images (required for legacy image sync)",
     )
     parser.add_argument(
         "--base-url",
@@ -191,6 +191,8 @@ def main():
         )
         sys.exit(1)
 
+    if args.slides_dir is None:
+        parser.error("--slides-dir is required for legacy image-based sync")
     slides_dir = args.slides_dir.resolve()
     images = sorted(slides_dir.glob("slide-*.png"))
     if not images:

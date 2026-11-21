@@ -1,6 +1,6 @@
 # Speaking guide
 
-This guide provides quick presenter bullet notes keyed frame-by-frame (1–63) to `main.pdf`. For deep technical narratives, math derivations, and anticipated reviewer Q&A defenses, consult `detailed-speaker-notes.md`.
+This guide provides quick presenter bullet notes for an earlier 63-frame version; the current `main.pdf` has 66 pages, so check numbering before use. For deep technical narratives, math derivations, and anticipated reviewer Q&A defenses, consult `detailed-speaker-notes.md`.
 
 1. **Title:** Introduce the project as a study of what kinds of training examples help an image model follow combinations of instructions.
 2. **Table of Contents:** Outline the four presentation acts: foundations, scene world, evaluation & optimization, and obstacles/applications.

@@ -1,10 +1,10 @@
 # Detailed Presentation Notes & Q&A Defense Guide
 
 **Presentation:** Which Exposure Matters? How training examples shape image-generation skills
-**Format:** 63 Widescreen Slides (`main.pdf`), compiled from `main.tex` via Tectonic
+**Format:** Notes for an earlier 63-frame version; the current `main.pdf` has 66 pages. Check slide numbering before use.
 **Audience:** Technical research audience, deep learning practitioners, and academic reviewers
 
-This is a draft set of presenter notes and possible questions for the 63 frames.
+This is a draft set of presenter notes and possible questions for the earlier 63-frame version.
 It received a quick review, not a full literature or mathematical audit. Check
 technical claims and citations against the proposal, source code and original
 papers before presenting them. The confirmatory study and Stage 0 gates remain

@@ -1,88 +1,12 @@
-# Presentation: Which Exposure Matters?
+# Project presentations
 
-This directory contains the Beamer slide deck and accompanying presenter materials for the research project **"Which Exposure Matters? How training examples shape image-generation skills"** (Proposal and exploratory work).
+- **Long deck:** [main.pdf](main.pdf), a 66-page Beamer presentation, built from [main.tex](main.tex). The older [speaking guide](speaking-guide.md) and [detailed notes](detailed-speaker-notes.md) describe an earlier 63-frame version and may not match every current page.
+- **Submission deck:** [submission-final.pptx](powerpoint/submission-final.pptx), an editable 12-slide PowerPoint. Its [presenter notes](powerpoint/presentation-notes-guide.md) are also embedded in the deck. Slide 5 gives the minimum-KL baseline and the separate exploratory max–min problem.
 
-## Directory Contents
-
-- **`main.pdf` (Compiled Presentation PDF)**:
-  A 63-slide, 16:9 widescreen Beamer presentation document. It provides a comprehensive, rigorous overview covering:
-  - Table of Contents and presentation roadmap
-  - Adjacent research (MOSAIC, Okawa et al., GRASP, Bradley) and project novelty
-  - Core research question and compositional binding motivation
-  - In-depth diffusion model mathematics (Gaussian forward process, closed-form sampling, reverse transitions, MSE noise prediction)
-  - Detailed model architecture (hierarchical U-Net with GroupNorm, multi-head cross-attention at the $16 \times 16$ bottleneck, token embeddings, classifier-free guidance)
-  - Optimization dynamics (AdamW weight decay, Exponential Moving Average shadow weights, and DDPM vs. DDIM sampling schedules)
-  - Synthetic scene environment, vocabulary, spatial relations, distinct object semantics, and exposure levels
-  - Formal metrics (empirical exposure, log lift, multiplicative composition reference, logit/log composition gaps, N50 sample efficiency)
-  - Dataset mixture optimization (the convex minimum-KL baseline, its zero optimum when uniform is feasible, and exploratory contrast-seeking designs)
-  - Automated pixel checkers, false accept/reject/abstention dynamics, and blinded human review protocols
-  - Current obstacles (checker boundary sensitivity, relational baseline saturation, and design multicollinearity)
-  - Stage 0 validation gates, future workflow, and theoretical implications
-  - Real-world implications and safety-critical applications (medical imaging, rare pathology co-morbidity synthesis, and robotics / autonomous vehicle edge cases)
-
-- **`main.tex` (LaTeX Source)**:
-  The LaTeX source file formatted for Beamer (`aspectratio=169`, 11pt) using the default LaTeX font theme (`\usefonttheme{serif}`, Computer Modern Roman and Math). Includes self-contained vector TikZ schematics for the U-Net architecture, cross-attention dataflow, medical scan binding, diffusion processes, and optimization pipelines. Compiles cleanly with [Tectonic](https://tectonic-typesetting.github.io/).
-
-- **`detailed-speaker-notes.md` (Detailed Notes & Q&A Defense Guide)**:
-  A draft 63-slide guide with technical narration and possible audience questions. It has had a quick review; check technical claims and citations before use.
-
-- **`speaking-guide.md` (Quick Speaking Guide)**:
-  A quick-reference, frame-by-frame (1–63) bullet-point summary designed for handy reference during live presentation delivery.
-
-- **`assets/` & `generate_noise.py` (Exploratory Image Assets)**:
-  Image figures referenced in `main.tex`:
-  - `assets/synthetic-example.png`: An example synthetic scene rendered from the project toy world demonstrating shapes, colors, and spatial arrangements.
-  - `assets/noise-0.png` through `assets/noise-3.png`: Progression demonstrating forward diffusion corruption and reverse denoising steps.
-  - `generate_noise.py`: A Python script using NumPy and Pillow that generates `noise-0.png` through `noise-3.png` deterministically from `synthetic-example.png` (random seed 801).
-  - `assets/pilot-red.png` & `assets/pilot-relation.png`: Actual exploratory samples produced by the preliminary 800,000-update prototype model checkpoint (prompted for "red" and "blue above circle"), illustrating current model capabilities and visual fidelity.
-
-## Building the Presentation
-
-The presentation is built using `tectonic`. A `Makefile` is provided in this directory with a default build target.
-
-From inside the `presentation/` directory:
-
-```bash
-# Build main.pdf (default target)
-make
-
-# Or run tectonic directly
-tectonic main.tex
-```
-
-### Additional Makefile Targets
-
-```bash
-# Regenerate the synthetic noise image assets
-make assets
-
-# Remove compiled PDF
-make clean
-
-# Display available targets
-make help
-```
-
-## Submission deck
-
-`submission.pdf` and `submission.tex` contain the 12-slide version ordered according to the supplied research paper and presentation format guide. `submission-notes.md` gives slide-by-slide speaking notes and evidence limitations. Build from the repository root with `tectonic --outdir presentation presentation/submission.tex`.
+The supporting `assets/` directory contains figures used by the decks, and `powerpoint/equations/` contains the LaTeX source for the equation graphics. The long deck can be rebuilt with `make` from this directory, using Tectonic.
 
 ## Google Slides sync
 
-The Google Slides workflow uses
-`powerpoint/which-exposure-matters-submission-updated.pptx` as its source,
-not the LaTeX deck. Push changes to that file on the default branch or run
-**Sync PowerPoint to Google Slides** manually from that branch. It uploads the
-PPTX directly with the Drive API, which converts and replaces the contents of
-the presentation identified by `GDRIVE_PRESENTATION_ID` while keeping its
-URL. `GCP_SA_KEY` must contain a service-account key; Drive API must be enabled
-and the target must be shared with that account. The workflow checks that the
-source contains 12 slides and that the target is a Google presentation before
-uploading.
+GitHub Actions imports `powerpoint/submission-final.pptx` directly into the existing Google Slides file. Push changes to that file on `main`, or run **Sync PowerPoint to Google Slides** manually from the default branch. The workflow verifies 12 slides, key tables and images, and saves rendered previews.
 
-Google converts supported PPTX objects to editable Slides objects; conversion
-may change some formatting. LaTeX-rendered equation graphics remain images.
-Every upload replaces the target presentation's existing contents, so edits
-made directly in Google Slides can be overwritten. The PPTX and
-`powerpoint/presentation-notes-guide.md` are the authoritative source and
-presenter notes. Keep a backup if the Google presentation has independent edits.
+`GDRIVE_PRESENTATION_ID` identifies the target; `GCP_SA_KEY` must contain a service-account key with access to it and Drive API must be enabled. Google converts supported PPTX objects to editable Slides objects, although equation graphics remain images and formatting may change. Each sync replaces the target's contents, so back up any independent Google Slides edits first.

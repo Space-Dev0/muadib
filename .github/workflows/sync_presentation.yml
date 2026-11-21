@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'presentation/powerpoint/which-exposure-matters-submission-updated.pptx'
+      - 'presentation/powerpoint/submission-final.pptx'
       - 'scripts/upload_pptx_to_gslides.py'
       - 'scripts/upload_to_gslides.py'
       - '.github/workflows/sync_presentation.yml'
@@ -36,12 +36,14 @@ jobs:
           test -n "$GCP_SA_KEY" || { echo '::error::GCP_SA_KEY is not configured.'; exit 1; }
           test -n "$GDRIVE_PRESENTATION_ID" || { echo '::error::GDRIVE_PRESENTATION_ID is not configured.'; exit 1; }
           python -m scripts.upload_pptx_to_gslides \
-            --pptx presentation/powerpoint/which-exposure-matters-submission-updated.pptx \
+            --pptx presentation/powerpoint/submission-final.pptx \
             --expected-slides 12 --slide1-thumbnail "$RUNNER_TEMP/slide-01.png" \
             --slide3-thumbnail "$RUNNER_TEMP/slide-03.png" \
             --slide4-thumbnail "$RUNNER_TEMP/slide-04.png" \
             --slide5-thumbnail "$RUNNER_TEMP/slide-05.png" \
+            --slide6-thumbnail "$RUNNER_TEMP/slide-06.png" \
             --slide9-thumbnail "$RUNNER_TEMP/slide-09.png" \
+            --slide10-thumbnail "$RUNNER_TEMP/slide-10.png" \
             --slide12-thumbnail "$RUNNER_TEMP/slide-12.png"
       - name: Save Google Slides layout preview
         uses: actions/upload-artifact@v4
@@ -52,6 +54,8 @@ jobs:
             ${{ runner.temp }}/slide-03.png
             ${{ runner.temp }}/slide-04.png
             ${{ runner.temp }}/slide-05.png
+            ${{ runner.temp }}/slide-06.png
             ${{ runner.temp }}/slide-09.png
+            ${{ runner.temp }}/slide-10.png
             ${{ runner.temp }}/slide-12.png
           retention-days: 7

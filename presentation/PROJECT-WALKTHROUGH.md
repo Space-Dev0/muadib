@@ -38,7 +38,7 @@ individual ingredient frequencies fixed. The repository builds the instruments
 needed for that experiment: a controlled synthetic scene world, formal rule
 semantics, a Monte Carlo exposure matrix, a linear-programming design tool,
 a small conditional diffusion model, an image checker, and blinded human-audit
-tooling. A 63-slide Beamer deck in `presentation/` tells the research story.
+tooling. A 66-page Beamer deck in `presentation/` tells the research story.
 
 **The single most important sentence for your talk:** the repository is a
 *staged instrument-development project*. No confirmatory experiment has been run,
@@ -255,7 +255,7 @@ muadib/
 ├── exposure/                    all Python modules (~70 files, ~12.8k lines)
 ├── tests/                       ~300 test methods (training tests need torch)
 ├── docs/                        ~78 design/evidence documents
-├── presentation/                63-slide Beamer deck + speaking guides
+├── presentation/                66-page Beamer deck + older speaking guides
 ├── scripts/                     Windows/GPU launchers and supervisors
 ├── outputs/                     generated artifacts (git-ignored)
 ├── analysis_outputs/            prior static analysis summary, risks, contract
@@ -702,7 +702,7 @@ document answers, not every number.
 
 ---
 
-## 9. The existing 63-slide deck
+## 9. The long Beamer deck
 
 `presentation/main.tex` / `main.pdf` is a 16:9 Beamer deck. It is technically
 strong but **predates the latest MOSAIC training work** and is written as a

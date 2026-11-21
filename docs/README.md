@@ -337,7 +337,7 @@ treat the number as exploratory.
 |---|---|
 | `README.md` | Project entry point and quick start. |
 | `presentation/PROJECT-WALKTHROUGH.md` | Complete presenter's guide: basics, pipeline, code, docs. |
-| `presentation/main.pdf` | 63-slide Beamer deck. |
+| `presentation/main.pdf` | 66-page Beamer deck. |
 | `presentation/speaking-guide.md` | One bullet per slide. |
 | `presentation/detailed-speaker-notes.md` | Technical narration and Q&A. |
 | `adjacent-research/README.md` | MOSAIC paper notes and citation. |

@@ -20,29 +20,33 @@ Render labeled scenes, estimate the exposure matrix, choose mixtures, train mode
 
 The convex baseline minimizes KL(w || u) over nonnegative mixture weights summing to one subject to linear exposure bounds. If uniform u is feasible, w=u uniquely minimizes KL at zero; this baseline alone creates no contrast. If uniform is excluded, a nonempty closed feasible set has a positive optimum. The separate four-mixture max–min approach seeks contrast but is exploratory and not the same convex optimization problem. Its six-rule fresh draw had 47 of 72 margins certified and 25 unresolved under simultaneous bounds; broader validation remains ongoing.
 
-## Slide 5 — Model architecture
+## Slide 5 — Optimization: minimum KL and max–min
+
+The minimum-KL baseline chooses mixture weights w close to uniform u while satisfying linear exposure bounds. The feasible set is convex, and the KL objective is convex. If u is feasible, Gibbs' inequality gives the unique optimum w=u with minimum value zero; this does not create an exposure contrast. If uniform is excluded and a feasible point exists, the minimum is positive.
+
+The separate four-mixture problem maximizes the minimum of the design-constraint margins: maximize z subject to each margin g_i(w; A^(k)) being at least z, each mixture summing to one, its weights respecting their lower and upper limits, and −1 ≤ z ≤ 1. Here g_i represents a factorial or cross-factor margin on a fitting matrix. The log-based margins make the problem nonlinear, so this is not asserted to be convex. SLSQP found a local exploratory candidate; this is not proof of global optimality or confirmed design validity. A fresh six-rule draw certified 47 of 72 constraints at simultaneous 95%, with 25 unresolved.
+
+## Slide 6 — Model architecture
 
 PilotUNet is a time- and condition-aware image U-Net. For the pilot, its base width is 16. The encoder maps a 64×64 noisy image through 32×32 and 16×16 spatial features. Timestep embeddings enter residual blocks, and the 16×16 bottleneck uses four-head cross-attention over the condition tokens. The decoder predicts the velocity target while skip connections retain spatial information. During training x_t combines x_0 and Gaussian noise through a schedule. Velocity v_t is another parameterization of the denoising target. During sampling, start from noise and perform reverse steps using EMA weights. The diagram is schematic; the implementation uses cross-attention at 16×16.
 
-## Slide 6 — Dataset
+## Slide 7 — Dataset
 
 The project renderer produces colored shapes with known object attributes and coordinates. The separate exposure matrix contains 57 conditions and 5.7 million accepted synthetic scenes. The four-cell pilot uses four datasets of 200 fixed scenes each. Target circles are red or blue, whereas distractors have other attributes, so target role is confounded with attributes. No independent held-out image dataset is claimed for this pilot. The image shown is an illustrative clean render.
 
-## Slide 7 — Experimental setup and training
+## Slide 8 — Experimental setup and training
 
 Cross two vs. three objects with 50:50 vs. 90:10 target color balance. For each cell train a separate width-16 PilotUNet on 200 fixed 64×64 images, batch size 4, for 500,000 updates. Each step samples image, timestep and Gaussian noise, constructs a noised image, predicts velocity and minimizes mean-squared error using AdamW at learning rate 1e-4. An EMA model is used for evaluation. Generate red and blue targets with eight paired noise seeds, producing 16 images per cell. One model-training seed block does not provide independent dataset replication; noise seeds are not training seeds.
 
-## Slide 8 — Quantitative results
+## Slide 9 — Quantitative results
 
 Across the 64 images, the recorded review labels are 59 yes, three no and two unresolved. Cell counts are 16/0/0, 15/0/1, 14/2/0, 14/1/1. Resolving the two uncertain labels in all possible ways yields complexity-drop bounds of 6.25–12.5 percentage points and imbalance-drop bounds of −3.125–3.125 points. These are finite-sample sensitivity bounds, not confidence intervals. Four returned CSVs were byte-identical; these files alone do not establish independent authorship. The pilot does not test the joint-exposure hypothesis.
 
-## Slide 9 — Qualitative results
+## Slide 10 — Qualitative results and failure cases
 
 Show the two selected generated samples on the left: sample 0003 received a yes for target circle presence, while sample 0001 was uncertain. These are selected examples, not a random gallery or paired pixel reconstructions. On the right, explain the evaluation: four 500,000-update pilot models produced 64 images. The returned labels were 59 yes, three no and two unresolved. The experimental checker answered 46 of 64 and abstained on every one of the three human-negative examples. These exploratory pilot results do not test the central joint-exposure hypotheses.
 
-## Slide 10 — Ablation and failure cases
-
-The current four-cell experiment is a data-factor comparison, not an architecture ablation. No measured attention or U-Net-component effect should be claimed. The experimental checker answered 46 of 64 questions and abstained on all three human-negative cases as well as both unresolved cases. Agreement among accepted cases cannot identify the false-accept rate; negative cases and abstentions matter. Broader generated-image checker validation remains open.
+No attention-block or U-Net-component ablation has been completed; a factor comparison is not a component ablation.
 
 ## Slide 11 — Discussion: novelty and networking
 

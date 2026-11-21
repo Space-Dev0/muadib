@@ -57,19 +57,21 @@ def verify_presentation(slides_service, presentation_id: str, expected_slides: i
         if len(tables) < 2:
             raise RuntimeError(f'Converted slide 4 has {len(tables)} tables; expected two')
         print(f'Verified {len(tables)} editable comparison tables on slide 4')
-        if not any('image' in element for element in slides[4].get('pageElements', [])):
-            raise RuntimeError('Converted slide 5 is missing the LaTeX equation image')
-        print('Verified the LaTeX equation image on slide 5')
+        for index, minimum in ((4, 2), (5, 1)):
+            count = sum('image' in element for element in slides[index].get('pageElements', []))
+            if count < minimum:
+                raise RuntimeError(f'Converted slide {index + 1} has {count} equation images; expected {minimum}')
+        print('Verified LaTeX equation images on slides 5 and 6')
         cover_images = [element['image'] for element in slides[0].get('pageElements', [])
                         if 'image' in element]
         if len(cover_images) < 3:
             raise RuntimeError(f'Converted title slide has {len(cover_images)} images; expected three')
         print(f'Verified {len(cover_images)} diffusion illustrations on the title slide')
-        images = [element['image'] for element in slides[8].get('pageElements', [])
+        images = [element['image'] for element in slides[9].get('pageElements', [])
                   if 'image' in element]
         if len(images) < 2:
-            raise RuntimeError(f'Converted slide 9 has {len(images)} images; expected two')
-        print(f'Verified {len(images)} qualitative images on slide 9')
+            raise RuntimeError(f'Converted slide 10 has {len(images)} images; expected two')
+        print(f'Verified {len(images)} qualitative images on slide 10')
     print(f'Verified {len(slides)} slides and {text_shapes} editable text shapes')
     return slides
 
@@ -87,9 +89,13 @@ def main():
     parser.add_argument('--slide4-thumbnail', type=Path,
                         help='Save the methodology-slide thumbnail for layout inspection')
     parser.add_argument('--slide5-thumbnail', type=Path,
+                        help='Save the optimization-slide thumbnail for layout inspection')
+    parser.add_argument('--slide6-thumbnail', type=Path,
                         help='Save the architecture-slide thumbnail for layout inspection')
     parser.add_argument('--slide9-thumbnail', type=Path,
-                        help='Save the hypothesis-slide thumbnail for layout inspection')
+                        help='Save the results-slide thumbnail for layout inspection')
+    parser.add_argument('--slide10-thumbnail', type=Path,
+                        help='Save the qualitative-slide thumbnail for layout inspection')
     parser.add_argument('--slide12-thumbnail', type=Path,
                         help='Save the conclusion-slide thumbnail for layout inspection')
     args = parser.parse_args()
@@ -111,7 +117,8 @@ def main():
     slides = verify_presentation(slides_service, args.presentation_id, count)
     for index, output in ((0, args.slide1_thumbnail), (2, args.slide3_thumbnail), (3, args.slide4_thumbnail),
                           (4, args.slide5_thumbnail),
-                          (8, args.slide9_thumbnail), (11, args.slide12_thumbnail)):
+                          (5, args.slide6_thumbnail), (8, args.slide9_thumbnail),
+                          (9, args.slide10_thumbnail), (11, args.slide12_thumbnail)):
         if not output:
             continue
         thumbnail = slides_service.presentations().pages().getThumbnail(
