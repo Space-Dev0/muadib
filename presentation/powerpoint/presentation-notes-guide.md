@@ -8,7 +8,7 @@ A diffusion model learns to generate images by reversing a gradual noise-corrupt
 
 ## Slide 2 — Literature survey
 
-DDPM (Ho et al., 2020) provides the denoising foundation. Liu et al. study composable diffusion models. MOSAIC (Jeong et al., 2026) studies multi-object generation in controlled synthetic scenes. Okawa et al. (NeurIPS 2023) find that composing lower-frequency concepts into out-of-distribution samples required considerably more optimization steps than generating in-distribution samples. Our proposed extension is to intervene on nonzero joint exposure while controlling individual exposures. This is a research design, not yet an established empirical result; the larger literature already studies related questions.
+DDPM (Ho et al., 2020) provides the denoising foundation. Liu et al. study composable diffusion models. MOSAIC (Jeong et al., 2026) studies multi-object generation in controlled synthetic scenes. Okawa et al. (NeurIPS 2023) find that composing lower-frequency concepts into out-of-distribution samples required considerably more optimization steps than generating in-distribution samples. Liang et al. (NeurIPS 2024), *How Diffusion Models Learn to Factorize and Compose*, examine factorized representations in controlled diffusion experiments. Our proposed extension is to intervene on nonzero joint exposure while controlling individual exposures. This is a research design, not yet an established empirical result; the larger literature already studies related questions.
 
 ## Slide 3 — Research hypotheses
 
