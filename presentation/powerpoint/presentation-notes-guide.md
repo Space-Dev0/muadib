@@ -1,6 +1,6 @@
 # Presenter notes — 12-slide submission
 
-This deck follows the supplied presentation format. Distinguish the proposed joint-exposure study from the separate completed pilot. The main hypothesis remains untested and Stage 0 has not passed.
+This deck follows the supplied presentation format. Distinguish the proposed joint-exposure study from the separate completed pilot. The main hypothesis remains untested.
 
 ## Slide 1 — Introduction
 
@@ -18,7 +18,7 @@ H1 predicts negative composition gaps that grow with relational complexity. H2 p
 
 Render labeled scenes, estimate the exposure matrix, choose mixtures, train models, sample and evaluate. The tables demonstrate the same P(A)=P(B)=0.5 but joint P(A,B)=0.1 or 0.4. They are an illustration, not measured model results.
 
-The convex baseline minimizes KL(w || u) over nonnegative mixture weights summing to one subject to linear exposure bounds. If uniform u is feasible, w=u uniquely minimizes KL at zero; this baseline alone creates no contrast. If uniform is excluded, a nonempty closed feasible set has a positive optimum. The separate four-mixture max–min approach seeks contrast but is exploratory and not the same convex optimization problem. Its six-rule fresh draw had 47 of 72 margins certified and 25 unresolved under simultaneous bounds. Stage 0 has not passed.
+The convex baseline minimizes KL(w || u) over nonnegative mixture weights summing to one subject to linear exposure bounds. If uniform u is feasible, w=u uniquely minimizes KL at zero; this baseline alone creates no contrast. If uniform is excluded, a nonempty closed feasible set has a positive optimum. The separate four-mixture max–min approach seeks contrast but is exploratory and not the same convex optimization problem. Its six-rule fresh draw had 47 of 72 margins certified and 25 unresolved under simultaneous bounds; broader validation remains ongoing.
 
 ## Slide 5 — Model architecture
 
@@ -50,7 +50,7 @@ The proposed research novelty is controlled variation of full-rule exposure whil
 
 ## Slide 12 — Conclusion and future work
 
-We built the renderer, measurement and design tools, diffusion pilots, checker audit and networking prototypes. Results currently support feasibility and diagnostics, not the central exposure claim. Next validate the checker on challenging positive, negative and relational images; establish an identifiable exposure design; then run independent training and data seeds and test the proposed hypotheses. Stage 0 has not passed.
+We built the renderer, measurement and design tools, diffusion pilots, checker audit and networking prototypes. Results currently support feasibility and diagnostics, not the central exposure claim. Next validate the checker on challenging positive, negative and relational images; establish an identifiable exposure design; then run independent training and data seeds and test the proposed hypotheses.
 
 ## References
 

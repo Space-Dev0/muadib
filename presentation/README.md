@@ -70,7 +70,7 @@ make help
 ## Google Slides sync
 
 The Google Slides workflow uses
-`powerpoint/which-exposure-matters-submission-guide.pptx` as its source,
+`powerpoint/which-exposure-matters-submission-updated.pptx` as its source,
 not the LaTeX deck. Push changes to that file on the default branch or run
 **Sync PowerPoint to Google Slides** manually from that branch. It uploads the
 PPTX directly with the Drive API, which converts and replaces the contents of

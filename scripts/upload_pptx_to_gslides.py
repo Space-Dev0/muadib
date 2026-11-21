@@ -90,6 +90,8 @@ def main():
                         help='Save the architecture-slide thumbnail for layout inspection')
     parser.add_argument('--slide9-thumbnail', type=Path,
                         help='Save the hypothesis-slide thumbnail for layout inspection')
+    parser.add_argument('--slide12-thumbnail', type=Path,
+                        help='Save the conclusion-slide thumbnail for layout inspection')
     args = parser.parse_args()
     if not args.presentation_id:
         parser.error('Pass --presentation-id or set GDRIVE_PRESENTATION_ID')
@@ -109,7 +111,7 @@ def main():
     slides = verify_presentation(slides_service, args.presentation_id, count)
     for index, output in ((0, args.slide1_thumbnail), (2, args.slide3_thumbnail), (3, args.slide4_thumbnail),
                           (4, args.slide5_thumbnail),
-                          (8, args.slide9_thumbnail)):
+                          (8, args.slide9_thumbnail), (11, args.slide12_thumbnail)):
         if not output:
             continue
         thumbnail = slides_service.presentations().pages().getThumbnail(
