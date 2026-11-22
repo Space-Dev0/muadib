@@ -6,6 +6,8 @@
 - **Detailed slide guides:** [Slide 4: exposure and methodology](powerpoint/explanations/slide-04-methodology.md), [Slide 8: experiment and training](powerpoint/explanations/slide-08-experiment-training.md), and [Slide 12: status and next steps](powerpoint/explanations/slide-12-status-next-steps.md). Each guide ends with a short audience script.
 - **More detailed guides (Markdown / PDF):** Slide 3: [Markdown](powerpoint/explanations/slide-03-research-hypotheses.md) / [PDF](powerpoint/explanations/slide-03-research-hypotheses.pdf); Slide 7: [Markdown](powerpoint/explanations/slide-07-controlled-synthetic-world.md) / [PDF](powerpoint/explanations/slide-07-controlled-synthetic-world.pdf); Slide 11: [Markdown](powerpoint/explanations/slide-11-networked-experimentation.md) / [PDF](powerpoint/explanations/slide-11-networked-experimentation.pdf). Each guide ends with an audience script.
 
+- **Further guides (Markdown / PDF):** Slide 2: [Markdown](powerpoint/explanations/slide-02-related-research.md) / [PDF](powerpoint/explanations/slide-02-related-research.pdf); Slide 6: [Markdown](powerpoint/explanations/slide-06-model-architecture-diffusion.md) / [PDF](powerpoint/explanations/slide-06-model-architecture-diffusion.pdf); Slide 10: [Markdown](powerpoint/explanations/slide-10-qualitative-results-evaluation.md) / [PDF](powerpoint/explanations/slide-10-qualitative-results-evaluation.pdf). Each ends with an audience script.
+
 The supporting `assets/` directory contains figures used by the decks, and `powerpoint/equations/` contains the LaTeX source for the equation graphics. The long deck can be rebuilt with `make` from this directory, using Tectonic.
 
 ## Google Slides sync
