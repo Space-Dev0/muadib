@@ -24,6 +24,19 @@ environment for the full suite.
 The rendering command writes `outputs/example.png` and `outputs/example.json`.
 Omit `--rule` to render without a condition.
 
+## Terminal image demo
+
+Generate a 64 × 64 image from the trained color-conditioned diffusion pilot:
+
+```sh
+uv run --no-sync python -m exposure.image_demo
+```
+
+Enter `red` or `blue` when prompted. The demo needs PyTorch and a local trusted
+checkpoint; see the [terminal demo guide](docs/05-training/terminal-image-demo.md)
+for setup, checkpoint options, and CPU/CUDA instructions. It does not accept
+arbitrary text prompts.
+
 ## Documentation
 
 **Start with the [documentation guide](docs/README.md).** It explains how the docs
