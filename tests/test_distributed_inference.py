@@ -9,7 +9,7 @@ import json
 import struct
 
 from PIL import Image
-from ops.distributed_inference import digest, handle, run, select_checkpoint_format
+from ops.distributed_inference import digest, handle, request, run, select_checkpoint_format
 
 
 def png():
@@ -19,6 +19,25 @@ def png():
 
 
 class InferenceTests(unittest.TestCase):
+    def test_request_deadline_not_reset_by_slow_drip(self):
+        class Clock:
+            value = 0.0
+            def monotonic(self):
+                self.value += 0.02
+                return self.value
+        class SlowSocket:
+            def __enter__(self): return self
+            def __exit__(self, *_): pass
+            def settimeout(self, seconds): pass
+            def sendall(self, data): pass
+            def recv(self, count): return b'\x00'
+        clock = Clock()
+        job = {'checkpoint_sha256': 'a' * 64, 'color': 'red', 'seed': 1}
+        with patch('ops.protocol.time.monotonic', side_effect=clock.monotonic), \
+             patch('ops.distributed_inference.socket.create_connection', return_value=SlowSocket()):
+            with self.assertRaises(TimeoutError):
+                request(('127.0.0.1', 1234), job, 0.1)
+
     def test_loopback_failover_and_checksum(self):
         try:
             listener = socket.socket()

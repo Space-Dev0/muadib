@@ -67,10 +67,11 @@ def handle(sock: socket.socket, checkpoint_hash: str, sampler, runtime=None) -> 
 def request(endpoint: tuple[str, int], job: dict, timeout: float) -> tuple[bytes, float, dict]:
     validate_job(job)
     start = time.monotonic()
-    with socket.create_connection(endpoint, timeout=timeout) as sock:
-        sock.settimeout(timeout)
+    deadline = start + timeout
+    with socket.create_connection(endpoint, timeout=protocol.remaining(deadline)) as sock:
+        sock.settimeout(protocol.remaining(deadline))
         protocol.send_json(sock, job)
-        header = protocol.recv_json(sock)
+        header = protocol.recv_json(sock, deadline=deadline)
         if header.get("status") != "ok":
             raise ValueError(f"worker rejected request: {header.get('message', 'unknown')}")
         size = header.get("bytes")
@@ -78,7 +79,8 @@ def request(endpoint: tuple[str, int], job: dict, timeout: float) -> tuple[bytes
             raise ValueError("malformed worker response")
         if not isinstance(header.get("runtime"), dict):
             raise ValueError("malformed worker runtime")
-        data = protocol.recv_exact(sock, size)
+        data = protocol.recv_exact(sock, size, deadline=deadline)
+        protocol.remaining(deadline)
     if digest(data) != header.get("sha256"):
         raise ValueError("image checksum mismatch")
     with Image.open(io.BytesIO(data)) as image:

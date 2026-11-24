@@ -2,6 +2,14 @@
 
 These are experimental protocols, not a completed Stage 0 result. They do not encrypt or authenticate peers: use only over an authenticated tunnel or isolated trusted network. SHA-256 detects corruption, not malicious modification by an attacker. Do not expose prototype ports publicly.
 
+The newer [resumable, checkpoint-aware coordinator](../docs/08-operations/adaptive-inference.md)
+adds a frozen workload, attempt ledger, conservative handling of uncertain
+failures, and optional echo-based routing. The [one-shot launcher](../docs/08-operations/inference-launcher.md)
+sets up SSH forwards to already-running workers. The [network pilot](../docs/08-operations/network-pilot-2026-11-24.md)
+reports the first short multi-host connectivity measurements; the optional
+[eBPF collector](../docs/08-operations/ebpf-telemetry.md) requires a supported
+Linux environment and suitable privileges.
+
 ## Image-level inference across hosts
 
 `ops.distributed_inference` distributes independent `(color, seed)` jobs for

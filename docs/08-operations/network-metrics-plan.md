@@ -87,6 +87,17 @@ uncertainty are measured and recorded. `RTT / 2` is not guaranteed to be
 one-way latency because paths and processing can be asymmetric. Use
 same-machine monotonic durations for the primary latency and recovery metrics.
 
+The current tools use different explicitly labeled percentile conventions.
+`ops.network_probe` uses nearest rank, including the lower middle value for an
+even sample; its echo RTT starts after connection establishment and stops when
+the echoed bytes arrive. `ops.benchmark_report` averages the two middle values
+for an even-sample median and linearly interpolates p95 at rank `(n-1)*0.95`.
+Its successful request interval starts on entry to the coordinator's request
+function and ends after response transfer, SHA-256 and structural PNG checks;
+it excludes prior queue wait and subsequent result decoding and publication.
+These intervals describe different operations and should not be compared as
+though they were measurements of the same latency.
+
 ### Link goodput versus job throughput
 
 A link test sends controlled data to characterize a path; its Mb/s is not
