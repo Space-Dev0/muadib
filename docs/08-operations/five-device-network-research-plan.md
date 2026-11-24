@@ -214,6 +214,8 @@ visualization/deployment experiment, only if its added value is measurable.
 
 ## 5. Experiments and evidence
 
+The accompanying [measurement specification](network-metrics-plan.md) defines latency, RTT variation, goodput, job timing, recovery, eBPF attribution, scientific coverage and the proposed reporting protocol.
+
 Freeze one workload manifest and preserve all outputs and attempt records.
 Use repeated, interleaved paired runs where practical, with warm-up and both
 cold-cache and warm-cache cases explicitly labeled. Measure:
