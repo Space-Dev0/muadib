@@ -82,9 +82,10 @@ For example, suppose 70 out of 100 annotated scenes generated under a particular
 
 Choose nonnegative weights for the candidate conditions. The weights sum to one. Combining the estimated event rates with these weights estimates the event rates under the mixture:
 
-\[
+$$
  m_p=\sum_j w_j A_{pj}, \qquad n_r=\sum_j w_j A_{rj}.
-\]
+$$
+
 
 Here `j` indexes candidate conditions; `w_j` is the sampling weight of condition `j`; `A_pj` is the probability that individual predicate `p` holds in condition `j`; and `A_rj` is the probability that complete rule `r` holds there. Thus `m_p` is a mixture-level marginal and `n_r` is a mixture-level full-rule exposure. We estimate the A values from generated scenes, so the resulting mixture values also have estimation uncertainty.
 
@@ -102,10 +103,10 @@ The next slide discusses two different objectives. The minimum-KL baseline finds
 
 **Exposure lift** is one descriptive way to compare joint exposure with a product of marginal exposures:
 
-\[
+$$
  \ell_r=\log n_r-\sum_{p\in r}\log m_p
        =\log\!\left(\frac{n_r}{\prod_{p\in r}m_p}\right).
-\]
+$$
 
 It is defined only when the relevant probabilities are positive. A larger value means a larger joint-to-product ratio for the chosen events; it is not a measure of model accuracy. For scene-level existential predicates and object-bound rules, the product does not automatically represent an appropriate independence model, so the event definitions must be stated carefully.
 

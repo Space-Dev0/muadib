@@ -145,6 +145,8 @@ An experimental CPU producer streams rendered PNG scenes and JSON annotations ov
 
 \paragraph{Protocol layers and orchestration.} The data plane serializes 64$\times$64 PNG scenes and JSON annotations into framed TCP messages. SSH port forwarding supplies an authenticated tunnel; a private VPN such as Tailscale can provide the underlying connectivity. The conditional adapter checks rule identity and source fingerprints before accepting a response. The inference coordinator stores a job plan, assigns independent color--seed requests, records worker fingerprints, and can retry an unsuccessful request on another endpoint. On resume it checks the existing plan and reuses verified completed outputs. This is deterministic software orchestration, not an autonomous AI agent or synchronous multi-GPU training. Checkpoint synchronization resumes the compressed stream at the receiver's saved byte offset; it checks both the compressed and restored file digests before publishing.
 
+An updated coordinator routes jobs only to workers with the requested checkpoint digest and records each attempt. An ambiguous timeout quarantines the worker and leaves the job unresolved, because the remote computation may still be running. A two-GPU smoke test completed the same eight image requests with each of round-robin and adaptive scheduling, taking 21.72\,s and 21.51\,s respectively. Both policies assigned the same jobs to each worker; with one run per policy and differing software environments, these numbers do not establish a performance advantage. Echo measurements were not supplied to the adaptive policy in this test.
+
 For $N$ received scenes over elapsed time $T$, we report application throughput $\mathcal{T}=N/T$ scenes/s and PNG payload rate $\mathcal{B}=8\sum_i b_i/T$ bits/s, where $b_i$ is the encoded PNG size in bytes. These end-to-end quantities include the producer and receiver work in the measured interval; payload rate excludes annotation and transport overhead and is not link capacity. Figure~\ref{fig:network-throughput} compares a 900,000-scene local run with three short 300-scene cross-laptop trials, one at each batch size. The different durations and environments make this a prototype characterization rather than a controlled network-speed comparison.
 \begin{figure}[t]\centering
 \includegraphics[width=\columnwidth]{figures/network-throughput.png}
@@ -196,7 +198,7 @@ We built and measured the components for a controlled investigation of compositi
 \section*{Impact Statement}
 This research studies how training data and evaluation affect the reliability of generative models. Its synthetic findings should not be interpreted as evidence of safety or reliability in consequential domains. Wider use of generated images may amplify existing representational errors; independent audits and domain-specific evaluation remain necessary.
 \section*{AI Disclosure Statement}
-Generative AI tools were used to write code and assist with portions of the analysis and manuscript preparation.
+Generative AI tools were used to write code and assist with portions of the analysis.
 \bibliography{references}
 \bibliographystyle{icml2027}
 \end{document}

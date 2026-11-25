@@ -6,7 +6,7 @@ These notes follow the 12-slide PowerPoint. Treat quoted passages as a guide rat
 
 “Good morning. Our project is called *Which Exposure Matters?* We are studying how the composition of a model’s training data might affect its ability to generate images that combine familiar concepts.”
 
-Give a simple example: a model might have seen many red objects and many squares, but relatively few red squares. Would seeing more red squares help it draw a red square? The question becomes harder when a request also contains a relation, such as a red object to the left of a square. Introduce the team and explain that the project connects digital image processing, computational optimization and computer networks.
+	Give a simple example: a model might have seen many red objects and many squares, but relatively few red squares. Would seeing more red squares help it draw a red square? The question becomes harder when a request also contains a relation, such as a red object to the left of a square. Introduce the team and explain that the project connects digital image processing, computational optimization and computer networks.
 
 **Transition:** Before discussing the experiment, explain what a diffusion model does.
 

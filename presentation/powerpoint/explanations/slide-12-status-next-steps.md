@@ -100,13 +100,13 @@ A checker that answers only easy positive images can appear accurate on answered
 
 ## 7. What is rule satisfaction rate?
 
-For a given rule `r`, **rule satisfaction rate** (RSR) is the proportion of evaluated generated samples that satisfy the whole rule:
+For a given rule $r$, **rule satisfaction rate** (RSR) is the proportion of evaluated generated samples that satisfy the whole rule:
 
-\[
+$$
  \widehat{\mathrm{RSR}}_r
  =\frac{\text{number of evaluated outputs satisfying }r}
         {\text{number of evaluated outputs with a defined decision}}.
-\]
+$$
 
 For example, if 40 out of 100 fully evaluated images satisfy “a red circle is left of a blue square,” the observed RSR is 0.40. The rule requires the correct attributes on the correct distinct objects and the specified relation. If an evaluator abstains on some outputs, the denominator and abstention count must be reported; RSR among accepted cases alone may describe a selected subset rather than all generated images.
 

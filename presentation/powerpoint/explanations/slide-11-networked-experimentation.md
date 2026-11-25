@@ -151,3 +151,26 @@ The research outcome remains the exposure question. Networking supports experime
 ## What to tell the audience
 
 > “We built a networked research workflow with three parts: streaming synthetic scenes and annotations over framed TCP through an SSH tunnel, transferring compressed checkpoints with byte-offset resume and SHA-256 verification, and coordinating independent inference jobs across GPU workers. The scene-stream graph reports application throughput for local and cross-laptop tests; the measured rates include rendering and encoding. In a controlled checkpoint test, transfer resumed after a 50,000-byte interruption. Two GPU workers also completed a small functional inference check.”
+
+## New multi-device pilot (24 November)
+
+The coordinator can now freeze a list of generation jobs, route each job only
+through a worker with the matching checkpoint, and keep a durable record of
+attempts. A timeout is treated as uncertain: the remote GPU may still be
+working, so the worker is quarantined and the job is not automatically
+resubmitted. This prevents the coordinator from quietly treating a retry as a
+new research sample.
+
+In one short integration test, two GPUs loaded the same checkpoint and each
+scheduling policy completed eight identical planned image jobs. Round-robin
+used 21.72 seconds and the adaptive policy 21.51 seconds for the measured
+segment. The same jobs went to the same workers, so these single runs do not
+establish an adaptive speedup. The adaptive run did not use network-probe input;
+it used the coordinator's observed request-time heuristic. The worker software
+environments differed. See the [network pilot record](../../../docs/08-operations/network-pilot-2026-11-24.md)
+for the experiment boundaries and the five endpoint echo measurements.
+
+**What to tell the audience:** We built and exercised a checkpoint-aware,
+recoverable distributed inference pipeline over authenticated SSH tunnels. We
+have a working two-GPU demonstration; repeated controlled experiments are still
+needed to determine whether network-aware scheduling improves performance.

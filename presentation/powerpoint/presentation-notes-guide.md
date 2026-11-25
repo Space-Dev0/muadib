@@ -50,6 +50,13 @@ No attention-block or U-Net-component ablation has been completed; a factor comp
 
 ## Slide 11 — Networked experimentation pipeline
 
+In the later two-GPU smoke test, a checkpoint-aware coordinator completed the
+same eight jobs under each policy: 21.72 seconds for round-robin and 21.51
+seconds for adaptive dispatch. These single runs used different worker
+software environments and do not demonstrate a speedup. The adaptive run did
+not use echo-probe input. Uncertain timeouts quarantine the worker instead of
+automatically duplicating potentially active GPU work.
+
 Our networked pipeline separates CPU scene generation from consumption: it carries 64×64 PNG images and JSON annotations over TCP, with SSH tunneling between laptops. A VPN such as Tailscale can provide the private network path. The automated coordinator schedules and retries jobs; it is software orchestration rather than an autonomous AI agent. The longer localhost benchmark measured 1,082, 1,061 and 1,060 scenes per second for batches 2, 8 and 16; three short cross-laptop trials measured 582, 801 and 926 scenes per second, respectively. The cross-laptop PNG payload rates were 4.91, 6.76 and 7.81 Mb/s. These measurements include rendering and encoding; they are not raw network capacity or GPU-training throughput.
 
 A separate checkpoint protocol uses gzip compression, byte-offset resume and SHA-256 validation before publishing. In a controlled cross-laptop test, a transfer resumed after a deliberate disconnection at 50,000 bytes and passed integrity verification. The coordinator records an immutable job plan and worker fingerprints, verifies output hashes, retries failed work and can resume a previously verified plan. These control-plane operations accompany the framed TCP data plane. Two GPU workers also loaded the same verified checkpoint and generated one independent image each. This demonstrates task-parallel inference; it does not establish a speedup or synchronized distributed training. The proposed research novelty is the controlled joint-exposure intervention, distinct from the networking engineering.
