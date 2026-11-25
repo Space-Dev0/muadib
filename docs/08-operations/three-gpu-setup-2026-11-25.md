@@ -76,3 +76,31 @@ The networking report includes a sanitized machine-readable
 [benchmark summary](network-report/benchmark-summary.json). Full plans,
 attempt logs and generated images remain in the ignored local `outputs/`
 directory; the summary is not a substitute for distributing those raw files.
+
+## Science-aware failover & cross-device replay audit
+
+- **Stratified science plan & cross-device replay audit
+  (`science-design-20261125`, `science-runs-20261125`, `science-audit-20261125.json`):**
+  12 primary jobs (`6` `red`, `6` `blue`, balanced `2/2/2` across
+  `gpu-1`/`gpu-2`/`gpu-3`) plus `repeat` and `cross` audit shards all
+  completed with `0` missing and `0` worker-assignment mismatches:
+  - Same-worker repeats: `2/2` (`1/1` `blue` on `gpu-1`, `1/1` `red` on
+    `gpu-3`) produced **identical PNG bytes**.
+  - Cross-worker replays: `1/1` same-OS/PyTorch pair (`gpu-1` vs `gpu-2`,
+    both Windows PyTorch 2.9.1) produced identical PNG bytes, whereas `3/3`
+    cross-OS/PyTorch pairs (Windows PyTorch 2.9.1 vs Linux PyTorch 2.11.0)
+    produced **different PNG bytes** for the same seed and checkpoint.
+- **Science-aware assignment failover (`science-failover-20261125`):** ran a
+  6-job `red` plan with `--assignments` and `--allow-assignment-failover`
+  while `gpu-2` was omitted. Jobs pinned to `gpu-1` (`red-9801`, `red-9804`)
+  and `gpu-3` (`red-9803`, `red-9806`) stayed on their preferred workers, while
+  `red-9802` and `red-9805` logged `assignment_deviation` (`preferred: gpu-2`,
+  `actual: gpu-3`, `reason: absent`) and completed (`6/6`, `0` missing,
+  `47.26s`).
+- **Pairwise Tailscale & SSH echo matrix (`pairwise-mesh-20261125.json`):**
+  measured all 12 ordered pairs across `coord`, `gpu-1`, `gpu-2`, and `gpu-3`.
+  Direct `tailscale ping` confirmed LAN star paths to/from `coord` (`6.0–32.0ms`
+  median) and `no matching peer` across all 6 shared GPU-to-GPU pairs. All
+  12 ordered SSH echo pairs (`20/20` each, `1,024 B`) succeeded: 1-hop star
+  medians `8.81–62.64ms` and 2-hop coordinator-relayed GPU-to-GPU medians
+  `48.18–79.49ms`.

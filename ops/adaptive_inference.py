@@ -96,6 +96,23 @@ def validate_workers(workers: object) -> list[dict]:
     return workers
 
 
+def validate_assignments(assignments: object, jobs: list[dict], workers: list[dict]) -> dict[str, str]:
+    """Validate a complete preferred-worker map; absent workers remain unavailable."""
+    if (not isinstance(assignments, dict) or set(assignments) != {"schema_version", "assignments"}
+            or type(assignments["schema_version"]) is not int or assignments["schema_version"] != 1
+            or not isinstance(assignments["assignments"], dict)):
+        raise ValueError("assignments must contain schema_version=1 and an assignments object")
+    mapping = assignments["assignments"]
+    if set(mapping) != {j["id"] for j in jobs}:
+        raise ValueError("assignments must cover exactly the frozen job IDs")
+    by_id = {w["id"]: w for w in workers}
+    for job in jobs:
+        preferred = _identifier(mapping[job["id"]], "preferred worker id")
+        if preferred in by_id and by_id[preferred]["checkpoint_sha256"] != job["checkpoint_sha256"]:
+            raise ValueError(f"preferred worker has an incompatible checkpoint for {job['id']}")
+    return mapping
+
+
 def _fresh_rtt(worker: dict, max_age: float, now: float | None = None) -> float | None:
     """Read pre-measured echo RTT, returning None for stale, invalid or failed probes."""
     if "probe_file" not in worker:
@@ -338,7 +355,8 @@ def _publish(output: Path, job: dict, data: bytes, worker: dict, elapsed: float,
 
 def run(plan: dict, workers: list[dict], output: Path, *, policy: str = "round-robin",
         timeout: float = 600, telemetry_max_age: float = 15, resume: bool = False,
-        allow_uncertain_retry: bool = False) -> dict:
+        allow_uncertain_retry: bool = False, assignments: dict | None = None,
+        allow_assignment_failover: bool = False) -> dict:
     """Run one attempt per compatible worker per job; retain partial runs for resume.
 
     The adaptive heuristic uses configured total-time priors or an EWMA of observed
@@ -348,12 +366,15 @@ def run(plan: dict, workers: list[dict], output: Path, *, policy: str = "round-r
     setup_start = time.monotonic()
     jobs = validate_plan(plan)
     workers = validate_workers(workers)
+    preferred_workers = validate_assignments(assignments, jobs, workers) if assignments is not None else None
+    if allow_assignment_failover and preferred_workers is None:
+        raise ValueError("assignment failover requires a preferred-worker map")
     if policy not in ("round-robin", "adaptive"):
         raise ValueError("policy must be round-robin or adaptive")
     if (not math.isfinite(timeout) or timeout <= 0 or
             not math.isfinite(telemetry_max_age) or telemetry_max_age <= 0):
         raise ValueError("timeout and telemetry_max_age must be finite and positive")
-    if any(not any(w["checkpoint_sha256"] == j["checkpoint_sha256"] for w in workers) for j in jobs):
+    if preferred_workers is None and any(not any(w["checkpoint_sha256"] == j["checkpoint_sha256"] for w in workers) for j in jobs):
         raise ValueError("every job must have at least one compatible checkpoint worker")
     output = Path(output)
     if resume:
@@ -371,7 +392,7 @@ def run(plan: dict, workers: list[dict], output: Path, *, policy: str = "round-r
         with os.fdopen(fd, "w") as f:
             f.write(str(os.getpid()))
         plan_file = output / "plan.json"
-        for name in ("plan.json", "events.jsonl", "summary.json"):
+        for name in ("plan.json", "assignments.json", "events.jsonl", "summary.json"):
             if (output / name).is_symlink():
                 raise ValueError(f"symlink is not allowed: {name}")
         if resume:
@@ -380,6 +401,16 @@ def run(plan: dict, workers: list[dict], output: Path, *, policy: str = "round-r
                     raise ValueError("resume plan differs from frozen plan")
         else:
             _atomic_json(plan_file, plan)
+        assignment_file = output / "assignments.json"
+        if resume:
+            if assignment_file.exists() != (assignments is not None):
+                raise ValueError("resume assignments differ from frozen assignments")
+            if assignment_file.exists():
+                with assignment_file.open(encoding="utf-8") as f:
+                    if json.load(f) != assignments:
+                        raise ValueError("resume assignments differ from frozen assignments")
+        elif assignments is not None:
+            _atomic_json(assignment_file, assignments)
         results = output / "results"
         results.mkdir(exist_ok=True)
         if results.is_symlink() or not results.is_dir():
@@ -424,6 +455,8 @@ def run(plan: dict, workers: list[dict], output: Path, *, policy: str = "round-r
             "schema_version": 1, "coordinator_source_sha256": coordinator_sha256,
             "policy": policy, "timeout_seconds": timeout, "telemetry_max_age_seconds": telemetry_max_age,
             "resume": resume, "allow_uncertain_retry": allow_uncertain_retry,
+            "assignment_controlled": preferred_workers is not None,
+            "allow_assignment_failover": allow_assignment_failover,
             "workers": [{"id": w["id"], "port": w["port"], "checkpoint_sha256": w["checkpoint_sha256"],
                          "estimate_seconds": w.get("estimate_seconds", 60.0),
                          "probe_enabled": "probe_file" in w, "probe_port": w.get("probe_port")}
@@ -436,6 +469,7 @@ def run(plan: dict, workers: list[dict], output: Path, *, policy: str = "round-r
         failed = set()
         busy = set()
         quarantined = set()
+        unavailable = set()
         futures = {}
         history = {}
         start = time.monotonic()
@@ -445,8 +479,29 @@ def run(plan: dict, workers: list[dict], output: Path, *, policy: str = "round-r
                 # Rotate pending work so an unavailable checkpoint cannot block other jobs.
                 for _ in range(len(pending)):
                     index, job = pending.popleft()
-                    compatible = [w for w in workers if w["checkpoint_sha256"] == job["checkpoint_sha256"]
-                                  and w["id"] not in tried[job["id"]] and w["id"] not in quarantined]
+                    preferred = preferred_workers[job["id"]] if preferred_workers is not None else None
+                    if preferred is not None:
+                        preferred_entry = next((w for w in workers if w["id"] == preferred), None)
+                        preferred_unavailable = (preferred_entry is None or preferred in unavailable
+                                                 or preferred in quarantined or preferred in tried[job["id"]])
+                        if not preferred_unavailable:
+                            if preferred in busy:
+                                pending.append((index, job))
+                                continue
+                            compatible = [preferred_entry]
+                        elif allow_assignment_failover:
+                            compatible = [w for w in workers if w["checkpoint_sha256"] == job["checkpoint_sha256"]
+                                          and w["id"] not in tried[job["id"]]
+                                          and w["id"] not in quarantined and w["id"] not in unavailable]
+                        else:
+                            failed.add(job["id"])
+                            _event(events, {"event": "assignment_unavailable", "session_id": session_id,
+                                            "job_id": job["id"], "stratum": job["stratum"],
+                                            "preferred_worker_id": preferred, "time_utc": _utc()})
+                            continue
+                    else:
+                        compatible = [w for w in workers if w["checkpoint_sha256"] == job["checkpoint_sha256"]
+                                      and w["id"] not in tried[job["id"]] and w["id"] not in quarantined]
                     if not compatible:
                         failed.add(job["id"])
                         continue
@@ -464,6 +519,13 @@ def run(plan: dict, workers: list[dict], output: Path, *, policy: str = "round-r
                     else:
                         worker = min(candidates, key=lambda w: (workers.index(w) - index) % len(workers))
                     attempt_id = uuid.uuid4().hex
+                    if preferred is not None and worker["id"] != preferred:
+                        reason = ("absent" if preferred_entry is None else
+                                  "quarantined" if preferred in quarantined else "connection_refused")
+                        _event(events, {"event": "assignment_deviation", "session_id": session_id,
+                                        "job_id": job["id"], "stratum": job["stratum"],
+                                        "preferred_worker_id": preferred, "actual_worker_id": worker["id"],
+                                        "reason": reason, "time_utc": _utc()})
                     rtt = scores.get(worker["id"], (None, None))[1]
                     _event(events, {"event": "attempt_started", "session_id": session_id,
                                     "attempt_id": attempt_id, "job_id": job["id"],
@@ -495,6 +557,8 @@ def run(plan: dict, workers: list[dict], output: Path, *, policy: str = "round-r
                         if uncertain:
                             quarantined.add(worker["id"])
                             failed.add(job["id"])
+                        elif preferred_workers is not None:
+                            unavailable.add(worker["id"])
                         _event(events, {"event": "attempt_failed", "session_id": session_id,
                                         "attempt_id": attempt_id, "job_id": job["id"],
                                         "stratum": job["stratum"], "worker_id": worker["id"],
@@ -564,6 +628,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--allow-uncertain-retry", action="store_true",
                         help="acknowledge that unfinished attempts may still run remotely")
+    parser.add_argument("--assignments", type=Path, help="freeze an exact job-to-preferred-worker map")
+    parser.add_argument("--allow-assignment-failover", action="store_true",
+                        help="allow recorded deviations only when preferred worker is unavailable")
     args = parser.parse_args(argv)
     try:
         with args.plan.open(encoding="utf-8") as f:
@@ -572,9 +639,11 @@ def main(argv: list[str] | None = None) -> int:
             config = json.load(f)
         if not isinstance(config, dict) or set(config) != {"workers"}:
             raise ValueError("worker configuration must contain only workers")
+        assignments = json.loads(args.assignments.read_text(encoding="utf-8")) if args.assignments else None
         summary = run(plan, config["workers"], args.output, policy=args.policy,
                       timeout=args.timeout, telemetry_max_age=args.telemetry_max_age, resume=args.resume,
-                      allow_uncertain_retry=args.allow_uncertain_retry)
+                      allow_uncertain_retry=args.allow_uncertain_retry, assignments=assignments,
+                      allow_assignment_failover=args.allow_assignment_failover)
     except (OSError, ValueError, RuntimeError, TypeError, KeyError) as exc:
         parser.exit(1, f"Error: {exc}\n")
     print(json.dumps(summary, indent=2))

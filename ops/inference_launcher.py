@@ -105,9 +105,14 @@ def _stop_owned(process: subprocess.Popen) -> None:
 
 def launch(plan: dict, workers: list[dict], config: dict, output: Path, *, policy: str = 'adaptive',
            timeout: float = 600, startup_timeout: float = 15, resume: bool = False,
-           allow_uncertain_retry: bool = False) -> dict:
-    adaptive_inference.validate_plan(plan)
+           allow_uncertain_retry: bool = False, assignments: dict | None = None,
+           allow_assignment_failover: bool = False) -> dict:
+    jobs = adaptive_inference.validate_plan(plan)
     tunnels = validate_tunnels(config, workers)
+    if assignments is not None:
+        adaptive_inference.validate_assignments(assignments, jobs, workers)
+    elif allow_assignment_failover:
+        raise ValueError('assignment failover requires a preferred-worker map')
     if not 0 < startup_timeout <= 300:
         raise ValueError('startup_timeout must be in (0, 300]')
     for tunnel, worker in tunnels:
@@ -170,7 +175,8 @@ def launch(plan: dict, workers: list[dict], config: dict, output: Path, *, polic
         if any(process.poll() is not None for process in processes):
             raise RuntimeError('SSH tunnel exited')
         return adaptive_inference.run(plan, workers, output, policy=policy, timeout=timeout,
-                                      resume=resume, allow_uncertain_retry=allow_uncertain_retry)
+                                      resume=resume, allow_uncertain_retry=allow_uncertain_retry,
+                                      assignments=assignments, allow_assignment_failover=allow_assignment_failover)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -182,6 +188,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--startup-timeout', type=float, default=15)
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--allow-uncertain-retry', action='store_true')
+    parser.add_argument('--assignments', type=Path, help='frozen job-to-preferred-worker map')
+    parser.add_argument('--allow-assignment-failover', action='store_true')
     args = parser.parse_args(argv)
     try:
         plan = json.loads(args.plan.read_text(encoding='utf-8'))
@@ -189,9 +197,11 @@ def main(argv: list[str] | None = None) -> int:
         if not isinstance(config, dict) or set(config) != {'workers'}:
             raise ValueError('worker configuration must contain only workers')
         tunnels = json.loads(args.tunnels.read_text(encoding='utf-8'))
+        assignments = json.loads(args.assignments.read_text(encoding='utf-8')) if args.assignments else None
         summary = launch(plan, config['workers'], tunnels, args.output, policy=args.policy,
                          timeout=args.timeout, startup_timeout=args.startup_timeout,
-                         resume=args.resume, allow_uncertain_retry=args.allow_uncertain_retry)
+                         resume=args.resume, allow_uncertain_retry=args.allow_uncertain_retry,
+                         assignments=assignments, allow_assignment_failover=args.allow_assignment_failover)
     except (OSError, ValueError, TypeError, KeyError, RuntimeError) as exc:
         parser.exit(1, f'Error: {exc}\n')
     print(json.dumps(summary, indent=2))
