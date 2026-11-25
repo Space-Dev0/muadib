@@ -1,0 +1,18 @@
+{
+  "available": true,
+  "tcp_retransmit_events": 0,
+  "hook": "tracepoint:tcp:tcp_retransmit_skb",
+  "platform": "Linux",
+  "port": 22,
+  "requested_interval_seconds": 3,
+  "scope": "all host TCP sockets with matching source or destination port",
+  "attribution": "host port only; not an individual job, process, or VPN peer",
+  "dropped_events": null,
+  "dropped_events_note": "not reported by this collector; completeness is not established",
+  "actual_trace_window": null,
+  "actual_trace_window_note": "exact attachment and detachment times are not recorded",
+  "collector_start_utc": "2026-11-25T05:47:27.668225+00:00",
+  "collector_end_utc": "2026-11-25T05:47:31.199523+00:00",
+  "collector_elapsed_seconds": 3.531301535998864,
+  "error": null
+}

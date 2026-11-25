@@ -1,7 +1,7 @@
 """Launch SSH forwards for an already-running fixed-plan inference job.
 
-Only tunnels started by this process are stopped. SSH uses existing host-key
-verification and noninteractive credentials. Remote worker lifecycle is external.
+Only tunnels and optional self-terminating workers started by this process are
+stopped. SSH uses existing host-key verification and noninteractive credentials.
 """
 from __future__ import annotations
 
@@ -15,9 +15,10 @@ import subprocess
 import time
 import warnings
 
-from ops import adaptive_inference, protocol
+from ops import adaptive_inference, protocol, remote_worker
 
-_HOST = re.compile(r'^[A-Za-z0-9_][A-Za-z0-9_.-]*(?:@[A-Za-z0-9_][A-Za-z0-9_.-]*)?$')
+_HOST = re.compile(r'^(?:[A-Za-z0-9_](?:[A-Za-z0-9_. -]*[A-Za-z0-9_.-])?@)?'
+                   r'[A-Za-z0-9_][A-Za-z0-9_.-]*$')
 
 
 def validate_tunnels(config: object, workers: list[dict]) -> list[tuple[dict, dict]]:
@@ -29,7 +30,7 @@ def validate_tunnels(config: object, workers: list[dict]) -> list[tuple[dict, di
     for tunnel in config['tunnels']:
         if (not isinstance(tunnel, dict)
                 or not {'worker_id', 'host', 'ssh_port', 'remote_port'} <= set(tunnel)
-                or set(tunnel) - {'worker_id', 'host', 'ssh_port', 'remote_port', 'control_path'}):
+                or set(tunnel) - {'worker_id', 'host', 'ssh_port', 'remote_port', 'control_path', 'start_worker'}):
             raise ValueError('tunnel requires worker_id, host, ssh_port and remote_port; control_path is optional')
         identity = tunnel['worker_id']
         host = tunnel['host']
@@ -47,6 +48,8 @@ def validate_tunnels(config: object, workers: list[dict]) -> list[tuple[dict, di
             control = Path(path)
             if not control.is_absolute() or control.is_symlink() or not control.is_socket():
                 raise ValueError('control_path must be an absolute non-symlink existing socket')
+        if 'start_worker' in tunnel:
+            remote_worker.validate_worker_config(tunnel['start_worker'])
         seen.add(identity)
         result.append((tunnel, by_id[identity]))
     if seen != set(by_id):
@@ -86,13 +89,18 @@ def _cancel_forward(cancel_args: list[str]) -> None:
 
 
 def _stop_owned(process: subprocess.Popen) -> None:
-    if process.poll() is None:
-        process.terminate()
-        try:
-            process.wait(timeout=3)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait(timeout=3)
+    try:
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait(timeout=3)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        # Cleanup must not mask a more useful run result or earlier exception.
+        # A failed wait/kill does not establish that the SSH process exited.
+        warnings.warn(f'SSH tunnel cleanup unconfirmed: {type(exc).__name__}', RuntimeWarning)
 
 
 def launch(plan: dict, workers: list[dict], config: dict, output: Path, *, policy: str = 'adaptive',
@@ -102,6 +110,11 @@ def launch(plan: dict, workers: list[dict], config: dict, output: Path, *, polic
     tunnels = validate_tunnels(config, workers)
     if not 0 < startup_timeout <= 300:
         raise ValueError('startup_timeout must be in (0, 300]')
+    for tunnel, worker in tunnels:
+        if ('start_worker' in tunnel
+                and tunnel['start_worker']['lease_seconds'] < startup_timeout + timeout):
+            warnings.warn(f"Worker {worker['id']} lease is shorter than startup plus one request timeout; "
+                          "expiry may interrupt a job", RuntimeWarning)
     # Fail early when an existing listener would make readiness ambiguous.
     for _, worker in tunnels:
         if _available(worker['port']):
@@ -109,6 +122,10 @@ def launch(plan: dict, workers: list[dict], config: dict, output: Path, *, polic
     with ExitStack() as stack:
         processes = []
         for tunnel, worker in tunnels:
+            if 'start_worker' in tunnel:
+                owned = remote_worker.OwnedWorker(tunnel, worker)
+                stack.callback(owned.close)
+                owned.wait_ready(startup_timeout)
             forward = f"127.0.0.1:{worker['port']}:127.0.0.1:{tunnel['remote_port']}"
             process = None
             deadline = time.monotonic() + startup_timeout
@@ -119,7 +136,11 @@ def launch(plan: dict, workers: list[dict], config: dict, output: Path, *, polic
                     result = subprocess.run(base + ['forward'] + suffix, stdin=subprocess.DEVNULL,
                                             timeout=protocol.remaining(deadline), check=False)
                 except subprocess.TimeoutExpired as exc:
-                    raise RuntimeError(f"SSH forward for {worker['id']} timed out; inspect master forwards") from exc
+                    # The master may have installed the forward even though the
+                    # client timed out. Do not cancel a forward whose ownership
+                    # cannot be established: a concurrent client may own it.
+                    raise RuntimeError(f"SSH forward for {worker['id']} timed out; forward ownership is "
+                                       "uncertain. Inspect the ControlMaster before any cancellation") from exc
                 if result.returncode != 0:
                     raise RuntimeError(f"SSH forward for {worker['id']} failed")
                 stack.callback(_cancel_forward, base + ['cancel'] + suffix)

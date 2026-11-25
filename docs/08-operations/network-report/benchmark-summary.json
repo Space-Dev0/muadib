@@ -1,0 +1,636 @@
+[
+  {
+    "run": "outputs/network-project-one-shot-20261124/single-gpu3-18-20261125",
+    "session_id": "98b5601c4a1f4c93a11110c71dcb6fc5",
+    "segment_policy": "round-robin",
+    "planned": 18,
+    "recorded_completed_total": 18,
+    "missing": 0,
+    "reused_from_previous_sessions": 0,
+    "successes_this_session": 18,
+    "failed_attempts_this_session": 0,
+    "abandoned_attempts_this_session": 0,
+    "uncertain_failed_attempts_this_session": 0,
+    "unfinished_attempts_this_session": 0,
+    "historical_attempts": {
+      "abandoned": 0,
+      "uncertain_failed": 0,
+      "starts_without_recorded_outcome": 0,
+      "abandoned_without_matching_start": 0
+    },
+    "successes_by_worker": {
+      "gpu-3": 18
+    },
+    "success_request_duration_seconds": {
+      "n": 18,
+      "missing_legacy_measurement": 0,
+      "median": 1.417512803000136,
+      "median_method": "arithmetic median; average middle values when n is even",
+      "p95": 1.5735093656489867,
+      "p95_method": "linear interpolation at zero-based rank (n - 1) * 0.95"
+    },
+    "segment_wall_seconds": 26.572537183999884,
+    "session_timing_seconds": {
+      "setup_seconds": 0.003018507999513531,
+      "result_validation_seconds": 0.00019600199993874412,
+      "session_elapsed_before_summary_seconds": 26.57555922999927
+    },
+    "session_configuration": {
+      "allow_uncertain_retry": false,
+      "coordinator_source_sha256": "9a2de16aadd8e3d1f003bc4c4655d8d5ad30536b7e186fd3bc34d7911bf5da0e",
+      "policy": "round-robin",
+      "resume": false,
+      "schema_version": 1,
+      "telemetry_max_age_seconds": 15,
+      "timeout_seconds": 300,
+      "workers": [
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-3",
+          "port": 55523,
+          "probe_enabled": false,
+          "probe_port": null
+        }
+      ]
+    },
+    "prior_session_configuration_changes": {},
+    "prior_sessions_without_configuration": [],
+    "new_successes_per_segment_second": 0.6773910927421088,
+    "strata": {
+      "low-balanced": {
+        "completed": 18,
+        "missing": 0,
+        "planned": 18
+      }
+    },
+    "result_artifacts_independently_validated": true,
+    "notes": [
+      "Result files, PNG structure and hashes were independently checked against the plan.",
+      "Request duration is a coordinator monotonic interval from request() entry through connection, remote sampling, response transfer, SHA-256 and structural PNG verification; success-only, with legacy missing values excluded.",
+      "Throughput is new completions in this session divided by dispatch segment time; resumed work is excluded.",
+      "Segment time excludes resume validation and setup, and is not end-to-end elapsed time.",
+      "Setup includes result validation; elapsed-before-summary covers setup and dispatch but excludes summary serialization and writing.",
+      "The policy applies only to the current segment; reused jobs may have been completed under another policy.",
+      "Abandoned and uncertain failed attempts may still be running remotely, including after a retry succeeds.",
+      "p95 uses linear interpolation; the median averages the middle values for even samples. Small samples do not establish a reliable tail.",
+      "Request duration excludes queueing and result publication after request() returns; it is not one-way network latency, jitter, or GPU idle time."
+    ]
+  },
+  {
+    "run": "outputs/network-project-one-shot-20261124/three-gpu-18-round-robin-20261125",
+    "session_id": "1485724402d5400fb812d5913f1200aa",
+    "segment_policy": "round-robin",
+    "planned": 18,
+    "recorded_completed_total": 18,
+    "missing": 0,
+    "reused_from_previous_sessions": 0,
+    "successes_this_session": 18,
+    "failed_attempts_this_session": 0,
+    "abandoned_attempts_this_session": 0,
+    "uncertain_failed_attempts_this_session": 0,
+    "unfinished_attempts_this_session": 0,
+    "historical_attempts": {
+      "abandoned": 0,
+      "uncertain_failed": 0,
+      "starts_without_recorded_outcome": 0,
+      "abandoned_without_matching_start": 0
+    },
+    "successes_by_worker": {
+      "gpu-3": 14,
+      "gpu-2": 3,
+      "gpu-1": 1
+    },
+    "success_request_duration_seconds": {
+      "n": 18,
+      "missing_legacy_measurement": 0,
+      "median": 1.3611124475000906,
+      "median_method": "arithmetic median; average middle values when n is even",
+      "p95": 11.822054244450351,
+      "p95_method": "linear interpolation at zero-based rank (n - 1) * 0.95"
+    },
+    "segment_wall_seconds": 25.193354674000147,
+    "session_timing_seconds": {
+      "setup_seconds": 0.005706079000447062,
+      "result_validation_seconds": 0.00018063400057144463,
+      "session_elapsed_before_summary_seconds": 25.19906577099937
+    },
+    "session_configuration": {
+      "allow_uncertain_retry": false,
+      "coordinator_source_sha256": "9a2de16aadd8e3d1f003bc4c4655d8d5ad30536b7e186fd3bc34d7911bf5da0e",
+      "policy": "round-robin",
+      "resume": false,
+      "schema_version": 1,
+      "telemetry_max_age_seconds": 15,
+      "timeout_seconds": 300,
+      "workers": [
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-1",
+          "port": 55521,
+          "probe_enabled": false,
+          "probe_port": null
+        },
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-2",
+          "port": 55522,
+          "probe_enabled": false,
+          "probe_port": null
+        },
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-3",
+          "port": 55523,
+          "probe_enabled": false,
+          "probe_port": null
+        }
+      ]
+    },
+    "prior_session_configuration_changes": {},
+    "prior_sessions_without_configuration": [],
+    "new_successes_per_segment_second": 0.7144741235503751,
+    "strata": {
+      "low-balanced": {
+        "completed": 18,
+        "missing": 0,
+        "planned": 18
+      }
+    },
+    "result_artifacts_independently_validated": true,
+    "notes": [
+      "Result files, PNG structure and hashes were independently checked against the plan.",
+      "Request duration is a coordinator monotonic interval from request() entry through connection, remote sampling, response transfer, SHA-256 and structural PNG verification; success-only, with legacy missing values excluded.",
+      "Throughput is new completions in this session divided by dispatch segment time; resumed work is excluded.",
+      "Segment time excludes resume validation and setup, and is not end-to-end elapsed time.",
+      "Setup includes result validation; elapsed-before-summary covers setup and dispatch but excludes summary serialization and writing.",
+      "The policy applies only to the current segment; reused jobs may have been completed under another policy.",
+      "Abandoned and uncertain failed attempts may still be running remotely, including after a retry succeeds.",
+      "p95 uses linear interpolation; the median averages the middle values for even samples. Small samples do not establish a reliable tail.",
+      "Request duration excludes queueing and result publication after request() returns; it is not one-way network latency, jitter, or GPU idle time."
+    ]
+  },
+  {
+    "run": "outputs/network-project-one-shot-20261124/three-gpu-18-adaptive-20261125",
+    "session_id": "e0f18d9af3b14c1e951230e4b851a9c6",
+    "segment_policy": "adaptive",
+    "planned": 18,
+    "recorded_completed_total": 18,
+    "missing": 0,
+    "reused_from_previous_sessions": 0,
+    "successes_this_session": 18,
+    "failed_attempts_this_session": 0,
+    "abandoned_attempts_this_session": 0,
+    "uncertain_failed_attempts_this_session": 0,
+    "unfinished_attempts_this_session": 0,
+    "historical_attempts": {
+      "abandoned": 0,
+      "uncertain_failed": 0,
+      "starts_without_recorded_outcome": 0,
+      "abandoned_without_matching_start": 0
+    },
+    "successes_by_worker": {
+      "gpu-3": 14,
+      "gpu-2": 3,
+      "gpu-1": 1
+    },
+    "success_request_duration_seconds": {
+      "n": 18,
+      "missing_legacy_measurement": 0,
+      "median": 1.4364667630006807,
+      "median_method": "arithmetic median; average middle values when n is even",
+      "p95": 11.793948241499379,
+      "p95_method": "linear interpolation at zero-based rank (n - 1) * 0.95"
+    },
+    "segment_wall_seconds": 25.727675332000217,
+    "session_timing_seconds": {
+      "setup_seconds": 0.005012072999306838,
+      "result_validation_seconds": 0.0001639299989619758,
+      "session_elapsed_before_summary_seconds": 25.73269250699923
+    },
+    "session_configuration": {
+      "allow_uncertain_retry": false,
+      "coordinator_source_sha256": "9a2de16aadd8e3d1f003bc4c4655d8d5ad30536b7e186fd3bc34d7911bf5da0e",
+      "policy": "adaptive",
+      "resume": false,
+      "schema_version": 1,
+      "telemetry_max_age_seconds": 15,
+      "timeout_seconds": 300,
+      "workers": [
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-1",
+          "port": 55521,
+          "probe_enabled": false,
+          "probe_port": null
+        },
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-2",
+          "port": 55522,
+          "probe_enabled": false,
+          "probe_port": null
+        },
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-3",
+          "port": 55523,
+          "probe_enabled": false,
+          "probe_port": null
+        }
+      ]
+    },
+    "prior_session_configuration_changes": {},
+    "prior_sessions_without_configuration": [],
+    "new_successes_per_segment_second": 0.699635694547634,
+    "strata": {
+      "low-balanced": {
+        "completed": 18,
+        "missing": 0,
+        "planned": 18
+      }
+    },
+    "result_artifacts_independently_validated": true,
+    "notes": [
+      "Result files, PNG structure and hashes were independently checked against the plan.",
+      "Request duration is a coordinator monotonic interval from request() entry through connection, remote sampling, response transfer, SHA-256 and structural PNG verification; success-only, with legacy missing values excluded.",
+      "Throughput is new completions in this session divided by dispatch segment time; resumed work is excluded.",
+      "Segment time excludes resume validation and setup, and is not end-to-end elapsed time.",
+      "Setup includes result validation; elapsed-before-summary covers setup and dispatch but excludes summary serialization and writing.",
+      "The policy applies only to the current segment; reused jobs may have been completed under another policy.",
+      "Abandoned and uncertain failed attempts may still be running remotely, including after a retry succeeds.",
+      "p95 uses linear interpolation; the median averages the middle values for even samples. Small samples do not establish a reliable tail.",
+      "Request duration excludes queueing and result publication after request() returns; it is not one-way network latency, jitter, or GPU idle time."
+    ]
+  },
+  {
+    "run": "outputs/network-project-one-shot-20261124/single-gpu3-36-20261125",
+    "session_id": "d9ba109716ee4211a0bd5f66ee33a079",
+    "segment_policy": "round-robin",
+    "planned": 36,
+    "recorded_completed_total": 36,
+    "missing": 0,
+    "reused_from_previous_sessions": 0,
+    "successes_this_session": 36,
+    "failed_attempts_this_session": 0,
+    "abandoned_attempts_this_session": 0,
+    "uncertain_failed_attempts_this_session": 0,
+    "unfinished_attempts_this_session": 0,
+    "historical_attempts": {
+      "abandoned": 0,
+      "uncertain_failed": 0,
+      "starts_without_recorded_outcome": 0,
+      "abandoned_without_matching_start": 0
+    },
+    "successes_by_worker": {
+      "gpu-3": 36
+    },
+    "success_request_duration_seconds": {
+      "n": 36,
+      "missing_legacy_measurement": 0,
+      "median": 1.4007674514996324,
+      "median_method": "arithmetic median; average middle values when n is even",
+      "p95": 1.4647642022496257,
+      "p95_method": "linear interpolation at zero-based rank (n - 1) * 0.95"
+    },
+    "segment_wall_seconds": 51.72667398399972,
+    "session_timing_seconds": {
+      "setup_seconds": 0.005937531999734347,
+      "result_validation_seconds": 0.0004594449983414961,
+      "session_elapsed_before_summary_seconds": 51.732615020000594
+    },
+    "session_configuration": {
+      "allow_uncertain_retry": false,
+      "coordinator_source_sha256": "9a2de16aadd8e3d1f003bc4c4655d8d5ad30536b7e186fd3bc34d7911bf5da0e",
+      "policy": "round-robin",
+      "resume": false,
+      "schema_version": 1,
+      "telemetry_max_age_seconds": 15,
+      "timeout_seconds": 300,
+      "workers": [
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-3",
+          "port": 55523,
+          "probe_enabled": false,
+          "probe_port": null
+        }
+      ]
+    },
+    "prior_session_configuration_changes": {},
+    "prior_sessions_without_configuration": [],
+    "new_successes_per_segment_second": 0.695965876544385,
+    "strata": {
+      "low-balanced": {
+        "completed": 36,
+        "missing": 0,
+        "planned": 36
+      }
+    },
+    "result_artifacts_independently_validated": true,
+    "notes": [
+      "Result files, PNG structure and hashes were independently checked against the plan.",
+      "Request duration is a coordinator monotonic interval from request() entry through connection, remote sampling, response transfer, SHA-256 and structural PNG verification; success-only, with legacy missing values excluded.",
+      "Throughput is new completions in this session divided by dispatch segment time; resumed work is excluded.",
+      "Segment time excludes resume validation and setup, and is not end-to-end elapsed time.",
+      "Setup includes result validation; elapsed-before-summary covers setup and dispatch but excludes summary serialization and writing.",
+      "The policy applies only to the current segment; reused jobs may have been completed under another policy.",
+      "Abandoned and uncertain failed attempts may still be running remotely, including after a retry succeeds.",
+      "p95 uses linear interpolation; the median averages the middle values for even samples. Small samples do not establish a reliable tail.",
+      "Request duration excludes queueing and result publication after request() returns; it is not one-way network latency, jitter, or GPU idle time."
+    ]
+  },
+  {
+    "run": "outputs/network-project-one-shot-20261124/three-gpu-36-round-robin-20261125",
+    "session_id": "2996d319195a4a9ba4eb19a3f9812656",
+    "segment_policy": "round-robin",
+    "planned": 36,
+    "recorded_completed_total": 36,
+    "missing": 0,
+    "reused_from_previous_sessions": 0,
+    "successes_this_session": 36,
+    "failed_attempts_this_session": 0,
+    "abandoned_attempts_this_session": 0,
+    "uncertain_failed_attempts_this_session": 0,
+    "unfinished_attempts_this_session": 0,
+    "historical_attempts": {
+      "abandoned": 0,
+      "uncertain_failed": 0,
+      "starts_without_recorded_outcome": 0,
+      "abandoned_without_matching_start": 0
+    },
+    "successes_by_worker": {
+      "gpu-3": 28,
+      "gpu-2": 6,
+      "gpu-1": 2
+    },
+    "success_request_duration_seconds": {
+      "n": 36,
+      "missing_legacy_measurement": 0,
+      "median": 1.405293224000161,
+      "median_method": "arithmetic median; average middle values when n is even",
+      "p95": 12.483927923250576,
+      "p95_method": "linear interpolation at zero-based rank (n - 1) * 0.95"
+    },
+    "segment_wall_seconds": 46.50437132099978,
+    "session_timing_seconds": {
+      "setup_seconds": 0.00595601300119597,
+      "result_validation_seconds": 0.00039624500095669646,
+      "session_elapsed_before_summary_seconds": 46.51033303500117
+    },
+    "session_configuration": {
+      "allow_uncertain_retry": false,
+      "coordinator_source_sha256": "9a2de16aadd8e3d1f003bc4c4655d8d5ad30536b7e186fd3bc34d7911bf5da0e",
+      "policy": "round-robin",
+      "resume": false,
+      "schema_version": 1,
+      "telemetry_max_age_seconds": 15,
+      "timeout_seconds": 300,
+      "workers": [
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-1",
+          "port": 55521,
+          "probe_enabled": false,
+          "probe_port": null
+        },
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-2",
+          "port": 55522,
+          "probe_enabled": false,
+          "probe_port": null
+        },
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-3",
+          "port": 55523,
+          "probe_enabled": false,
+          "probe_port": null
+        }
+      ]
+    },
+    "prior_session_configuration_changes": {},
+    "prior_sessions_without_configuration": [],
+    "new_successes_per_segment_second": 0.7741207756902551,
+    "strata": {
+      "low-balanced": {
+        "completed": 36,
+        "missing": 0,
+        "planned": 36
+      }
+    },
+    "result_artifacts_independently_validated": true,
+    "notes": [
+      "Result files, PNG structure and hashes were independently checked against the plan.",
+      "Request duration is a coordinator monotonic interval from request() entry through connection, remote sampling, response transfer, SHA-256 and structural PNG verification; success-only, with legacy missing values excluded.",
+      "Throughput is new completions in this session divided by dispatch segment time; resumed work is excluded.",
+      "Segment time excludes resume validation and setup, and is not end-to-end elapsed time.",
+      "Setup includes result validation; elapsed-before-summary covers setup and dispatch but excludes summary serialization and writing.",
+      "The policy applies only to the current segment; reused jobs may have been completed under another policy.",
+      "Abandoned and uncertain failed attempts may still be running remotely, including after a retry succeeds.",
+      "p95 uses linear interpolation; the median averages the middle values for even samples. Small samples do not establish a reliable tail.",
+      "Request duration excludes queueing and result publication after request() returns; it is not one-way network latency, jitter, or GPU idle time."
+    ]
+  },
+  {
+    "run": "outputs/network-project-one-shot-20261124/three-gpu-36-adaptive-20261125",
+    "session_id": "636c50110d794787bf4a7aa6120ba03b",
+    "segment_policy": "adaptive",
+    "planned": 36,
+    "recorded_completed_total": 36,
+    "missing": 0,
+    "reused_from_previous_sessions": 0,
+    "successes_this_session": 36,
+    "failed_attempts_this_session": 0,
+    "abandoned_attempts_this_session": 0,
+    "uncertain_failed_attempts_this_session": 0,
+    "unfinished_attempts_this_session": 0,
+    "historical_attempts": {
+      "abandoned": 0,
+      "uncertain_failed": 0,
+      "starts_without_recorded_outcome": 0,
+      "abandoned_without_matching_start": 0
+    },
+    "successes_by_worker": {
+      "gpu-3": 28,
+      "gpu-2": 6,
+      "gpu-1": 2
+    },
+    "success_request_duration_seconds": {
+      "n": 36,
+      "missing_legacy_measurement": 0,
+      "median": 1.4479455390001021,
+      "median_method": "arithmetic median; average middle values when n is even",
+      "p95": 12.263309944250068,
+      "p95_method": "linear interpolation at zero-based rank (n - 1) * 0.95"
+    },
+    "segment_wall_seconds": 46.62859836999996,
+    "session_timing_seconds": {
+      "setup_seconds": 0.00887544000033813,
+      "result_validation_seconds": 0.0003017590006493265,
+      "session_elapsed_before_summary_seconds": 46.63747660700028
+    },
+    "session_configuration": {
+      "allow_uncertain_retry": false,
+      "coordinator_source_sha256": "9a2de16aadd8e3d1f003bc4c4655d8d5ad30536b7e186fd3bc34d7911bf5da0e",
+      "policy": "adaptive",
+      "resume": false,
+      "schema_version": 1,
+      "telemetry_max_age_seconds": 15,
+      "timeout_seconds": 300,
+      "workers": [
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-1",
+          "port": 55521,
+          "probe_enabled": false,
+          "probe_port": null
+        },
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-2",
+          "port": 55522,
+          "probe_enabled": false,
+          "probe_port": null
+        },
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-3",
+          "port": 55523,
+          "probe_enabled": false,
+          "probe_port": null
+        }
+      ]
+    },
+    "prior_session_configuration_changes": {},
+    "prior_sessions_without_configuration": [],
+    "new_successes_per_segment_second": 0.7720583774433541,
+    "strata": {
+      "low-balanced": {
+        "completed": 36,
+        "missing": 0,
+        "planned": 36
+      }
+    },
+    "result_artifacts_independently_validated": true,
+    "notes": [
+      "Result files, PNG structure and hashes were independently checked against the plan.",
+      "Request duration is a coordinator monotonic interval from request() entry through connection, remote sampling, response transfer, SHA-256 and structural PNG verification; success-only, with legacy missing values excluded.",
+      "Throughput is new completions in this session divided by dispatch segment time; resumed work is excluded.",
+      "Segment time excludes resume validation and setup, and is not end-to-end elapsed time.",
+      "Setup includes result validation; elapsed-before-summary covers setup and dispatch but excludes summary serialization and writing.",
+      "The policy applies only to the current segment; reused jobs may have been completed under another policy.",
+      "Abandoned and uncertain failed attempts may still be running remotely, including after a retry succeeds.",
+      "p95 uses linear interpolation; the median averages the middle values for even samples. Small samples do not establish a reliable tail.",
+      "Request duration excludes queueing and result publication after request() returns; it is not one-way network latency, jitter, or GPU idle time."
+    ]
+  },
+  {
+    "run": "outputs/network-project-one-shot-20261124/three-gpu-fault-resume-20261125",
+    "session_id": "9ed2228808dd4d768530bc8c34126aa6",
+    "segment_policy": "adaptive",
+    "planned": 36,
+    "recorded_completed_total": 36,
+    "missing": 0,
+    "reused_from_previous_sessions": 35,
+    "successes_this_session": 1,
+    "failed_attempts_this_session": 0,
+    "abandoned_attempts_this_session": 0,
+    "uncertain_failed_attempts_this_session": 0,
+    "unfinished_attempts_this_session": 0,
+    "historical_attempts": {
+      "abandoned": 0,
+      "uncertain_failed": 1,
+      "starts_without_recorded_outcome": 0,
+      "abandoned_without_matching_start": 0
+    },
+    "successes_by_worker": {
+      "gpu-1": 1
+    },
+    "success_request_duration_seconds": {
+      "n": 1,
+      "missing_legacy_measurement": 0,
+      "median": 26.057368644000235,
+      "median_method": "arithmetic median; average middle values when n is even",
+      "p95": 26.057368644000235,
+      "p95_method": "linear interpolation at zero-based rank (n - 1) * 0.95"
+    },
+    "segment_wall_seconds": 26.065080426998975,
+    "session_timing_seconds": {
+      "setup_seconds": 0.01621912100017653,
+      "result_validation_seconds": 0.01391310700091708,
+      "session_elapsed_before_summary_seconds": 26.08130311700006
+    },
+    "session_configuration": {
+      "allow_uncertain_retry": true,
+      "coordinator_source_sha256": "9a2de16aadd8e3d1f003bc4c4655d8d5ad30536b7e186fd3bc34d7911bf5da0e",
+      "policy": "adaptive",
+      "resume": true,
+      "schema_version": 1,
+      "telemetry_max_age_seconds": 15,
+      "timeout_seconds": 300,
+      "workers": [
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-1",
+          "port": 55521,
+          "probe_enabled": false,
+          "probe_port": null
+        },
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-2",
+          "port": 55522,
+          "probe_enabled": false,
+          "probe_port": null
+        },
+        {
+          "checkpoint_sha256": "f29d75e9c85ffed5c0f3e184d37b0069586e6d75184f253bea53ba46e56cf459",
+          "estimate_seconds": 30,
+          "id": "gpu-3",
+          "port": 55523,
+          "probe_enabled": false,
+          "probe_port": null
+        }
+      ]
+    },
+    "prior_session_configuration_changes": {},
+    "prior_sessions_without_configuration": [],
+    "new_successes_per_segment_second": 0.038365506018702734,
+    "strata": {
+      "low-balanced": {
+        "completed": 36,
+        "missing": 0,
+        "planned": 36
+      }
+    },
+    "result_artifacts_independently_validated": true,
+    "notes": [
+      "Result files, PNG structure and hashes were independently checked against the plan.",
+      "Request duration is a coordinator monotonic interval from request() entry through connection, remote sampling, response transfer, SHA-256 and structural PNG verification; success-only, with legacy missing values excluded.",
+      "Throughput is new completions in this session divided by dispatch segment time; resumed work is excluded.",
+      "Segment time excludes resume validation and setup, and is not end-to-end elapsed time.",
+      "Setup includes result validation; elapsed-before-summary covers setup and dispatch but excludes summary serialization and writing.",
+      "The policy applies only to the current segment; reused jobs may have been completed under another policy.",
+      "Abandoned and uncertain failed attempts may still be running remotely, including after a retry succeeds.",
+      "p95 uses linear interpolation; the median averages the middle values for even samples. Small samples do not establish a reliable tail.",
+      "Request duration excludes queueing and result publication after request() returns; it is not one-way network latency, jitter, or GPU idle time."
+    ]
+  }
+]

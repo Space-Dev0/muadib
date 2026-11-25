@@ -1,5 +1,6 @@
 import unittest
 import socket
+import subprocess
 import struct
 import threading
 import time
@@ -23,6 +24,24 @@ class FakeProcess:
 
 
 class LauncherTests(unittest.TestCase):
+    def test_unconfirmed_tunnel_cleanup_warns_instead_of_masking_run_result(self):
+        class UnreapableProcess:
+            def __init__(self):
+                self.killed = False
+            def poll(self):
+                return None
+            def terminate(self):
+                pass
+            def kill(self):
+                self.killed = True
+            def wait(self, timeout):
+                raise subprocess.TimeoutExpired('ssh', timeout)
+
+        process = UnreapableProcess()
+        with self.assertWarnsRegex(RuntimeWarning, 'SSH tunnel cleanup unconfirmed'):
+            launcher._stop_owned(process)
+        self.assertTrue(process.killed)
+
     def test_tunnel_owns_only_its_process_and_invokes_frozen_plan(self):
         proc = FakeProcess()
         with patch.object(launcher, '_available', return_value=False), \
@@ -70,6 +89,16 @@ class LauncherTests(unittest.TestCase):
                 launcher.launch(PLAN, WORKERS, config, Path('run'))
         self.assertEqual(command.call_count, 1)
 
+    def test_timed_out_control_forward_is_not_cancelled_when_ownership_is_uncertain(self):
+        config = {'tunnels': [dict(TUNNELS['tunnels'][0], control_path='/tmp/control.sock')]}
+        with patch.object(Path, 'is_socket', return_value=True), \
+             patch.object(Path, 'is_symlink', return_value=False), \
+             patch.object(launcher, '_available', return_value=False), \
+             patch.object(launcher.subprocess, 'run', side_effect=subprocess.TimeoutExpired('ssh', 1)) as command:
+            with self.assertRaisesRegex(RuntimeError, 'ownership is uncertain'):
+                launcher.launch(PLAN, WORKERS, config, Path('run'))
+        self.assertEqual(command.call_count, 1)
+
     def test_control_socket_path_is_validated(self):
         for value in ('relative.sock', '/missing.sock', 'bad\x00path', 9):
             config = {'tunnels': [dict(TUNNELS['tunnels'][0], control_path=value)]}
@@ -95,6 +124,20 @@ class LauncherTests(unittest.TestCase):
             launcher.validate_tunnels(config, WORKERS)
         with self.assertRaises(ValueError):
             launcher.validate_tunnels({'tunnels': TUNNELS['tunnels'] * 2}, WORKERS)
+
+    def test_username_with_spaces_is_single_ssh_argument(self):
+        config = {'tunnels': [dict(TUNNELS['tunnels'][0], host='SHREYAS INGLE@host')]}
+        process = FakeProcess()
+        with patch.object(launcher, '_available', return_value=False), \
+             patch.object(launcher, '_worker_ready', return_value=True), \
+             patch.object(launcher.time, 'sleep'), \
+             patch.object(launcher.subprocess, 'Popen', return_value=process) as spawn, \
+             patch.object(launcher.adaptive_inference, 'run', return_value={'missing': 0}):
+            launcher.launch(PLAN, WORKERS, config, Path('run'))
+        self.assertEqual(spawn.call_args.args[0][-1], 'SHREYAS INGLE@host')
+        for host in ('-oProxyCommand=evil', 'user@-evil', 'user\nname@host', 'user @host'):
+            with self.subTest(host=host), self.assertRaises(ValueError):
+                launcher.validate_tunnels({'tunnels': [dict(config['tunnels'][0], host=host)]}, WORKERS)
 
     def test_rejects_existing_port_without_starting_ssh(self):
         with patch.object(launcher, '_available', return_value=True), \
