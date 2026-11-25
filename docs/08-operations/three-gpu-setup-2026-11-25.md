@@ -10,12 +10,7 @@ NewAurora's environment uses PyTorch 2.11.0+cu128; both Windows workers use
 now accepts the coordinator's public SSH key; its host key was independently
 confirmed and is checked strictly.
 
-The fourth candidate GPU, an RTX 3050 in a separate Fedora 44 laptop, was
-visible on PCI but had no NVIDIA kernel driver loaded or installed when
-checked. Secure Boot was enabled. Installing and enrolling a signed driver will
-require administrator access and may require a person at the machine during a
-reboot; do not disable Secure Boot to bypass enrollment. The WSL endpoint has
-not been verified as a GPU worker.
+The WSL endpoint has not been verified as a GPU worker.
 
 An optional launcher-managed worker was tested end to end on NewAurora and across
 all three verified GPUs (`gpu-1` and `gpu-2` Windows RTX 3050 laptops, plus

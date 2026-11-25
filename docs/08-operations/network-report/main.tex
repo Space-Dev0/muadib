@@ -92,7 +92,7 @@ The inference experiments used the same 480,000-update PilotUNet EMA warmstart c
   \item \textbf{gpu-2} (Windows, RTX~3050, PyTorch 2.9.1+cu128)
   \item \textbf{gpu-3} (NewAurora, Linux, RTX~2050, PyTorch 2.11.0+cu128)
 \end{itemize}
-Two additional Tailscale peers were probed: a Fedora laptop (RTX~3050 on PCI, blocked on Secure Boot MOK enrollment for its NVIDIA driver) and a Windows/WSL2 laptop without verified CUDA tooling.
+Two additional Tailscale peers were included in the network probe, while GPU inference used the three verified workers.
 
 \subsection{Five-Host Echo Probe Measurements}
 Each peer was probed with 20 sequential 1,024-byte TCP echo requests ($150\,\text{ms}$ gap, $3\,\text{s}$ per-operation socket timeout in the then-current probe) through an SSH local-forwarding tunnel over Tailscale. All 100/100 probes succeeded ($0\%$ failure). Figure~\ref{fig:echo} and Table~\ref{tab:echo} summarize RTT, p95, RTT variation (successive absolute differences), and echoed-payload goodput. These legacy probes used zero-filled payloads; the server-side timeout is not recorded. Peer windows were staggered by several minutes. Goodput includes pacing and is not link capacity.
@@ -302,7 +302,6 @@ An independent privileged recheck of \texttt{ops.ebpf\_tcp --port 22 --seconds 3
 \sloppy
   \item \textbf{Scope:} Echo measurements cover coordinator-to-peer SSH paths, not all pairwise links. They are not evidence of full-mesh performance.
   \item \textbf{Sample Size \& Controls:} Each policy configuration represents one run, without live \texttt{network\_probe} files attached to the adaptive scorer; repeated interleaved runs are needed for statistical inference. Its history uses request times that already include network work; adding an RTT estimate when enabled can count some network time twice.
-  \item \textbf{Fourth GPU Node:} Prince's Fedora laptop (RTX~3050 on PCI) remains unverified as a worker until physical MOK enrollment for Secure Boot allows \texttt{nvidia.ko} to load.
   \item \textbf{Transport Scope:} Tailscale encapsulates traffic over UDP, so host-level TCP retransmission hooks on SSH/loopback ports do not directly measure Tailscale UDP packet loss.
 \end{itemize}
 
